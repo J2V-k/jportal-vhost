@@ -1,0 +1,20 @@
+You are an expert at extracting structured data from images. I will upload a photo of a weekly mess menu (with days, breakfast, lunch, and dinner). 
+Please analyze the image and return the menu in the following JSON format:
+{
+  "menu": {
+    "Monday 19.05.25": {
+      "Breakfast": "Aloo Parantha, Dahi, Achar, Bread Jam, Tea, Fruit",
+      "Lunch": "Matar Paneer, Mix Dal, Raita, Rice, Roti, Achar, Salad, Boondi",
+      "Dinner": "Dum Aloo, Tahri, Raita, Roti, Achar, Salad, Papad, Green Chutney"
+    },
+    "Tuesday 20.05.25": {
+      "Breakfast": "Poha, Daliya, Bread Jam, Tea, Fruit",
+      "Lunch": "Chole, Kaddu, Raita, Rice, Poori, Achar, Salad, Moong Dal Halwa",
+      "Dinner": "lendi Ki Sabji, Arhar Dal, Rice, Roti, Achar, Salad, Milk"
+    }
+    // ...repeat for all days in the image
+  }
+}
+Use the exact date and day format as shown.
+List all items for each meal, separated by commas.
+Only include the menu, no extra commentary.
