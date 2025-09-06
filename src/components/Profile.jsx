@@ -228,6 +228,13 @@ export default function Profile({ w, profileData, setProfileData }) {
         <a href="https://github.com/codeblech" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
           Yash Malik
         </a>
+        <br />
+        <span className="block mt-2">
+          Current Source code for this version on{' '}
+          <a href="https://github.com/J2V-k/jportal-vhost" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+        </span>
       </motion.div>
     </motion.div>
   )
