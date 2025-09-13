@@ -502,16 +502,8 @@ export default function Grades({
                 </motion.div>
               </>
             )}
-            <CGPATargetCalculator
-              currentCGPA={semesterData[semesterData.length - 1].cgpa}
-              totalCredits={semesterData.reduce(
-                (acc, sem) => acc + sem.totalcoursecredit,
-                0
-              )}
-              nextSemesterCredits={
-                semesterData[semesterData.length - 1].totalcoursecredit
-              }
-            />
+          <CGPATargetCalculator semesterData={semesterData} />
+
           </motion.div>
         </TabsContent>
 
