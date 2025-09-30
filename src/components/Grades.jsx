@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsTrigger, TabsContent, TabsList } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -47,6 +47,7 @@ const gradePointMap = {
 
 export default function Grades({
   w,
+  gradesData,
   setGradesData,
   semesterData,
   setSemesterData,
@@ -348,386 +349,443 @@ export default function Grades({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-2 pb-4 px-3 font-sans text-sm max-[390px]:text-xs"
+      className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-4 pb-8 px-4 md:px-8 mb-8 font-sans text-sm max-[390px]:text-xs"
     >
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="w-full max-w-4xl mx-auto"
+        className="w-full max-w-7xl mx-auto"
       >
-        <TabsList className="grid w-full grid-cols-3 mb-4 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
-          {["overview","marks", "semester"].map((tab, index) => (
-            <TabsTrigger
-              key={tab} // Changed from index to tab for unique keys
-              value={tab}
-              className="bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black text-gray-300 dark:text-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white rounded-md transition-all duration-200"
-            >
-              <motion.div
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -10, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+        {/* Mobile tabs */}
+        <div className="md:hidden">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-6 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
+            {["overview","marks", "semester"].map((tab, index) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black text-gray-300 dark:text-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white rounded-md transition-all duration-200"
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </motion.div>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+                <motion.div
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -10, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </motion.div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
-        <TabsContent value="overview">
-          <motion.div {...fadeInUp} className="space-y-6">
-            {gradesError ? (
-              <motion.div
-                {...fadeInUp}
-                className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+        {/* Desktop view - Overview as main, with buttons for marks/semester */}
+        <div className="hidden md:block">
+          <div className="flex justify-center mb-6">
+            <div className="flex bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                  activeTab === "overview"
+                    ? "bg-white dark:bg-black text-black dark:text-white"
+                    : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
+                }`}
               >
-                <p className="text-xl text-red-400"> {gradesError} </p>
-                <p className="text-gray-400 dark:text-gray-600 mt-2">
-                  {" "}
-                  Please check back later{" "}
-                </p>
-              </motion.div>
-            ) : (
-              <>
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab("marks")}
+                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                  activeTab === "marks"
+                    ? "bg-white dark:bg-black text-black dark:text-white"
+                    : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
+                }`}
+              >
+                Marks
+              </button>
+              <button
+                onClick={() => setActiveTab("semester")}
+                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                  activeTab === "semester"
+                    ? "bg-white dark:bg-black text-black dark:text-white"
+                    : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
+                }`}
+              >
+                Semester
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content area */}
+        <div className="w-full max-w-7xl mx-auto">
+          <TabsContent value="overview">
+            <motion.div {...fadeInUp} className="space-y-6">
+              {gradesError ? (
                 <motion.div
                   {...fadeInUp}
-                  className="bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-4"
+                  className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
                 >
-                  <h2 className="text-xl font-semibold mb-4">
+                  <p className="text-xl text-red-400"> {gradesError} </p>
+                  <p className="text-gray-400 dark:text-gray-600 mt-2">
                     {" "}
-                    Grade Progression{" "}
-                  </h2>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart
-                      data={semesterData}
-                      margin={{
-                        top: 0,
-                        right: 10,
-                        left: 0,
-                        bottom: 20,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis
-                        dataKey="stynumber"
-                        stroke="#9CA3AF"
-                        label={{
-                          value: "Semester",
-                          position: "bottom",
-                          fill: "#9CA3AF",
-                        }}
-                        tickFormatter={(value) => `${value}`}
-                      />
-                      <YAxis
-                        stroke="#9CA3AF"
-                        domain={["dataMin", "dataMax"]}
-                        ticks={undefined}
-                        tickCount={5}
-                        padding={{ top: 20, bottom: 20 }}
-                        tickFormatter={(value) => value.toFixed(1)}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#374151",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: "#fff",
-                          fontWeight: "500",
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36} />
-                      <Line
-                        type="monotone"
-                        dataKey="sgpa"
-                        stroke="#4ADE80"
-                        name="SGPA"
-                        strokeWidth={3}
-                        dot={{ fill: "#4ADE80" }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="cgpa"
-                        stroke="#60A5FA"
-                        name="CGPA"
-                        strokeWidth={3}
-                        dot={{ fill: "#60A5FA" }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                    Please check back later{" "}
+                  </p>
                 </motion.div>
-
-                <motion.div {...fadeInUp} className="space-y-4">
-                  {semesterData.map((sem, index) => (
-                    <motion.div
-                      key={sem.stynumber}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-4 flex justify-between items-center"
+              ) : (
+                <>
+                  <motion.div
+                    {...fadeInUp}
+                    className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-6 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+                  >
+                    <h2 className="text-2xl font-bold mb-6 text-center">
+                      Grade Progression
+                    </h2>
+                    <ResponsiveContainer
+                      width="100%"
+                      height={300}
+                      className="md:h-[400px]"
                     >
-                      <div>
-                        <h4 className="text-base md:text-lg font-semibold">
-                          {" "}
-                          Semester {sem.stynumber}{" "}
-                        </h4>
-                        <p className="text-sm text-gray-400 dark:text-gray-600">
-                          GP: {sem.earnedgradepoints.toFixed(1)}/
-                          {sem.totalcoursecredit * 10}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <div className="text-lg md:text-2xl font-bold text-green-400">
-                            {" "}
-                            {sem.sgpa}{" "}
+                      <LineChart
+                        data={semesterData}
+                        margin={{
+                          top: 0,
+                          right: 10,
+                          left: 0,
+                          bottom: 20,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis
+                          dataKey="stynumber"
+                          stroke="#9CA3AF"
+                          label={{
+                            value: "Semester",
+                            position: "bottom",
+                            fill: "#9CA3AF",
+                          }}
+                          tickFormatter={(value) => `${value}`}
+                        />
+                        <YAxis
+                          stroke="#9CA3AF"
+                          domain={["dataMin", "dataMax"]}
+                          ticks={undefined}
+                          tickCount={5}
+                          padding={{ top: 20, bottom: 20 }}
+                          tickFormatter={(value) => value.toFixed(1)}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#374151",
+                            border: "none",
+                            borderRadius: "8px",
+                            color: "#fff",
+                            fontWeight: "500",
+                          }}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        <Line
+                          type="monotone"
+                          dataKey="sgpa"
+                          stroke="#4ADE80"
+                          name="SGPA"
+                          strokeWidth={3}
+                          dot={{ fill: "#4ADE80" }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="cgpa"
+                          stroke="#60A5FA"
+                          name="CGPA"
+                          strokeWidth={3}
+                          dot={{ fill: "#60A5FA" }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </motion.div>
+
+                  <motion.div
+                    {...fadeInUp}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    {semesterData.map((sem, index) => (
+                      <motion.div
+                        key={sem.stynumber}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-6 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-base md:text-lg font-semibold">
+                              {" "}
+                              Semester {sem.stynumber}{" "}
+                            </h4>
+                            <p className="text-sm text-gray-400 dark:text-gray-600">
+                              GP: {sem.earnedgradepoints.toFixed(1)}/
+                              {sem.totalcoursecredit * 10}
+                            </p>
                           </div>
-                          <div className="text-xs text-gray-400 dark:text-gray-600">
-                            {" "}
-                            SGPA{" "}
+                          <div className="flex items-center gap-4">
+                            <div className="text-center">
+                              <div className="text-lg md:text-xl font-bold text-green-400">
+                                {sem.sgpa}
+                              </div>
+                              <div className="text-xs text-gray-400 dark:text-gray-600">
+                                SGPA
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg md:text-xl font-bold text-blue-400">
+                                {sem.cgpa}
+                              </div>
+                              <div className="text-xs text-gray-400 dark:text-gray-600">
+                                CGPA
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-lg md:text-2xl font-bold text-blue-400">
-                            {" "}
-                            {sem.cgpa}{" "}
-                          </div>
-                          <div className="text-xs text-gray-400 dark:text-gray-600">
-                            {" "}
-                            CGPA{" "}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+              <CGPATargetCalculator semesterData={semesterData} />
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="semester">
+            <motion.div {...fadeInUp} className="space-y-4">
+              {gradeCardSemesters.length === 0 ? (
+                <motion.div
+                  {...fadeInUp}
+                  className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+                >
+                  <p className="text-xl"> Grade card is not available yet </p>
+                  <p className="text-gray-400 dark:text-gray-600 mt-2">
+                    {" "}
+                    Please check back later{" "}
+                  </p>
                 </motion.div>
-              </>
-            )}
-          <CGPATargetCalculator semesterData={semesterData} />
-
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="semester">
-          <motion.div {...fadeInUp} className="space-y-4">
-            {gradeCardSemesters.length === 0 ? (
-              <motion.div
-                {...fadeInUp}
-                className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-              >
-                <p className="text-xl"> Grade card is not available yet </p>
-                <p className="text-gray-400 dark:text-gray-600 mt-2">
-                  {" "}
-                  Please check back later{" "}
-                </p>
-              </motion.div>
-            ) : (
-              <>
-                <Select
-                  onValueChange={handleSemesterChange}
-                  value={selectedGradeCardSem?.registration_id}
-                >
-                  <SelectTrigger className="bg-[#0B0B0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                    <SelectValue
-                      placeholder={
-                        gradeCardLoading
-                          ? "Loading semesters..."
-                          : "Select semester"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0B0B0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                    {gradeCardSemesters.map((sem) => (
-                      <SelectItem
-                        key={sem.registration_id}
-                        value={sem.registration_id}
-                      >
-                        {sem.registration_code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <AnimatePresence mode="wait">
-                  {gradeCardLoading ? (
-                    <motion.div
-                      key="loading"
-                      {...fadeInUp}
-                      className="flex items-center justify-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                    >
-                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                      <span> Loading subjects... </span>
-                    </motion.div>
-                  ) : gradeCard ? (
-                    <motion.div
-                      key="gradecard"
-                      {...fadeInUp}
-                      className="space-y-4"
-                    >
-                      {gradeCard.gradecard.map((subject) => (
-                        <GradeCard
-                          key={subject.subjectcode}
-                          subject={subject}
-                          getGradeColor={getGradeColor}
-                        />
+              ) : (
+                <>
+                  <Select
+                    onValueChange={handleSemesterChange}
+                    value={selectedGradeCardSem?.registration_id}
+                  >
+                    <SelectTrigger className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
+                      <SelectValue
+                        placeholder={
+                          gradeCardLoading
+                            ? "Loading semesters..."
+                            : "Select semester"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
+                      {gradeCardSemesters.map((sem) => (
+                        <SelectItem
+                          key={sem.registration_id}
+                          value={sem.registration_id}
+                        >
+                          {sem.registration_code}
+                        </SelectItem>
                       ))}
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="nodata"
-                      {...fadeInUp}
-                      className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                    >
-                      <p> No grade card data available for this semester </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
-          </motion.div>
-        </TabsContent>
+                    </SelectContent>
+                  </Select>
 
-        <TabsContent value="marks">
-          <motion.div {...fadeInUp} className="space-y-4">
-            {marksSemesters.length === 0 ? (
-              <motion.div
-                {...fadeInUp}
-                className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-              >
-                <p className="text-xl"> Marks data is not available yet </p>
-                <p className="text-gray-400 dark:text-gray-600 mt-2">
-                  {" "}
-                  Please check back later{" "}
-                </p>
-              </motion.div>
-            ) : (
-              <>
-                <Select
-                  onValueChange={handleMarksSemesterChange}
-                  value={selectedMarksSem?.registration_id}
-                >
-                  <SelectTrigger className="bg-[#0B0B0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                    <SelectValue placeholder="Select semester" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0B0B0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                    {marksSemesters.map((sem) => (
-                      <SelectItem
-                        key={sem.registration_id}
-                        value={sem.registration_id}
+                  <AnimatePresence mode="wait">
+                    {gradeCardLoading ? (
+                      <motion.div
+                        key="loading"
+                        {...fadeInUp}
+                        className="flex items-center justify-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
                       >
-                        {sem.registration_code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                        <span> Loading subjects... </span>
+                      </motion.div>
+                    ) : gradeCard ? (
+                      <motion.div
+                        key="gradecard"
+                        {...fadeInUp}
+                        className="space-y-4"
+                      >
+                        {gradeCard.gradecard.map((subject) => (
+                          <GradeCard
+                            key={subject.subjectcode}
+                            subject={subject}
+                            getGradeColor={getGradeColor}
+                          />
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="nodata"
+                        {...fadeInUp}
+                        className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+                      >
+                        <p> No grade card data available for this semester </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              )}
+            </motion.div>
+          </TabsContent>
 
-                <AnimatePresence mode="wait">
-                  {marksLoading ? (
-                    <motion.div
-                      key="loading"
-                      {...fadeInUp}
-                      className="flex items-center justify-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                    >
-                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                      <span> Loading marks data... </span>
-                    </motion.div>
-                  ) : marksSemesterData && marksSemesterData.courses ? (
-                    <motion.div
-                      key="marksdata"
-                      {...fadeInUp}
-                      className="space-y-4"
-                    >
-                      {selectedMarksSem &&
-                        gradeCards[selectedMarksSem.registration_id] &&
-                        (() => {
-                          const currentSemesterGradeInfo =
-                            gradeCards[selectedMarksSem.registration_id];
-                          let calculatedEarnedGradePoints = 0;
-                          let calculatedTotalCredits = 0;
-
-                          if (currentSemesterGradeInfo.gradecard) {
-                            currentSemesterGradeInfo.gradecard
-                              .filter(subject => subject.sgpapoints!=0) // Filter out audit subjects
-                              .forEach((subject) => {
-                                console.log("Regular subject:", subject);
-                                const credits = parseFloat(
-                                  subject.coursecreditpoint
-                                );
-                                let points = 0;
-                                if (subject.gradepoint !== undefined) {
-                                  points = parseFloat(subject.gradepoint);
-                                } else if (subject.pointsecured !== undefined) {
-                                  points = parseFloat(subject.pointsecured);
-                                }
-
-                                if (!isNaN(credits) && !isNaN(points)) {
-                                  calculatedEarnedGradePoints += credits * points;
-                                  calculatedTotalCredits += credits;
-                                }
-                              });
-                          }
-
-                          const calculatedSGPA =
-                            calculatedTotalCredits > 0
-                              ? calculatedEarnedGradePoints /
-                                calculatedTotalCredits
-                              : 0.0;
-
-                          return (
-                            <>
-                              {calculatedSGPA !== 0 && (
-                                <motion.div
-                                  {...fadeInUp}
-                                  className="bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-4"
-                                >
-                                  <div className="flex flex-row justify-around items-start text-center gap-4">
-                                    <div className="flex-1">
-                                      <h4 className="text-gray-400 dark:text-gray-600 text-sm">
-                                        Grade Points
-                                      </h4>
-                                      <p className="text-lg font-bold">
-                                        {calculatedEarnedGradePoints.toFixed(1)} /{" "}
-                                        {calculatedTotalCredits * 10}
-                                      </p>
-                                    </div>
-                                    <div className="flex-1">
-                                      <h4 className="text-gray-400 dark:text-gray-600 text-sm">
-                                        SGPA
-                                      </h4>
-                                      <p className="text-lg font-bold text-green-400">
-                                        {calculatedSGPA.toFixed(2)}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </>
-                          );
-                        })()}
-
-                      {marksSemesterData.courses.map((course) => (
-                        <MarksCard
-                          key={course.code}
-                          course={course}
-                          gradeInfo={
-                            gradeCards[selectedMarksSem?.registration_id]
-                          }
-                        />
+          <TabsContent value="marks">
+            <motion.div {...fadeInUp} className="space-y-4">
+              {marksSemesters.length === 0 ? (
+                <motion.div
+                  {...fadeInUp}
+                  className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+                >
+                  <p className="text-xl"> Marks data is not available yet </p>
+                  <p className="text-gray-400 dark:text-gray-600 mt-2">
+                    {" "}
+                    Please check back later{" "}
+                  </p>
+                </motion.div>
+              ) : (
+                <>
+                  <Select
+                    onValueChange={handleMarksSemesterChange}
+                    value={selectedMarksSem?.registration_id}
+                  >
+                    <SelectTrigger className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
+                      <SelectValue placeholder="Select semester" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
+                      {marksSemesters.map((sem) => (
+                        <SelectItem
+                          key={sem.registration_id}
+                          value={sem.registration_id}
+                        >
+                          {sem.registration_code}
+                        </SelectItem>
                       ))}
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="nodata"
-                      {...fadeInUp}
-                      className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                    >
-                      <p> Select a semester to view marks </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
-          </motion.div>
-        </TabsContent>
+                    </SelectContent>
+                  </Select>
+
+                  <AnimatePresence mode="wait">
+                    {marksLoading ? (
+                      <motion.div
+                        key="loading"
+                        {...fadeInUp}
+                        className="flex items-center justify-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+                      >
+                        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                        <span> Loading marks data... </span>
+                      </motion.div>
+                    ) : marksSemesterData && marksSemesterData.courses ? (
+                      <motion.div
+                        key="marksdata"
+                        {...fadeInUp}
+                        className="space-y-4"
+                      >
+                        {selectedMarksSem &&
+                          gradeCards[selectedMarksSem.registration_id] &&
+                          (() => {
+                            const currentSemesterGradeInfo =
+                              gradeCards[selectedMarksSem.registration_id];
+                            let calculatedEarnedGradePoints = 0;
+                            let calculatedTotalCredits = 0;
+
+                            if (currentSemesterGradeInfo.gradecard) {
+                              currentSemesterGradeInfo.gradecard
+                                .filter((subject) => subject.sgpapoints != 0) // Filter out audit subjects
+                                .forEach((subject) => {
+                                  console.log("Regular subject:", subject);
+                                  const credits = parseFloat(
+                                    subject.coursecreditpoint
+                                  );
+                                  let points = 0;
+                                  if (subject.gradepoint !== undefined) {
+                                    points = parseFloat(subject.gradepoint);
+                                  } else if (subject.pointsecured !== undefined) {
+                                    points = parseFloat(subject.pointsecured);
+                                  }
+
+                                  if (!isNaN(credits) && !isNaN(points)) {
+                                    calculatedEarnedGradePoints += credits * points;
+                                    calculatedTotalCredits += credits;
+                                  }
+                                });
+                            }
+
+                            const calculatedSGPA =
+                              calculatedTotalCredits > 0
+                                ? calculatedEarnedGradePoints /
+                                  calculatedTotalCredits
+                                : 0.0;
+
+                            return (
+                              <>
+                                {calculatedSGPA !== 0 && (
+                                  <motion.div
+                                    {...fadeInUp}
+                                    className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-4"
+                                  >
+                                    <div className="flex flex-row justify-around items-start text-center gap-4">
+                                      <div className="flex-1">
+                                        <h4 className="text-gray-400 dark:text-gray-600 text-sm">
+                                          Grade Points
+                                        </h4>
+                                        <p className="text-lg font-bold">
+                                          {calculatedEarnedGradePoints.toFixed(1)} /{" "}
+                                          {calculatedTotalCredits * 10}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-4">
+                                        <div className="text-center">
+                                          <div className="text-lg font-bold text-green-400">
+                                            {calculatedSGPA.toFixed(2)}
+                                          </div>
+                                          <div className="text-xs text-gray-400 dark:text-gray-600">
+                                            SGPA
+                                          </div>
+                                        </div>
+                                        <div className="text-center">
+                                          <div className="text-lg font-bold text-blue-400">
+                                            {gradesData?.cgpa || "--"}
+                                          </div>
+                                          <div className="text-xs text-gray-400 dark:text-gray-600">
+                                            CGPA
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </>
+                            );
+                          })()}
+
+                        {marksSemesterData.courses.map((course) => (
+                          <MarksCard
+                            key={course.code}
+                            course={course}
+                            gradeInfo={
+                              gradeCards[selectedMarksSem?.registration_id]
+                            }
+                          />
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="nodata"
+                        {...fadeInUp}
+                        className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+                      >
+                        <p> Select a semester to view marks </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              )}
+            </motion.div>
+          </TabsContent>
+        </div>
       </Tabs>
 
       <motion.div

@@ -8,23 +8,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
-import CircleProgress from "./CircleProgress";
 import {
-  Check,
   Loader2,
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  Calendar,
+  BarChart3,
 } from "lucide-react";
 
 const Attendance = ({
@@ -51,8 +44,6 @@ const Attendance = ({
   setDailyDate,
   calendarOpen,
   setCalendarOpen,
-  isTrackerOpen,
-  setIsTrackerOpen,
   subjectCacheStatus,
   setSubjectCacheStatus,
 }) => {
@@ -116,7 +107,7 @@ const Attendance = ({
 
   const handleSemesterChange = async (value) => {
     const semester = semestersData.semesters.find(
-      (sem) => sem.registration_id === value,
+      (sem) => sem.registration_id === value
     );
     setSelectedSem(semester);
 
@@ -185,12 +176,12 @@ const Attendance = ({
           const classesNeeded = attendanceGoal
             ? Math.ceil(
                 (attendanceGoal * total - 100 * attended) /
-                  (100 - attendanceGoal),
+                  (100 - attendanceGoal)
               )
             : null;
           const classesCanMiss = attendanceGoal
             ? Math.floor(
-                (100 * attended - attendanceGoal * total) / attendanceGoal,
+                (100 * attended - attendanceGoal * total) / attendanceGoal
               )
             : null;
 
@@ -216,7 +207,7 @@ const Attendance = ({
             classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
             classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
           };
-        },
+        }
       )) ||
     [];
 
@@ -224,7 +215,7 @@ const Attendance = ({
     try {
       const attendance = attendanceData[selectedSem.registration_id];
       const subjectData = attendance.studentattendancelist.find(
-        (s) => s.subjectcode === subject.name,
+        (s) => s.subjectcode === subject.name
       );
 
       if (!subjectData) return;
@@ -241,7 +232,7 @@ const Attendance = ({
         selectedSem,
         subjectData.subjectid,
         subjectData.individualsubjectcode,
-        subjectcomponentids,
+        subjectcomponentids
       );
 
       setSubjectAttendanceData((prev) => ({
@@ -266,7 +257,7 @@ const Attendance = ({
           setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "fetching" }));
           await fetchSubjectAttendance(subj);
           setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
-        }),
+        })
       );
     };
     loadAllSubjects();
@@ -302,7 +293,7 @@ const Attendance = ({
                 {selectedSem?.registration_code}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="bg-[#0B0B0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black">
+            <SelectContent className="bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black">
               {semestersData?.semesters?.map((sem) => (
                 <SelectItem
                   key={sem.registration_id}
@@ -320,7 +311,7 @@ const Attendance = ({
             onChange={handleGoalChange}
             min="-1"
             max="100"
-            className="w-32 bg-[#0B0B0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black"
+            className="w-32 bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black"
             placeholder="Goal %"
           />
         </div>
@@ -337,16 +328,16 @@ const Attendance = ({
           onValueChange={setActiveTab}
           className="px-3 pb-4 max-w-[1440px] mx-auto"
         >
-          <TabsList className="grid grid-cols-2 bg-[#0B0B0D] dark:bg-white relative z-30">
+          <TabsList className="grid grid-cols-2 bg-[#0B0D0D] dark:bg-white relative z-30">
             <TabsTrigger
               value="overview"
-              className="bg-[#0B0B0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
+              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="daily"
-              className="bg-[#0B0B0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
+              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
             >
               Day‑to‑Day
             </TabsTrigger>
@@ -375,75 +366,174 @@ const Attendance = ({
           </TabsContent>
 
           <TabsContent value="daily">
-            <div className="flex flex-col md:flex-row md:items-start md:gap-8 md:justify-center">
-              <div className="w-full max-w-[320px] flex flex-col sticky top-[120px]">
-                <Calendar
-                  mode="single"
-                  selected={safeDailyDate}
-                  onSelect={(d) => {
-                    if (d) {
-                      setDailyDate(d);
-                    }
-                  }}
-                  modifiers={{
-                    hasActivity: (date) =>
-                      subjects.some(
-                        (s) => getClassesFor(s.name, date).length > 0,
-                      ),
-                    selected: (date) =>
-                      date.toDateString() === safeDailyDate.toDateString(),
-                  }}
-                  modifiersStyles={{
-                    hasActivity: {
-                      boxShadow: "inset 0 -2px 0 0 rgba(96,165,250,0.8)",
-                      borderRadius: "2px",
-                    },
-                  }}
-                  className="mb-4 dark:bg-white dark:text-black"
-                />
-              </div>
-
-              <div className="md:flex-1 md:max-w-xl w-full">
-                {subjects.length === 0 ? (
-                  <p className="text-gray-400 dark:text-gray-600">No subjects found.</p>
-                ) : (
-                  subjects.flatMap((subj) => {
-                  const lectures = getClassesFor(subj.name, safeDailyDate);
-                  if (lectures.length === 0) return [];
-                  return (
-                    <div
-                      key={subj.name}
-                      className="w-full max-w-lg border-b border-gray-700 dark:border-gray-300 py-3"
-                    >
-                      <h3 className="font-semibold mb-1 dark:text-black">{subj.name}</h3>
-                      {lectures.map((cls, i) => (
-                        <div
-                          key={i}
-                          className={`flex justify-between text-sm ${
-                            cls.present === "Present"
-                              ? "text-green-400 dark:text-green-700"
-                              : "text-red-400 dark:text-red-700"
-                          }`}
-                        >
-                          <span>
-                            {cls.classtype} • {cls.present}
-                          </span>
-                          <span>{cls.datetime.split(" ").slice(1).join(" ").slice(1, -1)}</span>
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                {/* Calendar Section */}
+                <div className="lg:col-span-1 order-2 lg:order-1">
+                  <div className="sticky top-4">
+                    <div className="bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-lg flex flex-col items-center">
+                      <h3 className="text-lg font-semibold mb-3 text-white dark:text-black text-center">
+                        Select Date
+                      </h3>
+                      <CalendarComponent
+                        mode="single"
+                        selected={safeDailyDate}
+                        onSelect={(d) => {
+                          if (d) {
+                            setDailyDate(d);
+                          }
+                        }}
+                        modifiers={{
+                          hasActivity: (date) =>
+                            subjects.some(
+                              (s) => getClassesFor(s.name, date).length > 0
+                            ),
+                          selected: (date) =>
+                            date.toDateString() ===
+                            safeDailyDate.toDateString(),
+                        }}
+                        modifiersStyles={{
+                          hasActivity: {
+                            backgroundColor: "rgba(59, 130, 246, 0.2)",
+                            border: "2px solid rgba(59, 130, 246, 0.6)",
+                            borderRadius: "6px",
+                            fontWeight: "bold",
+                          },
+                        }}
+                        classNames={{
+                          day_selected:
+                            "bg-[#1e40af] text-white border-2 border-[#1e40af] hover:bg-[#1e40af] hover:text-white hover:border-[#1e40af] rounded-md",
+                          day_today:
+                            "aria-selected:bg-[#1e40af] aria-selected:text-white aria-selected:border-[#1e40af] bg-accent text-accent-foreground",
+                        }}
+                        className="dark:bg-white dark:text-black rounded-md border-0"
+                      />
+                      <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full border border-blue-300"></div>
+                          <span>Has Classes</span>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  );
-                })
-              )}
+                  </div>
+                </div>
 
-                {subjects.every(
-                  (s) => getClassesFor(s.name, safeDailyDate).length === 0,
-                ) && (
-                  <p className="text-gray-400 dark:text-gray-600 mt-4">
-                    No classes were scheduled on&nbsp;
-                    {safeDailyDate.toLocaleDateString()}
-                  </p>
-                )}
+                {/* Classes Section */}
+                <div className="lg:col-span-2 order-1 lg:order-2">
+                  <div className="min-h-[400px]">
+                    {isAttendanceDataLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="text-center">
+                          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
+                          <p className="text-gray-400 dark:text-gray-600">
+                            Loading attendance data...
+                          </p>
+                        </div>
+                      </div>
+                    ) : subjects.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-gray-400 dark:text-gray-600 text-lg">
+                          No subjects found.
+                        </p>
+                        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
+                          Please select a semester first.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {subjects.flatMap((subj) => {
+                          const lectures = getClassesFor(
+                            subj.name,
+                            safeDailyDate
+                          );
+                          if (lectures.length === 0) return [];
+                          return (
+                            <div
+                              key={subj.name}
+                              className="bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+                            >
+                              <h3 className="font-semibold mb-3 text-white dark:text-black flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                {subj.name}
+                              </h3>
+                              <div className="space-y-2">
+                                {lectures.map((cls, i) => (
+                                  <div
+                                    key={i}
+                                    className={`flex justify-between items-center p-3 rounded-md text-sm ${
+                                      cls.present === "Present"
+                                        ? "bg-green-900/20 dark:bg-green-100 border border-green-700 dark:border-green-300"
+                                        : "bg-red-900/20 dark:bg-red-100 border border-red-700 dark:border-red-300"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className={`w-2 h-2 rounded-full ${
+                                          cls.present === "Present"
+                                            ? "bg-green-400"
+                                            : "bg-red-400"
+                                        }`}
+                                      ></div>
+                                      <span
+                                        className={
+                                          cls.present === "Present"
+                                            ? "text-green-400 dark:text-green-700"
+                                            : "text-red-400 dark:text-red-700"
+                                        }
+                                      >
+                                        {cls.classtype}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className={`font-medium ${
+                                          cls.present === "Present"
+                                            ? "text-green-400 dark:text-green-700"
+                                            : "text-red-400 dark:text-red-700"
+                                        }`}
+                                      >
+                                        {cls.present}
+                                      </span>
+                                      <span className="text-gray-400 dark:text-gray-600 text-xs">
+                                        {cls.datetime
+                                          .split(" ")
+                                          .slice(1)
+                                          .join(" ")
+                                          .slice(1, -1)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {subjects.every(
+                      (s) => getClassesFor(s.name, safeDailyDate).length === 0
+                    ) &&
+                      subjects.length > 0 && (
+                        <div className="text-center py-12">
+                          <div className="text-4xl mb-4">
+                            <Calendar className="w-10 h-10 mx-auto text-blue-400" />
+                          </div>
+                          <p className="text-gray-400 dark:text-gray-600 text-lg font-medium">
+                            No classes scheduled
+                          </p>
+                          <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
+                            {safeDailyDate.toLocaleDateString("en-US", {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                        </div>
+                      )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -451,91 +541,34 @@ const Attendance = ({
               subjectCacheStatus &&
               typeof subjectCacheStatus === "object" &&
               Object.values(subjectCacheStatus).some((s) => s !== "cached") && (
-                <Sheet open={isTrackerOpen} onOpenChange={setIsTrackerOpen}>
-                  <SheetTrigger asChild>
-                    <button
-                      className="fixed bottom-20 right-4 z-50
-                           drop-shadow-lg bg-[#242a32] dark:bg-[#f3f4f6] rounded-full
-                           ring-blue-400
-                           hover:ring-blue-300 hover:scale-105
-                           transition-transform cursor-pointer"
-                    >
-                      <CircleProgress
-                        percentage={
-                          (100 *
-                            subjects.filter(
-                              (s) => subjectCacheStatus[s.name] === "cached",
-                            ).length) /
-                          subjects.length
-                        }
-                        label={`${subjects.filter((s) => subjectCacheStatus[s.name] === "cached").length}/${subjects.length}`}
-                        className="shadow-inner"
-                      />
-                    </button>
-                  </SheetTrigger>
-
-                  <SheetContent
-                    side="bottom"
-                    className="h-[45vh] bg-[#242a32] dark:bg-[#f3f4f6] text-white dark:text-black border-0 overflow-hidden
-                         [&_[data-radix-dialog-close]]:hidden"
-                  >
-                    <SheetHeader>
-                      <SheetTitle className="text-sm text-white dark:text-black">
-                        Fetching daily attendance&nbsp;(
-                        {
-                          subjects.filter(
-                            (s) => subjectCacheStatus[s.name] === "cached",
-                          ).length
-                        }
-                        /{subjects.length})
-                      </SheetTitle>
-                    </SheetHeader>
-
-                    <div className="mt-4 space-y-4 px-1 overflow-y-auto h-[calc(100%-3rem)]">
-                      <Progress
-                        value={
-                          (100 *
-                            subjects.filter(
-                              (s) => subjectCacheStatus[s.name] === "cached",
-                            ).length) /
-                          subjects.length
-                        }
-                        className="h-2"
-                      />
-
-                      <div className="divide-y divide-white/10 dark:divide-black/10 mt-4 overflow-y-auto h-[calc(100%-5rem)] pr-1">
-                        {subjects.map((s) => {
-                          const st = subjectCacheStatus[s.name] || "idle";
-                          return (
-                            <div
-                              key={s.name}
-                              className="py-3 flex items-center justify-between"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate dark:text-black">
-                                  {s.name}
-                                </p>
-                              </div>
-                              {st === "cached" && (
-                                <Check className="text-green-400 dark:text-green-700 w-5 h-5" />
-                              )}
-                              {st === "fetching" && (
-                                <Loader2 className="animate-spin text-blue-400 dark:text-blue-700 w-5 h-5" />
-                              )}
-                              {st === "idle" && (
-                                <AlertCircle className="text-gray-500 dark:text-gray-400 w-5 h-5" />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </SheetContent>
-                </Sheet>
+                <div className="mb-6 p-4 bg-[#0B0D0D] dark:bg-gray-50 rounded-lg border border-gray-800 dark:border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-white dark:text-black flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Fetching Daily Attendance
+                    </h4>
+                    <span className="text-xs text-gray-400 dark:text-gray-600">
+                      {
+                        subjects.filter(
+                          (s) => subjectCacheStatus[s.name] === "cached"
+                        ).length
+                      }{" "}
+                      of {subjects.length} subjects
+                    </span>
+                  </div>
+                  <Progress
+                    value={
+                      (100 *
+                        subjects.filter((s) => subjectCacheStatus[s.name] === "cached").length) /
+                      subjects.length
+                    }
+                  />
+                </div>
               )}
           </TabsContent>
         </Tabs>
       )}
+      <div className="h-16 md:h-20" />
     </div>
   );
 };

@@ -25,3 +25,15 @@
   right: 0;
   z-index: 40;
 }
+
+.day_selected.day_today {
+  background-color: #1e40af !important;
+  color: white !important;
+  border-color: #1e40af !important;
+}
+
+.selected-date-hover-fix:hover {
+  background-color: #1e40af !important;
+  color: #ffffff !important;
+  border-color: #1e40af !important;
+}

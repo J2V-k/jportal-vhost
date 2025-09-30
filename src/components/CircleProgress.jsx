@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 
-function CircleProgress({ percentage, label, className = "" }) {
-  const strokeWidth = 3;
-  const defaultRadius = 15;
+const CircleProgress = memo(function CircleProgress({ percentage, label, className = "" }) {
+  const strokeWidth = 2.5;
+  const defaultRadius = 12;
   const radius = defaultRadius;
   const circumference = 2 * Math.PI * radius;
 
@@ -28,14 +28,14 @@ function CircleProgress({ percentage, label, className = "" }) {
 
   return (
     <svg
-      className={`w-[80px] h-[80px] ${className}`}
-      viewBox="0 0 50 50"
+      className={`w-[60px] h-[60px] ${className}`}
+      viewBox="0 0 40 40"
       preserveAspectRatio="xMidYMid meet"
     >
-      <g transform="rotate(-90 25 25)">
+      <g transform="rotate(-90 20 20)">
         <circle
-          cx="25"
-          cy="25"
+          cx="20"
+          cy="20"
           r={radius}
           fill="transparent"
           stroke={getStrokeColor()}
@@ -51,12 +51,12 @@ function CircleProgress({ percentage, label, className = "" }) {
         y="50%"
         dominantBaseline="middle"
         textAnchor="middle"
-        className="text-[13px] max-[375px]:text-[12px] fill-white dark:fill-black font-medium"
+        className="text-[11px] max-[375px]:text-[10px] fill-white dark:fill-black font-medium"
       >
         {label ?? percentage}
       </text>
     </svg>
   );
-}
+});
 
 export default CircleProgress;

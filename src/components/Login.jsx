@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.20/dist/jsjiit.esm.js"
-import { Lock, User, UtensilsCrossed, Calendar } from "lucide-react"
+import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh } from "lucide-react"
 import MessMenu from "./MessMenu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
@@ -210,8 +210,12 @@ export default function Login({ onLoginSuccess, w }) {
       </main>
 
       <footer className="py-6 text-center text-white/40">
-        <p>Created with ❤️ for JIIT students only</p>
-        <p className="text-sm mt-2">Not liable for attendance-related emotional damage 😅</p>
+        <p className="flex items-center justify-center gap-1">
+          Created with <Heart className="w-4 h-4 text-red-400" /> for JIIT students only
+        </p>
+        <p className="text-sm mt-2 flex items-center justify-center gap-1">
+          Not liable for attendance-related emotional damage <Laugh className="w-4 h-4" />
+        </p>
       </footer>
     </div>
   )

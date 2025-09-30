@@ -27,42 +27,45 @@ export default function MarksCard({ course, gradeInfo }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       whileHover={{ scale: 1.02 }}
-      className="bg-[black] dark:bg-white rounded-lg p-3 sm:p-4 border border-gray-700 dark:border-gray-300"
+      className="bg-[black] dark:bg-white rounded-lg p-3 sm:p-4 md:p-5 border border-gray-700 dark:border-gray-300 md:hover:shadow-lg transition-shadow duration-200"
     >
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.2 }}
-        className="space-y-2 sm:space-y-3"
+        className="space-y-3 md:space-y-4"
       >
-        <h3 className="font-bold text-sm sm:text-base dark:text-black">{course.name}</h3>
-        
-        <div className="flex items-center justify-between gap-2 sm:gap-4 border-b border-gray-700/50 dark:border-gray-300/50">
-          <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-600">
-            {course.code}
-          </span>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-6">
+          <div className="flex-1">
+            <h3 className="font-bold text-sm sm:text-base md:text-lg dark:text-black mb-1">{course.name}</h3>
+            <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-600">
+              {course.code}
+            </span>
+          </div>
 
           {matchingGrade && (
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className={`text-base sm:text-lg font-bold ${
-                matchingGrade.grade === 'A+' || matchingGrade.grade === 'A' ? 'text-green-400 dark:text-green-600' :
-                matchingGrade.grade === 'B+' || matchingGrade.grade === 'B' ? 'text-yellow-400 dark:text-yellow-600' :
-                matchingGrade.grade === 'C+' || matchingGrade.grade === 'C' ? 'text-orange-400 dark:text-orange-600' :
-                'text-red-400 dark:text-red-600'
-              }`}>
-                {matchingGrade.grade}
-              </span>
-              <div className="h-4 w-[1px] bg-gray-700 dark:bg-gray-300"></div>
-              <span className="text-xs sm:text-sm font-medium text-blue-400 dark:text-blue-600 whitespace-nowrap">
-                {matchingGrade.coursecreditpoint} credits
-              </span>
-              <div className="h-4 w-[1px] bg-gray-700 dark:bg-gray-300"></div>
-              <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 whitespace-nowrap">
-                  {totalMarks.obtained}/{totalMarks.full} Marks
-                <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-                ({((totalMarks.obtained / totalMarks.full) * 100).toFixed(1)}%)
+            <div className="flex items-center gap-3 md:gap-6 py-2 md:py-0 border-t md:border-t-0 border-gray-700/50 dark:border-gray-300/50">
+              <div className="flex items-center gap-2">
+                <span className={`text-base md:text-2xl font-bold ${
+                  matchingGrade.grade === 'A+' || matchingGrade.grade === 'A' ? 'text-green-400 dark:text-green-600' :
+                  matchingGrade.grade === 'B+' || matchingGrade.grade === 'B' ? 'text-yellow-400 dark:text-yellow-600' :
+                  matchingGrade.grade === 'C+' || matchingGrade.grade === 'C' ? 'text-orange-400 dark:text-orange-600' :
+                  'text-red-400 dark:text-red-600'
+                }`}>
+                  {matchingGrade.grade}
                 </span>
-              </span>
+                <span className="text-xs md:text-sm text-gray-400 dark:text-gray-600">Grade</span>
+              </div>
+              <div className="h-4 w-[1px] bg-gray-700 dark:bg-gray-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-base md:text-xl font-bold text-blue-400 dark:text-blue-600">{matchingGrade.coursecreditpoint}</span>
+                <span className="text-xs md:text-sm text-gray-400 dark:text-gray-600">Credits</span>
+              </div>
+              <div className="h-4 w-[1px] bg-gray-700 dark:bg-gray-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-base md:text-xl font-bold text-gray-300 dark:text-gray-700">{((totalMarks.obtained / totalMarks.full) * 100).toFixed(1)}%</span>
+                <span className="text-xs md:text-sm text-gray-400 dark:text-gray-600">{totalMarks.obtained}/{totalMarks.full}</span>
+              </div>
             </div>
           )}
         </div>
@@ -72,7 +75,7 @@ export default function MarksCard({ course, gradeInfo }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.5 }}
-        className="space-y-2 sm:space-y-3 pt-2"
+        className="space-y-2 sm:space-y-3 md:space-y-4 pt-2 md:pt-4"
       >
         {Object.entries(course.exams).map(([examName, marks], index) => {
           const percentage = (marks.OM / marks.FM) * 100
@@ -83,21 +86,26 @@ export default function MarksCard({ course, gradeInfo }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 * index, duration: 0.5 }}
             >
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="text-xs text-gray-400 dark:text-gray-600 min-w-[60px] sm:min-w-[80px]">
+              <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+                <div className="text-xs md:text-sm text-gray-400 dark:text-gray-600 min-w-[60px] sm:min-w-[80px] md:min-w-[100px] font-medium">
                   {examName}
                 </div>
                 <div className="flex-1">
                   <ProgressBar percentage={percentage} color={getProgressColor(percentage)} />
                 </div>
-                <motion.span
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 * index, duration: 0.5 }}
-                  className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 min-w-[50px] sm:min-w-[60px] text-right"
+                  className="flex items-center gap-2 min-w-[80px] md:min-w-[100px]"
                 >
-                  {marks.OM}/{marks.FM}
-                </motion.span>
+                  <span className="text-sm md:text-base font-medium text-gray-300 dark:text-gray-700">
+                    {marks.OM}
+                  </span>
+                  <span className="text-xs md:text-sm text-gray-500 dark:text-gray-500">
+                    / {marks.FM}
+                  </span>
+                </motion.div>
               </div>
             </motion.div>
           )
