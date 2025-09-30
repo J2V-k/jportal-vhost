@@ -107,7 +107,7 @@ export default function Login({ onLoginSuccess, w }) {
     <div className="min-h-screen bg-black text-white flex flex-col">
       <header className="py-6 px-4 border-b border-white/10">
         <div className="container mx-auto flex items-center justify-center">
-          <h1 className="text-3xl font-bold tracking-tighter">JPortal -{">"} Modern JIIT WebKiosk</h1>
+          <h1 className="text-3xl font-bold tracking-tighter">Modern JIIT WebKiosk</h1>
         </div>
       </header>
 
@@ -118,7 +118,7 @@ export default function Login({ onLoginSuccess, w }) {
               onClick={handleInstallClick}
               className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
             >
-              Install JPortal App
+              Install as an App
             </button>
           </div>
         )}

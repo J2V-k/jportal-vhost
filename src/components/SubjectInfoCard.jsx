@@ -20,9 +20,9 @@ export function SubjectInfoCard({ subject }) {
   }
 
   return (
-    <div className="bg-[#0B0B0D] dark:bg-white rounded-lg shadow-md p-3 mb-3 transition-all hover:shadow-lg">
+    <div className="bg-[#0B0B0D] dark:bg-white rounded-lg shadow-md p-4 md:p-6 transition-all hover:shadow-lg border border-gray-800 dark:border-gray-200">
       <div className="flex justify-between items-start">
-        <div className="flex-1 mr-2">
+        <div className="flex-1 mr-4">
           <h2 className="text-sm md:text-lg font-semibold text-gray-200 dark:text-gray-800 mb-1">{subject.name}</h2>
           <div className="flex items-center space-x-2 mb-1">
             <span className="text-sm max-[390px]:text-xs text-gray-400 dark:text-gray-600">{subject.code}</span>

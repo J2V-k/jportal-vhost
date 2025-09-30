@@ -5,7 +5,11 @@ import {
   Route,
   Navigate,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import "./styles/transitions.css";
+import "./styles/layout.css";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 import Login from "./components/Login";
@@ -19,6 +23,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { Analytics } from "@vercel/analytics/react";
 import { Loader2 } from "lucide-react";
 import MessMenu from "./components/MessMenu";
+import InstallPWA from "./components/InstallPWA";
 import {
   Dialog,
   DialogContent,
@@ -33,11 +38,12 @@ import {
   LoginError,
 } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.20/dist/jsjiit.esm.js";
 
-// Create WebPortal instance at the top level
 const w = new WebPortal();
 
-// Create a wrapper component to use the useNavigate hook
 function AuthenticatedApp({ w, setIsAuthenticated }) {
+  const navigate = useNavigate();
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const [attendanceData, setAttendanceData] = useState({});
   const [attendanceSemestersData, setAttendanceSemestersData] = useState(null);
   const [activeAttendanceTab, setActiveAttendanceTab] = useState("overview");
@@ -110,15 +116,69 @@ function AuthenticatedApp({ w, setIsAuthenticated }) {
   const [attendanceSubjectCacheStatus, setAttendanceSubjectCacheStatus] =
     useState(null);
 
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const location = useLocation();
+  const [transitionDirection, setTransitionDirection] = useState('forward');
+
+  const onTouchEndWithTransition = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    // Match the order in the navigation bar
+    const routes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+    const currentPath = window.location.hash.replace('#', '');
+    const currentIndex = routes.indexOf(currentPath);
+    
+    if (isLeftSwipe && currentIndex < routes.length - 1) {
+      setTransitionDirection('forward');
+      navigate(routes[currentIndex + 1]);
+    }
+    
+    if (isRightSwipe && currentIndex > 0) {
+      setTransitionDirection('reverse');
+      navigate(routes[currentIndex - 1]);
+    }
+    
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
   return (
-    <div className="min-h-screen pb-14 select-none">
+    <div 
+      className="h-screen flex flex-col select-none"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEndWithTransition}
+    >
       <Analytics />
-      <div className="sticky top-0 z-30 bg-[black] -mt-[2px]">
+      <div className="flex-none z-30 bg-[black] -mt-[2px]">
         <Header setIsAuthenticated={setIsAuthenticated} />
       </div>
-      <Routes>
-        <Route path="/" element={<Navigate to="/attendance" />} />
-        <Route path="/login" element={<Navigate to="/attendance" />} />
+      <div className="flex-1 overflow-y-auto">
+        <TransitionGroup component={null}>
+          <CSSTransition
+            key={location.pathname}
+            timeout={300}
+            classNames={`page-transition${transitionDirection === 'reverse' ? '-reverse' : ''}`}
+            unmountOnExit
+          >
+            <div className="w-full min-h-full">
+              <Routes location={location}>
+                <Route path="/" element={<Navigate to="/attendance" />} />
+                <Route path="/login" element={<Navigate to="/attendance" />} />
         <Route
           path="/attendance"
           element={
@@ -233,7 +293,11 @@ function AuthenticatedApp({ w, setIsAuthenticated }) {
             />
           }
         />
-      </Routes>
+            </Routes>
+          </div>
+        </CSSTransition>
+      </TransitionGroup>
+      </div>
       <Navbar />
     </div>
   );
@@ -316,7 +380,7 @@ function App() {
         <div className="flex flex-col items-center">
           <Loader2 className="w-8 h-8 animate-spin mb-2" />
           <p className="text-lg font-semibold mb-1">Signing in...</p>
-          <p className="text-sm mb-4">Welcome to JPortal</p>
+          <p className="text-sm mb-4">Welcome to JP_Portal</p>
           {/* Quick Access Card */}
           <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
             <span className="text-xs text-white/60 mb-1">Quick Access</span>
@@ -326,6 +390,7 @@ function App() {
                   <UtensilsCrossed size={18} /> Mess Menu
                 </button>
               </MessMenu>
+              <InstallPWA />
             </div>
           </div>
         </div>

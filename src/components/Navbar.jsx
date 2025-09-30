@@ -2,6 +2,7 @@ import { NavLink, useLocation } from "react-router-dom"
 import { ClipboardList } from "lucide-react"
 import { motion } from "framer-motion"
 import { Calendar, User, Book, FileText, ChartSpline } from "lucide-react"
+import InstallPWA from "./InstallPWA"
 
 const navItems = [
   { name: "Attendance", path: "/attendance", icon: ClipboardList },
@@ -22,6 +23,7 @@ export default function Navbar() {
       className="fixed bottom-0 left-0 max-w-full min-w-full bg-[black] dark:bg-gray-100 py-2 px-2 z-50"
     >
       <ul className="flex items-center justify-between max-w-screen-lg mx-auto">
+        <InstallPWA />
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.path

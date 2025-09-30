@@ -127,8 +127,8 @@ export default function Exams({
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="bg-black dark:bg-white shadow rounded-lg p-6">
+    <div className="container mx-auto p-4 space-y-6 max-w-[1440px]">
+      <div className="bg-black dark:bg-white shadow rounded-lg p-6 md:max-w-[50%] md:mx-auto">
         <h2 className="text-2xl font-bold mb-4 text-white dark:text-black">Exam Schedule</h2>
         <div className="space-y-4">
           <Select onValueChange={handleSemesterChange} value={selectedExamSem?.registration_id || ""}>
@@ -164,7 +164,7 @@ export default function Exams({
       {loading ? (
         <LoadingSkeleton />
       ) : currentSchedule?.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {currentSchedule.map((exam) => (
             <ExamCard
               key={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`}

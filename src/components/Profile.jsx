@@ -33,12 +33,15 @@ export default function Profile({ w, profileData, setProfileData }) {
 
   const info = profileData?.generalinformation || {}
   const qualifications = profileData?.qualification || []
-  const photosrc = `data:image/jpg;base64,${profileData?.['photo&signature'].photo}` || null;
+  // guard photo access safely
+  const photosrc = profileData?.['photo&signature']?.photo
+    ? `data:image/jpg;base64,${profileData['photo&signature'].photo}`
+    : null;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-10 h-10 text-white dark:text-black animate-spin" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 text-white dark:text-black animate-spin" />
       </div>
     )
   }
@@ -48,51 +51,80 @@ export default function Profile({ w, profileData, setProfileData }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto max-w-4xl px-4 py-6 space-y-8"
+      className="container mx-auto max-w-4xl px-4 py-4 space-y-6"
     >
       <motion.div
-        initial={{ y: -50 }}
+        initial={{ y: -20 }}
         animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 100 }}
-        className="bg-[#0B0B0D] dark:bg-white shadow rounded-lg p-6"
+        transition={{ type: "spring", stiffness: 120 }}
+        className="bg-[#0B0B0D] dark:bg-white shadow-sm rounded-lg p-4 md:p-6"
       >
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          {photosrc ? (
-            <motion.img
-              src={photosrc}
-              whileHover={{ scale: 1.1 }}
-              className="w-24 h-24 bg-gray-600 dark:bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold text-white dark:text-black"
-            />
-          ) : (
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="w-24 h-24 bg-gray-600 dark:bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold text-white dark:text-black"
-            >
-              {info.studentname?.charAt(0)}
-            </motion.div>
-          )}
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl font-bold text-white dark:text-black">{info.studentname}</h1>
-            <p className="text-sm text-gray-300 dark:text-gray-700 break-words">
-              {info.registrationno} | {info.programcode} - {info.branch}
-            </p>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6">
+          <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+            {photosrc ? (
+              <motion.img
+                src={photosrc}
+                whileHover={{ scale: 1.03 }}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-600 dark:bg-gray-300 object-cover shadow"
+              />
+            ) : (
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-600 dark:bg-gray-300 flex items-center justify-center text-2xl md:text-3xl font-bold text-white dark:text-black shadow"
+              >
+                {info.studentname?.charAt(0)}
+              </motion.div>
+            )}
+
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg md:text-2xl font-semibold text-white dark:text-black truncate">{info.studentname}</h1>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-300 dark:text-gray-700">
+                <span className="flex items-center gap-2"><GraduationCap className="w-4 h-4" />{info.programcode}</span>
+                <span className="hidden md:inline">•</span>
+                <span className="flex items-center gap-2"><User className="w-4 h-4" />{info.registrationno}</span>
+                <span className="hidden md:inline">•</span>
+                <span className="flex items-center gap-2 truncate"><Mail className="w-4 h-4" />{info.studentemailid}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full md:w-auto mt-2 md:mt-0">
+            {/* compact mobile summary */}
+            <div className="md:hidden text-sm text-gray-300">
+              <div className="flex flex-wrap gap-3">
+                <span>Sem: <span className="font-semibold text-white dark:text-black">{info.semester}</span></span>
+                <span>Sec: <span className="font-semibold text-white dark:text-black">{info.sectioncode}</span></span>
+                <span>Batch: <span className="font-semibold text-white dark:text-black">{info.batch}</span></span>
+              </div>
+            </div>
+
+            {/* desktop: 2-column grid of academic fields */}
+            <div className="hidden md:grid grid-cols-2 gap-3 min-w-[220px] text-sm">
+              <div className="text-gray-400 dark:text-gray-600">Semester</div>
+              <div className="font-semibold text-white dark:text-black">{info.semester}</div>
+              <div className="text-gray-400 dark:text-gray-600">Section</div>
+              <div className="font-semibold text-white dark:text-black">{info.sectioncode}</div>
+              <div className="text-gray-400 dark:text-gray-600">Batch</div>
+              <div className="font-semibold text-white dark:text-black">{info.batch}</div>
+              <div className="text-gray-400 dark:text-gray-600">Academic Year</div>
+              <div className="font-semibold text-white dark:text-black">{info.academicyear}</div>
+            </div>
           </div>
         </div>
       </motion.div>
 
       <div className="bg-[#0B0B0D] dark:bg-white shadow rounded-lg">
-        <div className="flex flex-wrap border-b border-gray-700 dark:border-gray-200">
+        <div className="flex overflow-x-auto border-b border-gray-700 dark:border-gray-200">
           {[
             "personal",
-            "academic",
             "contact",
             "education"
           ].map((tab) => (
             <motion.button
               key={tab}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`flex-1 py-3 px-4 text-center font-medium ${
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium ${
                 activeTab === tab
                   ? "text-white border-b-2 border-white dark:text-black dark:border-black"
                   : "text-gray-300 hover:text-gray-100 dark:text-gray-700 dark:hover:text-gray-900"
@@ -106,15 +138,14 @@ export default function Profile({ w, profileData, setProfileData }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="p-6"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="p-4"
           >
             {activeTab === "personal" && (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold mb-4 text-white dark:text-black">Personal Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <InfoRow icon={User} label="Date of Birth" value={info.dateofbirth} />
                 <InfoRow icon={User} label="Gender" value={info.gender} />
                 <InfoRow icon={User} label="Blood Group" value={info.bloodgroup} />
@@ -122,92 +153,48 @@ export default function Profile({ w, profileData, setProfileData }) {
                 <InfoRow icon={User} label="Category" value={info.category} />
               </div>
             )}
-            {activeTab === "academic" && (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold mb-4 text-white dark:text-black">Academic Information</h2>
-                <InfoRow icon={GraduationCap} label="Program" value={info.programcode} />
-                <InfoRow icon={GraduationCap} label="Branch" value={info.branch} />
-                <InfoRow icon={GraduationCap} label="Section" value={info.sectioncode} />
-                <InfoRow icon={GraduationCap} label="Batch" value={info.batch} />
-                <InfoRow icon={GraduationCap} label="Semester" value={info.semester} />
-                <InfoRow icon={GraduationCap} label="Institute" value={info.institutecode} />
-                <InfoRow icon={GraduationCap} label="Academic Year" value={info.academicyear} />
-                <InfoRow icon={GraduationCap} label="Admission Year" value={info.admissionyear} />
-              </div>
-            )}
+            {/* academic tab removed - details now shown in header */}
             {activeTab === "contact" && (
-              <div className="space-y-8">
-                <div>
-                  <h2 className="text-xl font-semibold mb-4 text-white dark:text-black">Contact Information</h2>
-                  <div className="space-y-4">
-                    <InfoRow icon={Mail} label="Student Email (College)" value={info.studentemailid} />
-                    <InfoRow icon={Mail} label="Student Email (Personal)" value={info.studentpersonalemailid} />
-                    <InfoRow icon={Phone} label="Mobile" value={info.studentcellno} />
-                    <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
-                    <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
-                    <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
-                    <InfoRow icon={Mail} label="Parent's Email" value={info.parentemailid} />
-                    <InfoRow icon={Phone} label="Parent's Mobile" value={info.parentcellno} />
-                    <InfoRow icon={Phone} label="Parent's Telephone" value={info.parenttelephoneno || "N/A"} />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
+                  <InfoRow icon={Mail} label="Personal Email" value={info.studentpersonalemailid} />
+                  <InfoRow icon={Phone} label="Mobile" value={info.studentcellno} />
+                  <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
+                  <InfoRow icon={User} label="Father" value={info.fathersname} />
+                  <InfoRow icon={User} label="Mother" value={info.mothername} />
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold mb-4 text-white dark:text-black">Address Information</h2>
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold mb-2 text-white dark:text-black">Current Address</h3>
-                      <InfoRow
-                        icon={MapPin}
-                        label="Address"
-                        value={[info.caddress1, info.caddress3].filter(Boolean).join(", ")}
-                      />
-                      <InfoRow icon={MapPin} label="City" value={info.ccityname} />
-                      <InfoRow icon={MapPin} label="District" value={info.cdistrict} />
-                      <InfoRow icon={MapPin} label="State" value={info.cstatename} />
-                      <InfoRow icon={MapPin} label="Postal Code" value={info.cpostalcode} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-white dark:text-black">Permanent Address</h3>
-                      <InfoRow
-                        icon={MapPin}
-                        label="Address"
-                        value={[info.paddress1, info.paddress2, info.paddress3].filter(Boolean).join(", ")}
-                      />
-                      <InfoRow icon={MapPin} label="City" value={info.pcityname} />
-                      <InfoRow icon={MapPin} label="District" value={info.pdistrict} />
-                      <InfoRow icon={MapPin} label="State" value={info.pstatename} />
-                      <InfoRow icon={MapPin} label="Postal Code" value={info.ppostalcode} />
-                    </div>
-                  </div>
+                <div className="space-y-1">
+                  <InfoRow icon={MapPin} label="Current Address" value={[info.caddress1, info.caddress3].filter(Boolean).join(", ")} />
+                  <InfoRow icon={MapPin} label="City" value={info.ccityname} />
+                  <InfoRow icon={MapPin} label="District" value={info.cdistrict} />
+                  <InfoRow icon={MapPin} label="State" value={info.cstatename} />
+                  <InfoRow icon={MapPin} label="Postal" value={info.cpostalcode} />
                 </div>
               </div>
             )}
             {activeTab === "education" && (
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-white dark:text-black">Educational Qualifications</h2>
-                {qualifications.map((qual, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="mb-6 last:mb-0"
-                  >
-                    <h3 className="font-semibold mb-2 text-white dark:text-black">{qual.qualificationcode}</h3>
-                    <div className="space-y-2">
-                      <InfoRow icon={GraduationCap} label="Board" value={qual.boardname} />
-                      <InfoRow icon={GraduationCap} label="Year of Passing" value={qual.yearofpassing} />
-                      <InfoRow
-                        icon={GraduationCap}
-                        label="Marks Obtained"
-                        value={`${qual.obtainedmarks}/${qual.fullmarks}`}
-                      />
-                      <InfoRow icon={GraduationCap} label="Percentage" value={`${qual.percentagemarks}%`} />
-                      <InfoRow icon={GraduationCap} label="Division" value={qual.division} />
-                      {qual.grade && <InfoRow icon={GraduationCap} label="Grade" value={qual.grade} />}
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="space-y-2">
+                <div className="grid gap-2">
+                  {qualifications.map((qual, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="p-2 rounded bg-white/3 dark:bg-black/3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-sm text-white dark:text-black">{qual.qualificationcode}</div>
+                        <div className="text-xs text-gray-400">{qual.yearofpassing}</div>
+                      </div>
+                      <div className="mt-1 grid grid-cols-2 gap-2 text-sm">
+                        <div className="text-gray-300 dark:text-gray-700">{qual.boardname}</div>
+                        <div className="text-gray-300 dark:text-gray-700 text-right">{qual.percentagemarks}%</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
           </motion.div>
@@ -242,10 +229,12 @@ export default function Profile({ w, profileData, setProfileData }) {
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Icon className="h-5 w-5 text-gray-300 dark:text-gray-700 shrink-0" />
-      <span className="font-medium text-white dark:text-black whitespace-nowrap">{label}:</span>
-      <span className="text-gray-300 dark:text-gray-700 break-all">{value || "N/A"}</span>
+    <div className="flex items-start gap-2 py-2 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4">
+      <Icon className="h-4 w-4 text-gray-300 dark:text-gray-700 shrink-0 mt-0.5" />
+      <div className="flex-1">
+        <span className="block text-xs font-medium text-gray-400 dark:text-gray-600">{label}</span>
+        <span className="block text-sm text-white dark:text-black break-all font-medium mt-0.5">{value || "N/A"}</span>
+      </div>
     </div>
   )
 }

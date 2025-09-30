@@ -107,7 +107,7 @@ const AttendanceCard = ({
   return (
     <>
       <div
-        className="flex justify-between items-center py-1 cursor-pointer hover:bg-[#0B0B0D] dark:border-gray-300 dark:hover:bg-gray-200/50 rounded-lg px-4 transition-colors duration-200 ease-in-out"
+        className="flex justify-between items-center py-3 cursor-pointer hover:bg-[#0B0B0D] dark:border-gray-300 dark:hover:bg-gray-200/50 rounded-lg px-4 transition-colors duration-200 ease-in-out border border-gray-800 dark:border-gray-200"
         onClick={handleClick}
       >
         <div className="flex-1 mr-4">
@@ -141,12 +141,14 @@ const AttendanceCard = ({
         setSelectedSubject(null);
         setSelectedDate(null);
       }}>
-        <SheetContent side="bottom" className="h-[70vh] bg-[black] text-white border-0 overflow-hidden flex flex-col dark:bg-white dark:text-black">
+  <SheetContent side="bottom" className="h-[80vh] md:h-[600px] bg-[black] text-white border-0 overflow-hidden flex flex-col dark:bg-white dark:text-black">
           <SheetHeader>
           </SheetHeader>
-          <div className="py-4 flex flex-col items-center flex-1 overflow-y-auto">
-            <div className="w-full max-w-[320px] flex flex-col">
-              <Calendar
+          <div className="py-4 flex flex-1 overflow-y-auto">
+            <div className="flex flex-col md:flex-row w-full max-w-[1100px] mx-auto gap-8 px-4">
+              {/* Left side - Calendar */}
+              <div className="w-full md:w-[340px] flex flex-col">
+                <Calendar
                 mode="single"
                 modifiers={{
                   presentSingle: (date) => {
@@ -286,10 +288,12 @@ const AttendanceCard = ({
                   ))}
                 </div>
               )}
-            </div>
-            <div className="w-full h-[300px] mt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
+              </div>
+              
+              {/* Right side - Graph */}
+              <div className="flex-1 h-[320px] md:h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
                   data={processAttendanceData()}
                   margin={{
                     top: 10,
@@ -345,6 +349,8 @@ const AttendanceCard = ({
                   />
                 </LineChart>
               </ResponsiveContainer>
+                
+              </div>
             </div>
           </div>
         </SheetContent>

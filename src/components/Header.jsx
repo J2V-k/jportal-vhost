@@ -30,7 +30,7 @@ const Header = ({ setIsAuthenticated }) => {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="text-white text-2xl font-bold lg:text-3xl font-sans dark:text-black"
         >
-          JPortal
+          JP_Portal
         </motion.h1>
         <motion.div
           initial={{ opacity: 0, x: 20 }}

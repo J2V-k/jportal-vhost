@@ -285,8 +285,8 @@ const Attendance = ({
 
   return (
     <div className="text-white dark:text-black font-sans">
-      <div className="sticky top-14 z-20">
-        <div className="flex gap-2 py-2 px-3">
+      <div className="top-14 left-0 right-0 bg-[black] dark:bg-white z-10">
+        <div className="flex gap-2 py-2 px-3 max-w-[1440px] mx-auto">
           <Select
             onValueChange={handleSemesterChange}
             value={selectedSem?.registration_id}
@@ -335,9 +335,9 @@ const Attendance = ({
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="px-3 pb-4"
+          className="px-3 pb-4 max-w-[1440px] mx-auto"
         >
-          <TabsList className="grid grid-cols-2 bg-[#0B0B0D] dark:bg-white">
+          <TabsList className="grid grid-cols-2 bg-[#0B0B0D] dark:bg-white relative z-30">
             <TabsTrigger
               value="overview"
               className="bg-[#0B0B0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
@@ -359,22 +359,24 @@ const Attendance = ({
                 {attendanceData[selectedSem.registration_id].error}
               </div>
             ) : (
-              subjects.map((subject) => (
-                <AttendanceCard
-                  key={subject.name}
-                  subject={subject}
-                  selectedSubject={selectedSubject}
-                  setSelectedSubject={setSelectedSubject}
-                  subjectAttendanceData={subjectAttendanceData}
-                  fetchSubjectAttendance={fetchSubjectAttendance}
-                />
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {subjects.map((subject) => (
+                  <AttendanceCard
+                    key={subject.name}
+                    subject={subject}
+                    selectedSubject={selectedSubject}
+                    setSelectedSubject={setSelectedSubject}
+                    subjectAttendanceData={subjectAttendanceData}
+                    fetchSubjectAttendance={fetchSubjectAttendance}
+                  />
+                ))}
+              </div>
             )}
           </TabsContent>
 
           <TabsContent value="daily">
-            <div className="flex flex-col items-center">
-              <div className="w-full max-w-[320px] flex flex-col">
+            <div className="flex flex-col md:flex-row md:items-start md:gap-8 md:justify-center">
+              <div className="w-full max-w-[320px] flex flex-col sticky top-[120px]">
                 <Calendar
                   mode="single"
                   selected={safeDailyDate}
@@ -401,10 +403,11 @@ const Attendance = ({
                 />
               </div>
 
-              {subjects.length === 0 ? (
-                <p className="text-gray-400 dark:text-gray-600">No subjects found.</p>
-              ) : (
-                subjects.flatMap((subj) => {
+              <div className="md:flex-1 md:max-w-xl w-full">
+                {subjects.length === 0 ? (
+                  <p className="text-gray-400 dark:text-gray-600">No subjects found.</p>
+                ) : (
+                  subjects.flatMap((subj) => {
                   const lectures = getClassesFor(subj.name, safeDailyDate);
                   if (lectures.length === 0) return [];
                   return (
@@ -433,14 +436,15 @@ const Attendance = ({
                 })
               )}
 
-              {subjects.every(
-                (s) => getClassesFor(s.name, safeDailyDate).length === 0,
-              ) && (
-                <p className="text-gray-400 dark:text-gray-600 mt-4">
-                  No classes were scheduled on&nbsp;
-                  {safeDailyDate.toLocaleDateString()}
-                </p>
-              )}
+                {subjects.every(
+                  (s) => getClassesFor(s.name, safeDailyDate).length === 0,
+                ) && (
+                  <p className="text-gray-400 dark:text-gray-600 mt-4">
+                    No classes were scheduled on&nbsp;
+                    {safeDailyDate.toLocaleDateString()}
+                  </p>
+                )}
+              </div>
             </div>
 
             {subjects.length > 0 &&

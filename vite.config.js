@@ -34,8 +34,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "JPortal",
-        short_name: "JPortal",
+        name: "JP_Portal",
+        short_name: "JP_Portal",
         description: "A web portal for students to view attendance and grades.",
         start_url: "/",
         display: "standalone",

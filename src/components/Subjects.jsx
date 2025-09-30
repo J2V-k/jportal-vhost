@@ -119,11 +119,11 @@ export default function Subjects({
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="sticky top-14 dark:bg-white bg-[black] z-20"
+        className="top-14 dark:bg-white bg-[black] z-20 border-b border-white/10 dark:border-black/10"
       >
-        <div className="py-2 px-3">
+        <div className="py-2 px-3 max-w-[1440px] mx-auto">
           <Select onValueChange={handleSemesterChange} value={selectedSem?.registration_id} disabled={loading}>
-            <SelectTrigger className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white">
+            <SelectTrigger className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white md:w-[320px]">
               <SelectValue placeholder={loading ? "Loading semesters..." : "Select semester"}>
                 {selectedSem?.registration_code}
               </SelectValue>
@@ -145,14 +145,17 @@ export default function Subjects({
         transition={{ duration: 0.5, delay: 0.2 }}
         className="px-3 pb-4"
       >
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-sm lg:text-base"
+          className="flex items-center justify-between px-1 py-4 mb-2 border-b border-white/10 dark:border-black/10"
         >
-          Total Credits: {currentSubjects?.total_credits || 0}
-        </motion.p>
+          <motion.div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-400 dark:text-gray-600">Total Credits</span>
+            <span className="text-lg font-semibold">{currentSubjects?.total_credits || 0}</span>
+          </motion.div>
+        </motion.div>
 
         {subjectsLoading ? (
           <motion.div
@@ -167,7 +170,7 @@ export default function Subjects({
           </motion.div>
         ) : (
           <AnimatePresence>
-            <motion.div className="lg:space-y-4">
+            <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-[1440px] mx-auto">
               {Object.values(groupedSubjects).map((subject, index) => (
                 <motion.div
                   key={subject.code}
