@@ -4,6 +4,19 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+          charts: ['recharts'],
+          utils: ['date-fns', 'clsx', 'tailwind-merge'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
   plugins: [
     react(),
     VitePWA({
@@ -13,8 +26,8 @@ export default defineConfig({
         enabled: true,
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 30 * 1024 ** 2, // 30MB
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,whl}"],
+        maximumFileSizeToCacheInBytes: 50 * 1024 ** 2, // 50MB
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,whl,json}"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/v0\.23\.4\/full\/pyodide\.js$/,
@@ -22,8 +35,26 @@ export default defineConfig({
             options: {
               cacheName: "pyodide-cache",
               expiration: {
-                maxAgeSeconds: 60 * 60 * 24 * 1000, // 1000 days
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "images-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "static-resources",
             },
           },
         ],
@@ -68,14 +99,5 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://yourfitnesspal-production.up.railway.app',
-        changeOrigin: true,
-        secure: true,
-      }
-    }
   },
 });
