@@ -140,11 +140,22 @@ const MenuUnavailable = ({ onViewOldMenu }) => (
   </div>
 );
 
-const MessMenu = ({ children }) => {
+const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
   const [view, setView] = useState("daily");
   const [menuAvailable, setMenuAvailable] = useState(true);
   const [forceShowMenu, setForceShowMenu] = useState(false);
   const [menuData, setMenuData] = useState({});
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isControlled = open !== undefined || isOpen !== undefined;
+  const dialogOpen = isControlled ? (open ?? isOpen) : internalOpen;
+
+  const handleDialogOpenChange = (val) => {
+    if (typeof onOpenChange === "function") onOpenChange(val);
+    if (typeof onChange === "function") onChange(val);
+
+    if (!isControlled) setInternalOpen(val);
+  };
 
   useEffect(() => {
     const fetchMenuData = async () => {
@@ -167,6 +178,8 @@ const MessMenu = ({ children }) => {
   
   const handleViewOldMenu = () => {
     setForceShowMenu(true);
+    // ensure dialog is open when forcing old menu view
+    handleDialogOpenChange(true);
   };
   
   const shouldShowMenu = menuAvailable || forceShowMenu;
@@ -364,7 +377,7 @@ const MessMenu = ({ children }) => {
   );
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="w-[90vw] sm:max-w-xl md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black rounded-lg mx-auto border border-gray-700 dark:border-gray-300 shadow-lg p-4 sm:p-6">
         <DialogHeader className="border-b border-gray-700 dark:border-gray-300 pb-2">

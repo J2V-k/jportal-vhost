@@ -40,10 +40,12 @@ import {
 
 const w = new WebPortal();
 
-function AuthenticatedApp({ w, setIsAuthenticated }) {
+function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange }) {
   const navigate = useNavigate();
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [touchEndY, setTouchEndY] = useState(null);
   const [attendanceData, setAttendanceData] = useState({});
   const [attendanceSemestersData, setAttendanceSemestersData] = useState(null);
   const [activeAttendanceTab, setActiveAttendanceTab] = useState("overview");
@@ -121,17 +123,31 @@ function AuthenticatedApp({ w, setIsAuthenticated }) {
   const onTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
   };
 
   const onTouchMove = (e) => {
     setTouchEnd(e.touches[0].clientX);
+    setTouchEndY(e.touches[0].clientY);
   };
 
   const location = useLocation();
   const [transitionDirection, setTransitionDirection] = useState('forward');
 
   const onTouchEndWithTransition = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
+    
+    const distanceX = Math.abs(touchStart - touchEnd);
+    const distanceY = Math.abs(touchStartY - touchEndY);
+    
+    // Ignore if vertical movement is greater than horizontal (diagonal or vertical swipe)
+    if (distanceY > distanceX) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      setTouchStartY(null);
+      setTouchEndY(null);
+      return;
+    }
     
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
@@ -154,6 +170,8 @@ function AuthenticatedApp({ w, setIsAuthenticated }) {
     
     setTouchStart(null);
     setTouchEnd(null);
+    setTouchStartY(null);
+    setTouchEndY(null);
   };
 
   return (
@@ -298,7 +316,7 @@ function AuthenticatedApp({ w, setIsAuthenticated }) {
         </CSSTransition>
       </TransitionGroup>
       </div>
-      <Navbar />
+      <Navbar messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
     </div>
   );
 }
@@ -321,6 +339,36 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [themeMode, setThemeMode] = useState("light");
+  const [messMenuOpen, setMessMenuOpen] = useState(() => {
+    return localStorage.getItem("messMenuOpen") === "true";
+  });
+
+  const handleMessMenuChange = (open) => {
+    setMessMenuOpen(open);
+    localStorage.setItem("messMenuOpen", open.toString());
+  };
+
+  // Clear dialog state on page refresh/close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("messMenuOpen");
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && !messMenuOpen) {
+        localStorage.removeItem("messMenuOpen");
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [messMenuOpen]);
+
   const darkTheme = () => {
     setThemeMode("dark");
   };
@@ -385,10 +433,10 @@ function App() {
           <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
             <span className="text-xs text-white/60 mb-1">Quick Access</span>
             <div className="flex gap-2">
-              <MessMenu>
-                <button className="flex items-center justify-center px-6 py-2 bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:text-green-300 transition-colors rounded-lg text-sm font-medium gap-2">
+              <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
+                <span className="flex items-center justify-center px-6 py-2 bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:text-green-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
                   <UtensilsCrossed size={18} /> Mess Menu
-                </button>
+                </span>
               </MessMenu>
               <InstallPWA />
             </div>
@@ -423,7 +471,12 @@ function App() {
               />
             </Routes>
           ) : (
-            <AuthenticatedApp w={w} setIsAuthenticated={setIsAuthenticated} />
+            <AuthenticatedApp 
+              w={w} 
+              setIsAuthenticated={setIsAuthenticated} 
+              messMenuOpen={messMenuOpen}
+              onMessMenuChange={handleMessMenuChange}
+            />
           )}
         </div>
       </Router>
