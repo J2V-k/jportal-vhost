@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  getAttendanceFromCache,
+  saveAttendanceToCache,
+} from "@/components/scripts/cache";
 import AttendanceCard from "./AttendanceCard";
 import {
   Select,
@@ -47,6 +51,10 @@ const Attendance = ({
   subjectCacheStatus,
   setSubjectCacheStatus,
 }) => {
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isFromCache, setIsFromCache] = useState(false);
+
   useEffect(() => {
     const fetchSemesters = async () => {
       if (semestersData) {
@@ -69,6 +77,34 @@ const Attendance = ({
           latest_semester: latestSem,
         });
 
+        const username = w.username || "user";
+        const cached = await getAttendanceFromCache(username, latestSem);
+        if (cached) {
+          setAttendanceData((prev) => ({
+            ...prev,
+            [latestSem.registration_id]: cached.data || cached,
+          }));
+          setSelectedSem(latestSem);
+          setCacheTimestamp(cached.timestamp || null);
+          setIsFromCache(true);
+          setIsAttendanceMetaLoading(false);
+          setIsAttendanceDataLoading(false);
+          setIsRefreshing(true);
+          try {
+            const data = await w.get_attendance(header, latestSem);
+            setAttendanceData((prev) => ({
+              ...prev,
+              [latestSem.registration_id]: data,
+            }));
+            await saveAttendanceToCache(data, username, latestSem);
+            setCacheTimestamp(Date.now());
+            setIsFromCache(false);
+          } catch (error) {
+          }
+          setIsRefreshing(false);
+          return;
+        }
+
         try {
           const data = await w.get_attendance(header, latestSem);
           setAttendanceData((prev) => ({
@@ -76,9 +112,9 @@ const Attendance = ({
             [latestSem.registration_id]: data,
           }));
           setSelectedSem(latestSem);
+          await saveAttendanceToCache(data, username, latestSem);
+          setCacheTimestamp(Date.now());
         } catch (error) {
-          console.log(error.message);
-          console.log(error.status);
           if (error.message.includes("NO Attendance Found")) {
             const previousSem = meta.semesters[1];
             if (previousSem) {
@@ -88,7 +124,8 @@ const Attendance = ({
                 [previousSem.registration_id]: data,
               }));
               setSelectedSem(previousSem);
-              console.log(previousSem);
+              await saveAttendanceToCache(data, username, previousSem);
+              setCacheTimestamp(Date.now());
             }
           } else {
             throw error;
@@ -99,6 +136,7 @@ const Attendance = ({
       } finally {
         setIsAttendanceMetaLoading(false);
         setIsAttendanceDataLoading(false);
+        setIsRefreshing(false);
       }
     };
 
@@ -112,12 +150,38 @@ const Attendance = ({
     setSelectedSem(semester);
 
     setIsAttendanceDataLoading(true);
-    try {
-      if (attendanceData[value]) {
-        setIsAttendanceDataLoading(false);
-        return;
+    const username = w.username || "user";
+    // Try cache first
+    const cached = await getAttendanceFromCache(username, semester);
+    if (cached) {
+      setAttendanceData((prev) => ({
+        ...prev,
+        [value]: cached.data || cached,
+      }));
+      setCacheTimestamp(cached.timestamp || null);
+      setIsFromCache(true);
+      setIsAttendanceDataLoading(false);
+      // Refresh in background
+      setIsRefreshing(true);
+      try {
+        const meta = await w.get_attendance_meta();
+        const header = meta.latest_header();
+        const data = await w.get_attendance(header, semester);
+        setAttendanceData((prev) => ({
+          ...prev,
+          [value]: data,
+        }));
+        await saveAttendanceToCache(data, username, semester);
+        setCacheTimestamp(Date.now());
+        setIsFromCache(false);
+      } catch (error) {
+        // Ignore refresh errors
       }
-
+      setIsRefreshing(false);
+      return;
+    }
+    // No cache: fetch as usual
+    try {
       const meta = await w.get_attendance_meta();
       const header = meta.latest_header();
       const data = await w.get_attendance(header, semester);
@@ -125,6 +189,8 @@ const Attendance = ({
         ...prev,
         [value]: data,
       }));
+      await saveAttendanceToCache(data, username, semester);
+      setCacheTimestamp(Date.now());
     } catch (error) {
       if (error.message.includes("NO Attendance Found")) {
         setAttendanceData((prev) => ({
@@ -136,6 +202,7 @@ const Attendance = ({
       }
     } finally {
       setIsAttendanceDataLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -149,7 +216,7 @@ const Attendance = ({
   const safeDailyDate =
     dailyDate instanceof Date && !isNaN(dailyDate) ? dailyDate : new Date();
 
-  const subjects =
+  const subjects = useMemo(() =>
     (selectedSem &&
       attendanceData[selectedSem.registration_id]?.studentattendancelist?.map(
         (item) => {
@@ -209,7 +276,7 @@ const Attendance = ({
           };
         }
       )) ||
-    [];
+    [], [selectedSem, attendanceData, attendanceGoal]);
 
   const fetchSubjectAttendance = async (subject) => {
     try {
@@ -317,6 +384,30 @@ const Attendance = ({
         </div>
       </div>
 
+      {/* Show cached timestamp and refreshing indicator */}
+      {cacheTimestamp && (
+        <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
+          {isFromCache ? (
+            <span>
+              Last updated: {new Date(cacheTimestamp).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })} at {new Date(cacheTimestamp).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              })} (from cache)
+            </span>
+          ) : null}
+          {isRefreshing && (
+            <span className="ml-2 flex items-center gap-1">
+              <Loader2 className="animate-spin w-4 h-4" />
+              Refreshing...
+            </span>
+          )}
+        </div>
+      )}
       {isAttendanceMetaLoading || isAttendanceDataLoading ? (
         <div className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]">
           <Loader2 className="animate-spin text-white dark:text-black w-6 h-6 mr-2" />
