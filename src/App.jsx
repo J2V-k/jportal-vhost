@@ -18,6 +18,7 @@ import Grades from "./components/Grades";
 import Exams from "./components/Exams";
 import Subjects from "./components/Subjects";
 import Profile from "./components/Profile";
+import Timetable from "./components/Timetable";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Analytics } from "@vercel/analytics/react";
@@ -60,57 +61,45 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   const [selectedGradesSem, setSelectedGradesSem] = useState(null);
   const [selectedSubjectsSem, setSelectedSubjectsSem] = useState(null);
 
-  // Add attendance goal state
   const [attendanceGoal, setAttendanceGoal] = useState(() => {
     const savedGoal = localStorage.getItem("attendanceGoal");
-    return savedGoal ? parseInt(savedGoal) : 75; // Default to 75% if not set
+    return savedGoal ? parseInt(savedGoal) : 75;
   });
 
-  // Add effect to save goal to localStorage when it changes
   useEffect(() => {
     localStorage.setItem("attendanceGoal", attendanceGoal.toString());
   }, [attendanceGoal]);
 
-  // Add new profile data state
   const [profileData, setProfileData] = useState(null);
 
-  // Add new state for grades component
   const [activeGradesTab, setActiveGradesTab] = useState("overview");
   const [gradeCardSemesters, setGradeCardSemesters] = useState([]);
   const [selectedGradeCardSem, setSelectedGradeCardSem] = useState(null);
   const [gradeCard, setGradeCard] = useState(null);
 
-  // Add new state for storing grade cards
   const [gradeCards, setGradeCards] = useState({});
 
-  // Add new states for subject attendance
   const [subjectAttendanceData, setSubjectAttendanceData] = useState({});
   const [selectedSubject, setSelectedSubject] = useState(null);
 
-  // Add new state for exams
   const [examSchedule, setExamSchedule] = useState({});
   const [examSemesters, setExamSemesters] = useState([]);
   const [selectedExamSem, setSelectedExamSem] = useState(null);
   const [selectedExamEvent, setSelectedExamEvent] = useState(null);
 
-  // Add new state for marks
   const [marksSemesters, setMarksSemesters] = useState([]);
   const [selectedMarksSem, setSelectedMarksSem] = useState(null);
   const [marksSemesterData, setMarksSemesterData] = useState(null);
   const [marksData, setMarksData] = useState({});
 
-  // Add these new states lifted from Grades.jsx
   const [gradesLoading, setGradesLoading] = useState(true);
   const [gradesError, setGradesError] = useState(null);
   const [gradeCardLoading, setGradeCardLoading] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [marksLoading, setMarksLoading] = useState(false);
 
-  // Add these new states lifted from Attendance.jsx
   const [isAttendanceMetaLoading, setIsAttendanceMetaLoading] = useState(true);
   const [isAttendanceDataLoading, setIsAttendanceDataLoading] = useState(true);
-
-  // Add new states for attendance tab/daily/tracker/calendar
   const [attendanceDailyDate, setAttendanceDailyDate] = useState(null);
   const [isAttendanceCalendarOpen, setIsAttendanceCalendarOpen] =
     useState(false);
@@ -153,7 +142,6 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
     
-    // Match the order in the navigation bar
     const routes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
     const currentPath = window.location.hash.replace('#', '');
     const currentIndex = routes.indexOf(currentPath);
@@ -183,7 +171,11 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     >
       <Analytics />
       <div className="flex-none z-30 bg-[black] -mt-[2px]">
-        <Header setIsAuthenticated={setIsAuthenticated} />
+        <Header 
+          setIsAuthenticated={setIsAuthenticated} 
+          messMenuOpen={messMenuOpen}
+          onMessMenuChange={onMessMenuChange}
+        />
       </div>
       <div className="flex-1 overflow-y-auto">
         <TransitionGroup component={null}>
@@ -311,6 +303,18 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
             />
           }
         />
+        <Route
+          path="/timetable"
+          element={
+            <Timetable
+              w={w}
+              profileData={profileData}
+              subjectData={subjectData}
+              subjectSemestersData={subjectSemestersData}
+              selectedSubjectsSem={selectedSubjectsSem}
+            />
+          }
+        />
             </Routes>
           </div>
         </CSSTransition>
@@ -348,26 +352,40 @@ function App() {
     localStorage.setItem("messMenuOpen", open.toString());
   };
 
-  // Clear dialog state on page refresh/close
   useEffect(() => {
     const handleBeforeUnload = () => {
       localStorage.removeItem("messMenuOpen");
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && !messMenuOpen) {
+      if (document.visibilityState === 'hidden') {
+        setMessMenuOpen(false);
         localStorage.removeItem("messMenuOpen");
       }
     };
 
+    const handleBlur = () => {
+      setMessMenuOpen(false);
+      localStorage.removeItem("messMenuOpen");
+    };
+
+    const handleFocus = () => {
+      setMessMenuOpen(false);
+      localStorage.removeItem("messMenuOpen");
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, [messMenuOpen]);
+  }, []);
 
   const darkTheme = () => {
     setThemeMode("dark");

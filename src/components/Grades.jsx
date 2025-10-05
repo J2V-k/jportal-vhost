@@ -30,6 +30,12 @@ import {
   generate_local_name,
   API,
 } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.16/dist/jsjiit.esm.js";
+import {
+  getGradesFromCache,
+  saveGradesToCache,
+  saveToCache,
+  getFromCache,
+} from "@/components/scripts/cache";
 import GradeCard from "./GradeCard";
 import MarksCard from "./MarksCard";
 import CGPATargetCalculator from "./CGPATargetCalculator";
@@ -82,6 +88,11 @@ export default function Grades({
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [mounted, setMounted] = useState(true);
+  
+  // Cache state variables for marks
+  const [marksCacheTimestamp, setMarksCacheTimestamp] = useState(null);
+  const [isMarksRefreshing, setIsMarksRefreshing] = useState(false);
+  const [isMarksFromCache, setIsMarksFromCache] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -168,14 +179,53 @@ export default function Grades({
   }, [w, marksSemesters.length]);
 
   useEffect(() => {
+    if (marksSemesters.length > 0 && !selectedMarksSem) {
+      console.log('🎯 Auto-selecting first semester for marks:', marksSemesters[0]);
+      setSelectedMarksSem(marksSemesters[0]);
+    }
+  }, [marksSemesters, selectedMarksSem, setSelectedMarksSem]);
+
+  useEffect(() => {
     setMounted(true);
 
     const processPdfMarks = async () => {
-      if (!selectedMarksSem || marksData[selectedMarksSem.registration_id]) {
+      if (!selectedMarksSem) {
+        return;
+      }
+
+      // If data already exists in memory, just return
+      if (marksData[selectedMarksSem.registration_id]) {
         return;
       }
 
       setMarksLoading(true);
+      const username = w.username || "user";
+      const cacheKey = `marks-${selectedMarksSem.registration_code}-${username}`;
+
+      // Try to get from cache first
+      const cached = await getFromCache(cacheKey);
+      if (cached && mounted) {
+        setMarksSemesterData(cached.data || cached);
+        setMarksData((prev) => ({
+          ...prev,
+          [selectedMarksSem.registration_id]: cached.data || cached,
+        }));
+        setMarksCacheTimestamp(cached.timestamp || null);
+        setIsMarksFromCache(true);
+        setMarksLoading(false);
+        
+        // Start background refresh
+        setIsMarksRefreshing(true);
+        await fetchFreshMarksData();
+        setIsMarksRefreshing(false);
+        return;
+      }
+
+      // No cache: fetch fresh data
+      await fetchFreshMarksData();
+    };
+
+    const fetchFreshMarksData = async () => {
       try {
         const ENDPOINT = `/studentsexamview/printstudent-exammarks/${w.session.instituteid}/${selectedMarksSem.registration_id}/${selectedMarksSem.registration_code}`;
         const localname = await generate_local_name();
@@ -223,6 +273,12 @@ export default function Grades({
             ...prev,
             [selectedMarksSem.registration_id]: result,
           }));
+
+          const username = w.username || "user";
+          const cacheKey = `marks-${selectedMarksSem.registration_code}-${username}`;
+          await saveToCache(cacheKey, result, 8);
+          setMarksCacheTimestamp(Date.now());
+          setIsMarksFromCache(false);
         }
       } catch (error) {
         console.error("Failed to load marks:", error);
@@ -306,6 +362,30 @@ export default function Grades({
 
       if (marksData[value]) {
         setMarksSemesterData(marksData[value]);
+        return;
+      }
+
+      // Try cache first
+      const username = w.username || "user";
+      const cacheKey = `marks-${semester.registration_code}-${username}`;
+      const cached = await getFromCache(cacheKey);
+      
+      if (cached) {
+        setMarksSemesterData(cached.data || cached);
+        setMarksData((prev) => ({
+          ...prev,
+          [value]: cached.data || cached,
+        }));
+        setMarksCacheTimestamp(cached.timestamp || null);
+        setIsMarksFromCache(true);
+        
+        // Start background refresh with fresh data
+        setIsMarksRefreshing(true);
+        try {
+          await fetchFreshMarksData();
+        } finally {
+          setIsMarksRefreshing(false);
+        }
       }
     } catch (error) {
       console.error("Failed to change marks semester:", error);
@@ -666,6 +746,28 @@ export default function Grades({
                       ))}
                     </SelectContent>
                   </Select>
+
+                  {isMarksFromCache && marksCacheTimestamp && (
+                    <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
+                      <span>
+                        📁 Cached: {new Date(marksCacheTimestamp).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })} at {new Date(marksCacheTimestamp).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </span>
+                      {isMarksRefreshing && (
+                        <span className="ml-2 flex items-center gap-1">
+                          <Loader2 className="animate-spin w-4 h-4" />
+                          Refreshing...
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <AnimatePresence mode="wait">
                     {marksLoading ? (

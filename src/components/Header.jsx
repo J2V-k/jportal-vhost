@@ -5,7 +5,7 @@ import ThemeBtn from "./ui/ThemeBtn";
 import MessMenu from './MessMenu';
 import { Utensils } from 'lucide-react';
 
-const Header = ({ setIsAuthenticated }) => {
+const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -38,7 +38,7 @@ const Header = ({ setIsAuthenticated }) => {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="flex items-center space-x-4"
         >
-          <MessMenu>
+          <MessMenu open={messMenuOpen} onOpenChange={onMessMenuChange}>
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}

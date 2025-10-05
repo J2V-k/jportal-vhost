@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   getAttendanceFromCache,
   saveAttendanceToCache,
+  getSubjectDataFromCache,
+  saveSubjectDataToCache,
 } from "@/components/scripts/cache";
 import AttendanceCard from "./AttendanceCard";
 import {
@@ -78,7 +80,9 @@ const Attendance = ({
         });
 
         const username = w.username || "user";
+        console.log('🔍 Checking attendance cache for user:', username, 'semester:', latestSem?.registration_code);
         const cached = await getAttendanceFromCache(username, latestSem);
+        console.log('📦 Cache result:', cached ? 'Found cached data' : 'No cached data');
         if (cached) {
           setAttendanceData((prev) => ({
             ...prev,
@@ -86,6 +90,8 @@ const Attendance = ({
           }));
           setSelectedSem(latestSem);
           setCacheTimestamp(cached.timestamp || null);
+          console.log('📅 Cache timestamp set:', cached.timestamp ? new Date(cached.timestamp) : 'null');
+          console.log('📦 cacheTimestamp state will be:', cached.timestamp || null);
           setIsFromCache(true);
           setIsAttendanceMetaLoading(false);
           setIsAttendanceDataLoading(false);
@@ -97,6 +103,7 @@ const Attendance = ({
               [latestSem.registration_id]: data,
             }));
             await saveAttendanceToCache(data, username, latestSem);
+            console.log('💾 Saved fresh attendance data to cache for user:', username, 'semester:', latestSem?.registration_code);
             setCacheTimestamp(Date.now());
             setIsFromCache(false);
           } catch (error) {
@@ -149,16 +156,27 @@ const Attendance = ({
     );
     setSelectedSem(semester);
 
+    // If data already exists in memory, just use it and clear cache indicators
+    if (attendanceData[value]) {
+      setIsFromCache(false);
+      setCacheTimestamp(null);
+      setIsRefreshing(false);
+      return;
+    }
+
     setIsAttendanceDataLoading(true);
     const username = w.username || "user";
     // Try cache first
+    console.log('🔍 Checking attendance cache for semester change - user:', username, 'semester:', semester?.registration_code);
     const cached = await getAttendanceFromCache(username, semester);
+    console.log('📦 Cache result for semester change:', cached ? 'Found cached data' : 'No cached data');
     if (cached) {
       setAttendanceData((prev) => ({
         ...prev,
         [value]: cached.data || cached,
       }));
       setCacheTimestamp(cached.timestamp || null);
+      console.log('📅 Cache timestamp set:', cached.timestamp ? new Date(cached.timestamp) : 'null');
       setIsFromCache(true);
       setIsAttendanceDataLoading(false);
       // Refresh in background
@@ -280,6 +298,30 @@ const Attendance = ({
 
   const fetchSubjectAttendance = async (subject) => {
     try {
+      const username = w.username || "user";
+      console.log('🔍 Checking subject attendance cache for:', subject.name);
+      const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
+      
+      if (cached) {
+        console.log('📦 Found cached subject attendance for:', subject.name);
+        setSubjectAttendanceData((prev) => ({
+          ...prev,
+          [subject.name]: cached.data || cached,
+        }));
+        
+        console.log('🔄 Starting background refresh for subject:', subject.name);
+        await fetchFreshSubjectData(subject, username);
+        return;
+      }
+    console.log('📡 No cache found, fetching fresh subject data for:', subject.name);
+      await fetchFreshSubjectData(subject, username);
+    } catch (error) {
+      console.error("Failed to fetch subject attendance:", error);
+    }
+  };
+
+  const fetchFreshSubjectData = async (subject, username) => {
+    try {
       const attendance = attendanceData[selectedSem.registration_id];
       const subjectData = attendance.studentattendancelist.find(
         (s) => s.subjectcode === subject.name
@@ -302,12 +344,17 @@ const Attendance = ({
         subjectcomponentids
       );
 
+      const freshData = data.studentAttdsummarylist;
+      
       setSubjectAttendanceData((prev) => ({
         ...prev,
-        [subject.name]: data.studentAttdsummarylist,
+        [subject.name]: freshData,
       }));
+
+      await saveSubjectDataToCache(freshData, subject.name, username, selectedSem);
+      console.log('💾 Cached fresh subject attendance for:', subject.name);
     } catch (error) {
-      console.error("Failed to fetch subject attendance:", error);
+      console.error("Failed to fetch fresh subject attendance:", error);
     }
   };
 
@@ -384,22 +431,26 @@ const Attendance = ({
         </div>
       </div>
 
-      {/* Show cached timestamp and refreshing indicator */}
-      {cacheTimestamp && (
+      {/* Show cached timestamp and refreshing indicator - hide if there's an error */}
+      {!attendanceData[selectedSem?.registration_id]?.error && (
         <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
-          {isFromCache ? (
-            <span>
-              Last updated: {new Date(cacheTimestamp).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-              })} at {new Date(cacheTimestamp).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              })} (from cache)
-            </span>
-          ) : null}
+          <span>
+            {cacheTimestamp  && isFromCache ? (
+              <>
+                 📁 Cached: {new Date(cacheTimestamp).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })} at {new Date(cacheTimestamp).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}
+              </>
+            ) : (
+              ''
+            )}
+          </span>
           {isRefreshing && (
             <span className="ml-2 flex items-center gap-1">
               <Loader2 className="animate-spin w-4 h-4" />

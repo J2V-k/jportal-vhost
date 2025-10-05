@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import SubjectInfoCard from "./SubjectInfoCard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
+import { Loader2, Calendar } from "lucide-react"
 
 export default function Subjects({
   w,
@@ -107,54 +108,34 @@ export default function Subjects({
       return acc
     }, {}) || {}
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="dark:text-black text-white font-sans text-sm max-[390px]:text-xs"
-    >
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="top-14 dark:bg-white bg-[black] z-20 border-b border-white/10 dark:border-black/10"
-      >
-        <div className="py-2 px-3 max-w-[1440px] mx-auto">
-          <Select onValueChange={handleSemesterChange} value={selectedSem?.registration_id} disabled={loading}>
-            <SelectTrigger className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white md:w-[320px]">
-              <SelectValue placeholder={loading ? "Loading semesters..." : "Select semester"}>
-                {selectedSem?.registration_code}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white">
-              {semestersData?.semesters?.map((sem) => (
-                <SelectItem key={sem.registration_id} value={sem.registration_id}>
-                  {sem.registration_code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="px-3 pb-4"
-      >
+    return (
+      <div className="relative pb-16 md:pb-20">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex items-center justify-between px-1 py-4 mb-2 border-b border-white/10 dark:border-black/10"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="top-14 dark:bg-white bg-[black] z-20 border-b border-white/10 dark:border-black/10"
         >
-          <motion.div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-400 dark:text-gray-600">Total Credits</span>
-            <span className="text-lg font-semibold">{currentSubjects?.total_credits || 0}</span>
-          </motion.div>
+          <div className="py-2 px-3 max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <Select onValueChange={handleSemesterChange} value={selectedSem?.registration_id} disabled={loading}>
+              <SelectTrigger className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white md:w-[320px]">
+                <SelectValue placeholder={loading ? "Loading semesters..." : "Select semester"}>
+                  {selectedSem?.registration_code}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white">
+                {semestersData?.semesters?.map((sem) => (
+                  <SelectItem key={sem.registration_id} value={sem.registration_id}>
+                    {sem.registration_code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <motion.div className="flex items-center space-x-2 mt-2 md:mt-0">
+              <span className="text-sm font-medium text-gray-400 dark:text-gray-300">Total Credits</span>
+              <span className="text-lg font-semibold text-white dark:text-black">{currentSubjects?.total_credits || 0}</span>
+            </motion.div>
+          </div>
         </motion.div>
 
         {subjectsLoading ? (
@@ -185,7 +166,25 @@ export default function Subjects({
             </motion.div>
           </AnimatePresence>
         )}
-      </motion.div>
-    </motion.div>
-  )
+        
+        {currentSubjects && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex justify-center mt-8 mb-4"
+          >
+            <Link
+              to="/timetable"
+              className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+            >
+              <Calendar size={20} />
+              View Timetable
+            </Link>
+          </motion.div>
+        )}
+        
+        <div className="h-16 md:h-20" />
+      </div>
+    )
 }

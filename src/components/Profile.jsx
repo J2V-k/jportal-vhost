@@ -145,7 +145,7 @@ export default function Profile({ w, profileData, setProfileData }) {
             className="p-4"
           >
             {activeTab === "personal" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="space-y-1">
                 <InfoRow icon={User} label="Date of Birth" value={info.dateofbirth} />
                 <InfoRow icon={User} label="Gender" value={info.gender} />
                 <InfoRow icon={User} label="Blood Group" value={info.bloodgroup} />
@@ -155,22 +155,18 @@ export default function Profile({ w, profileData, setProfileData }) {
             )}
             {/* academic tab removed - details now shown in header */}
             {activeTab === "contact" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
-                  <InfoRow icon={Mail} label="Personal Email" value={info.studentpersonalemailid} />
-                  <InfoRow icon={Phone} label="Mobile" value={info.studentcellno} />
-                  <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
-                  <InfoRow icon={User} label="Father" value={info.fathersname} />
-                  <InfoRow icon={User} label="Mother" value={info.mothername} />
-                </div>
-                <div className="space-y-1">
-                  <InfoRow icon={MapPin} label="Current Address" value={[info.caddress1, info.caddress3].filter(Boolean).join(", ")} />
-                  <InfoRow icon={MapPin} label="City" value={info.ccityname} />
-                  <InfoRow icon={MapPin} label="District" value={info.cdistrict} />
-                  <InfoRow icon={MapPin} label="State" value={info.cstatename} />
-                  <InfoRow icon={MapPin} label="Postal" value={info.cpostalcode} />
-                </div>
+              <div className="space-y-1">
+                <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
+                <InfoRow icon={Mail} label="Personal Email" value={info.studentpersonalemailid} />
+                <InfoRow icon={Phone} label="Mobile" value={info.studentcellno} />
+                <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
+                <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
+                <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
+                <InfoRow icon={MapPin} label="Current Address" value={[info.caddress1, info.caddress3].filter(Boolean).join(", ")} />
+                <InfoRow icon={MapPin} label="City" value={info.ccityname} />
+                <InfoRow icon={MapPin} label="District" value={info.cdistrict} />
+                <InfoRow icon={MapPin} label="State" value={info.cstatename} />
+                <InfoRow icon={MapPin} label="Postal Code" value={info.cpostalcode} />
               </div>
             )}
             {activeTab === "education" && (
@@ -229,11 +225,11 @@ export default function Profile({ w, profileData, setProfileData }) {
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-start gap-2 py-2 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4">
-      <Icon className="h-4 w-4 text-gray-300 dark:text-gray-700 shrink-0 mt-0.5" />
-      <div className="flex-1">
-        <span className="block text-xs font-medium text-gray-400 dark:text-gray-600">{label}</span>
-        <span className="block text-sm text-white dark:text-black break-all font-medium mt-0.5">{value || "N/A"}</span>
+    <div className="flex items-center gap-3 py-2 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4">
+      <Icon className="h-4 w-4 text-gray-300 dark:text-gray-700 shrink-0" />
+      <div className="grid grid-cols-2 gap-4 flex-1 items-center">
+        <span className="text-sm font-medium text-gray-400 dark:text-gray-600">{label}</span>
+        <span className="text-sm text-white dark:text-black break-all font-medium">{value || "N/A"}</span>
       </div>
     </div>
   )
