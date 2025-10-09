@@ -34,7 +34,7 @@ export default function Exams({
             setExamEvents(events)
 
             if (events.length > 0) {
-              const firstEvent = events[0]
+              const firstEvent = events[events.length-1]
               setSelectedExamEvent(firstEvent)
 
               const response = await w.get_exam_schedule(firstEvent)
@@ -53,7 +53,7 @@ export default function Exams({
           const events = await w.get_exam_events(selectedExamSem)
           setExamEvents(events)
           if (events.length > 0 && !selectedExamEvent) {
-            setSelectedExamEvent(events[0])
+            setSelectedExamEvent(events[events.length - 1])
           }
         } finally {
           setLoading(false)
@@ -84,11 +84,11 @@ export default function Exams({
       setExamSchedule({})
 
       if (events.length > 0) {
-        const firstEvent = events[0]
-        setSelectedExamEvent(firstEvent)
-        const response = await w.get_exam_schedule(firstEvent)
+        const lastEvent = events[events.length - 1]
+        setSelectedExamEvent(lastEvent)
+        const response = await w.get_exam_schedule(lastEvent)
         setExamSchedule({
-          [firstEvent.exam_event_id]: response.subjectinfo,
+          [lastEvent.exam_event_id]: response.subjectinfo,
         })
       }
     } finally {
@@ -127,7 +127,7 @@ export default function Exams({
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6 max-w-[1440px]">
+    <div className="container mx-auto p-4 space-y-6 max-w-[1440px] pb-24">
       <div className="bg-black dark:bg-white shadow rounded-lg p-6 md:max-w-[50%] md:mx-auto">
         <h2 className="text-2xl font-bold mb-4 text-white dark:text-black">Exam Schedule</h2>
         <div className="space-y-4">
@@ -210,17 +210,21 @@ function ExamCard({ exam, formatDate }) {
           </div>
 
           {(exam.roomcode || exam.seatno) && (
-            <div className="space-y-3 text-sm text-gray-300 dark:text-gray-600">
+            <div className="space-y-3 text-sm">
               {exam.roomcode && (
-                <div className="flex items-center">
-                  <MapPin className="mr-2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <span>Room: {exam.roomcode}</span>
+                <div className="flex items-center bg-blue-900/30 dark:bg-blue-100 px-3 py-2 rounded-lg">
+                  <MapPin className="mr-2 h-5 w-5 text-blue-400 dark:text-blue-600" />
+                  <span className="text-blue-200 dark:text-blue-800 font-medium">
+                    Room: <span className="text-blue-100 dark:text-blue-900 font-semibold">{exam.roomcode}</span>
+                  </span>
                 </div>
               )}
               {exam.seatno && (
-                <div className="flex items-center">
-                  <Armchair className="mr-2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <span>Seat: {exam.seatno}</span>
+                <div className="flex items-center bg-green-900/30 dark:bg-green-100 px-3 py-2 rounded-lg">
+                  <Armchair className="mr-2 h-5 w-5 text-green-400 dark:text-green-600" />
+                  <span className="text-green-200 dark:text-green-800 font-medium">
+                    Seat: <span className="text-green-100 dark:text-green-900 font-semibold">{exam.seatno}</span>
+                  </span>
                 </div>
               )}
             </div>
