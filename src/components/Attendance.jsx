@@ -156,7 +156,6 @@ const Attendance = ({
     );
     setSelectedSem(semester);
 
-    // If data already exists in memory, just use it and clear cache indicators
     if (attendanceData[value]) {
       setIsFromCache(false);
       setCacheTimestamp(null);
@@ -166,10 +165,7 @@ const Attendance = ({
 
     setIsAttendanceDataLoading(true);
     const username = w.username || "user";
-    // Try cache first
-    console.log('🔍 Checking attendance cache for semester change - user:', username, 'semester:', semester?.registration_code);
     const cached = await getAttendanceFromCache(username, semester);
-    console.log('📦 Cache result for semester change:', cached ? 'Found cached data' : 'No cached data');
     if (cached) {
       setAttendanceData((prev) => ({
         ...prev,
@@ -193,12 +189,10 @@ const Attendance = ({
         setCacheTimestamp(Date.now());
         setIsFromCache(false);
       } catch (error) {
-        // Ignore refresh errors
       }
       setIsRefreshing(false);
       return;
     }
-    // No cache: fetch as usual
     try {
       const meta = await w.get_attendance_meta();
       const header = meta.latest_header();

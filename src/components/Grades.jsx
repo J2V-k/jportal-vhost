@@ -630,7 +630,10 @@ export default function Grades({
                   </motion.div>
                 </>
               )}
-              <CGPATargetCalculator semesterData={semesterData} />
+              <CGPATargetCalculator 
+                w={w}
+                semesterData={semesterData}
+              />
             </motion.div>
           </TabsContent>
 
