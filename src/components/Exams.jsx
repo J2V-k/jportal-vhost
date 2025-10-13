@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Calendar, Clock, MapPin, Armchair } from "lucide-react"
+import { Calendar, Clock, MapPin, Armchair, Timer } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function Exams({
@@ -17,6 +17,28 @@ export default function Exams({
 }) {
   const [examEvents, setExamEvents] = useState([])
   const [loading, setLoading] = useState(false)
+
+  const updateExamDatesInLocalStorage = (examScheduleData) => {
+    if (!examScheduleData || examScheduleData.length === 0) {
+      return;
+    }
+
+    try {
+      const examDates = examScheduleData.map(exam => exam.datetime);
+      const examDatesAsDate = examDates.map(dateStr => {
+        const [day, month, year] = dateStr.split('/');
+        return new Date(`${month}/${day}/${year}`);
+      });
+      
+      const earliestDate = new Date(Math.min(...examDatesAsDate));
+      const latestDate = new Date(Math.max(...examDatesAsDate));
+      
+      localStorage.setItem('examStartDate', earliestDate.toISOString());
+      localStorage.setItem('examEndDate', latestDate.toISOString());
+    } catch (error) {
+      console.error('Failed to update exam dates in localStorage:', error);
+    }
+  }
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -41,6 +63,7 @@ export default function Exams({
               setExamSchedule({
                 [firstEvent.exam_event_id]: response.subjectinfo,
               })
+              updateExamDatesInLocalStorage(response.subjectinfo)
             }
           }
         } finally {
@@ -90,6 +113,7 @@ export default function Exams({
         setExamSchedule({
           [lastEvent.exam_event_id]: response.subjectinfo,
         })
+        updateExamDatesInLocalStorage(response.subjectinfo)
       }
     } finally {
       setLoading(false)
@@ -108,6 +132,7 @@ export default function Exams({
           ...prev,
           [value]: response.subjectinfo,
         }))
+        updateExamDatesInLocalStorage(response.subjectinfo)
       }
     } finally {
       setLoading(false)
@@ -164,15 +189,7 @@ export default function Exams({
       {loading ? (
         <LoadingSkeleton />
       ) : currentSchedule?.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentSchedule.map((exam) => (
-            <ExamCard
-              key={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`}
-              exam={exam}
-              formatDate={formatDate}
-            />
-          ))}
-        </div>
+        <ExamScheduleGrid currentSchedule={currentSchedule} formatDate={formatDate} />
       ) : selectedExamEvent ? (
         <div className="bg-black dark:bg-white shadow rounded-lg p-6 flex items-center justify-center h-32">
           <p className="text-gray-400 dark:text-gray-500">No exam schedule available</p>
@@ -182,10 +199,119 @@ export default function Exams({
   )
 }
 
-function ExamCard({ exam, formatDate }) {
+function ExamScheduleGrid({ currentSchedule, formatDate }) {
+  const now = new Date();
+  const fourHours = 4 * 60 * 60 * 1000;
+  
+  const parseExamDateTime = (dateStr, timeStr) => {
+    const [day, month, year] = dateStr.split('/');
+    const [time, period] = timeStr.split(' ');
+    const [hours, minutes] = time.split(':');
+    
+    let hour24 = parseInt(hours);
+    if (period?.toUpperCase() === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period?.toUpperCase() === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour24, parseInt(minutes));
+  };
+
+  let nextExamId = null;
+  let nearestTime = Infinity;
+
+  currentSchedule.forEach((exam) => {
+    const examDateTime = parseExamDateTime(exam.datetime, exam.datetimefrom || '00:00');
+    const timeDiff = examDateTime.getTime() - now.getTime();
+    
+    if (timeDiff > 0 && timeDiff <= fourHours && timeDiff < nearestTime) {
+      nearestTime = timeDiff;
+      nextExamId = `${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`;
+    }
+  });
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {currentSchedule.map((exam) => (
+        <ExamCard
+          key={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`}
+          exam={exam}
+          formatDate={formatDate}
+          showTimer={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}` === nextExamId}
+        />
+      ))}
+    </div>
+  );
+}
+
+function useCountdown(targetDate) {
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isWithin4Hours, setIsWithin4Hours] = useState(false);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const difference = target - now;
+      const fourHours = 4 * 60 * 60 * 1000;
+      const within4Hours = difference > 0 && difference <= fourHours;
+      setIsWithin4Hours(within4Hours);
+
+      if (difference > 0 && within4Hours) {
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ hours, minutes, seconds });
+      } else {
+        setTimeLeft(null);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return { timeLeft, isWithin4Hours };
+}
+
+function ExamCard({ exam, formatDate, showTimer = false }) {
+  const parseExamDateTime = (dateStr, timeStr) => {
+    const [day, month, year] = dateStr.split('/');
+    const [time, period] = timeStr.split(' ');
+    const [hours, minutes] = time.split(':');
+    
+    let hour24 = parseInt(hours);
+    if (period?.toUpperCase() === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period?.toUpperCase() === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour24, parseInt(minutes));
+  };
+
+  const examDateTime = parseExamDateTime(exam.datetime, exam.datetimefrom || '00:00');
+  const { timeLeft } = useCountdown(examDateTime);
+
   return (
     <div className="bg-black dark:bg-white shadow rounded-lg p-6">
       <div className="space-y-4">
+        {/* Countdown Timer */}
+        {showTimer && timeLeft && (
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-500 dark:to-orange-500 p-4 rounded-lg border-2 border-red-400 shadow-lg">
+            <div className="flex items-center justify-center gap-2 text-white">
+              <Timer className="w-5 h-5 animate-pulse" />
+              <span className="font-bold text-lg">
+                Exam starts in: {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Exam Name Row */}
         <div className="border-b border-gray-800 dark:border-gray-200 pb-3">
           <h3 className="font-semibold text-lg sm:text-xl text-white dark:text-black">

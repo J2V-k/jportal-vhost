@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -120,7 +120,7 @@ const isMenuCurrent = (menuData) => {
   return lastEntry.date >= today;
 };
 
-const MenuUnavailable = ({ onViewOldMenu }) => (
+const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
   <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
     <div className="bg-[#0B0B0D] dark:bg-[#F9FAFB] p-6 rounded-lg border border-gray-700 dark:border-gray-300 shadow-lg">
       <UtensilsCrossed size={50} className="text-white dark:text-black mx-auto mb-4 opacity-25" />
@@ -138,24 +138,15 @@ const MenuUnavailable = ({ onViewOldMenu }) => (
       </button>
     </div>
   </div>
-);
+));
 
-const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
-  const [view, setView] = useState("daily");
+const MessMenu = ({ children, open, onOpenChange }) => {
+  const [view, setView] = useState(() => {
+    return localStorage.getItem('defaultMessMenuView') || 'daily';
+  });
   const [menuAvailable, setMenuAvailable] = useState(true);
   const [forceShowMenu, setForceShowMenu] = useState(false);
   const [menuData, setMenuData] = useState({});
-  const [internalOpen, setInternalOpen] = useState(false);
-
-  const isControlled = open !== undefined || isOpen !== undefined;
-  const dialogOpen = isControlled ? (open ?? isOpen) : internalOpen;
-
-  const handleDialogOpenChange = (val) => {
-    if (typeof onOpenChange === "function") onOpenChange(val);
-    if (typeof onChange === "function") onChange(val);
-
-    if (!isControlled) setInternalOpen(val);
-  };
 
   useEffect(() => {
     const fetchMenuData = async () => {
@@ -175,17 +166,30 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
     };
     fetchMenuData();
   }, []);
-  
-  const handleViewOldMenu = () => {
-    setForceShowMenu(true);
-    // ensure dialog is open when forcing old menu view
-    handleDialogOpenChange(true);
-  };
-  
-  const shouldShowMenu = menuAvailable || forceShowMenu;
-  const showTodayLabel = menuAvailable;
 
-  const DailyView = () => {
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const defaultView = localStorage.getItem('defaultMessMenuView') || 'daily';
+      setView(defaultView);
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+  
+  const handleViewOldMenu = useCallback(() => {
+    setForceShowMenu(true);
+  }, []);
+
+  const handleViewChange = useCallback((newView) => {
+    setView(newView);
+  }, []);
+
+  const shouldShowMenu = useMemo(() => menuAvailable || forceShowMenu, [menuAvailable, forceShowMenu]);
+  const showTodayLabel = useMemo(() => menuAvailable, [menuAvailable]);
+
+  const DailyView = useMemo(() => {
     let daysToDisplay;
     
     if (showTodayLabel) {
@@ -199,7 +203,7 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
     }
 
     return (
-      <div className="space-y-4 sm:space-y-6 py-1 sm:py-2">
+      <div className="space-y-3 sm:space-y-4 py-1 sm:py-2">
         {daysToDisplay.map((dayName, idx) => {
           const menuKey = Object.keys(menuData).find((k) =>
             k.startsWith(dayName)
@@ -215,55 +219,77 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05, duration: 0.3 }}
-              className={`p-3 sm:p-5 bg-[#0B0B0D] dark:bg-[#F9FAFB] rounded-lg border ${
-                isToday ? "border-primary" : "border-gray-700 dark:border-gray-300"
-              } shadow-sm`}
+              className={`relative p-3 sm:p-4 bg-[#0B0B0D] dark:bg-[#F9FAFB] rounded-lg border-2 ${
+                isToday 
+                  ? "border-white dark:border-black" 
+                  : "border-gray-600 dark:border-gray-300 hover:border-gray-500 dark:hover:border-gray-400"
+              } shadow-lg hover:shadow-xl transition-all duration-300`}
             >
+              {isToday && (
+                <div className="absolute -top-1 -right-1 bg-white dark:bg-black text-black dark:text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+                  Today
+                </div>
+              )}
               <h3
-                className={`text-base sm:text-lg font-semibold text-center mb-2 sm:mb-4 text-white dark:text-black`}
+                className={`text-base sm:text-lg font-bold text-center mb-3 sm:mb-4 text-white dark:text-black`}
               >
-                {isToday ? `Today - ${menuKey}` : menuKey}
+                {menuKey}
               </h3>
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="mt-1 bg-primary/10 dark:bg-primary/10 p-1 sm:p-2 rounded-full">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
+                  <div className="flex items-center gap-2 mb-2">
                     <Coffee size={16} className="text-white dark:text-black" />
-                  </div>
-                  <div>
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Breakfast
                     </h4>
-                    <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600">
-                      {dayMenu.Breakfast}
-                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {dayMenu.Breakfast.split(", ").map((item, i) => (
+                      <span
+                        key={i}
+                        className="inline-block bg-[#0B0B0D] dark:bg-white text-xs sm:text-sm text-gray-300 dark:text-gray-700 rounded-md px-3 py-1 border border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-50 transition-colors"
+                      >
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="mt-1 bg-primary/10 dark:bg-primary/10 p-1 sm:p-2 rounded-full">
+                <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
+                  <div className="flex items-center gap-2 mb-2">
                     <UtensilsCrossed size={16} className="text-white dark:text-black" />
-                  </div>
-                  <div>
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Lunch
                     </h4>
-                    <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600">
-                      {dayMenu.Lunch}
-                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {dayMenu.Lunch.split(", ").map((item, i) => (
+                      <span
+                        key={i}
+                        className="inline-block bg-[#0B0B0D] dark:bg-white text-xs sm:text-sm text-gray-300 dark:text-gray-700 rounded-md px-3 py-1 border border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-50 transition-colors"
+                      >
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="mt-1 bg-primary/10 dark:bg-primary/10 p-1 sm:p-2 rounded-full">
+                <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
+                  <div className="flex items-center gap-2 mb-2">
                     <Moon size={16} className="text-white dark:text-black" />
-                  </div>
-                  <div>
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Dinner
                     </h4>
-                    <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600">
-                      {dayMenu.Dinner}
-                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {dayMenu.Dinner.split(", ").map((item, i) => (
+                      <span
+                        key={i}
+                        className="inline-block bg-[#0B0B0D] dark:bg-white text-xs sm:text-sm text-gray-300 dark:text-gray-700 rounded-md px-3 py-1 border border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-50 transition-colors"
+                      >
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -272,9 +298,9 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
         })}
       </div>
     );
-  };
+  }, [menuData, showTodayLabel]);
 
-  const WeeklyView = () => (
+  const WeeklyView = useMemo(() => (
     <div className="overflow-x-auto">
       <Table className="border-collapse">
         <TableHeader>
@@ -374,15 +400,19 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
         </TableBody>
       </Table>
     </div>
-  );
+  ), [menuData, showTodayLabel]);
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-[90vw] sm:max-w-xl md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black rounded-lg mx-auto border border-gray-700 dark:border-gray-300 shadow-lg p-4 sm:p-6">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>
+        <div onClick={() => onOpenChange && onOpenChange(true)}>
+          {children}
+        </div>
+      </DialogTrigger>
+      <DialogContent className="w-[85vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-y-auto bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black rounded-lg mx-auto border border-gray-700 dark:border-gray-300 shadow-lg p-3 sm:p-4">
         <DialogHeader className="border-b border-gray-700 dark:border-gray-300 pb-2">
-          <DialogTitle className="text-white dark:text-black flex items-center gap-2 text-lg sm:text-xl">
-            <UtensilsCrossed className="text-white dark:text-black" />
+          <DialogTitle className="text-white dark:text-black flex items-center gap-2 text-base sm:text-lg">
+            <UtensilsCrossed size={18} className="text-white dark:text-black" />
             Mess Menu
             {!menuAvailable && forceShowMenu && (
               <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Outdated</span>
@@ -396,7 +426,7 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
               <></>
             )}
             
-            <div className="flex items-center justify-center my-4 sm:my-6">
+            <div className="flex items-center justify-center my-3 sm:my-4">
               <div className="flex items-center bg-[#0B0B0D] dark:bg-[#F9FAFB] p-1 rounded-full shadow-inner border border-gray-800 dark:border-gray-200">
                 <div
                   className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-200 ${
@@ -404,7 +434,7 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
                       ? "bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black shadow-sm"
                       : "text-gray-500 dark:text-gray-400"
                   }`}
-                  onClick={() => setView("weekly")}
+                  onClick={() => handleViewChange("weekly")}
                   role="button"
                   tabIndex={0}
                 >
@@ -425,7 +455,7 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
                       ? "bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black shadow-sm"
                       : "text-gray-500 dark:text-gray-400"
                   }`}
-                  onClick={() => setView("daily")}
+                  onClick={() => handleViewChange("daily")}
                   role="button"
                   tabIndex={0}
                 >
@@ -442,7 +472,7 @@ const MessMenu = ({ children, open, isOpen, onOpenChange, onChange }) => {
               </div>
             </div>
 
-            {view === "daily" ? <DailyView /> : <WeeklyView />}
+            {view === "daily" ? DailyView : WeeklyView}
           </>
         ) : (
           <MenuUnavailable onViewOldMenu={handleViewOldMenu} />

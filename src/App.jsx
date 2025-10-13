@@ -107,7 +107,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   const [attendanceSubjectCacheStatus, setAttendanceSubjectCacheStatus] =
     useState(null);
 
-  const minSwipeDistance = 50;
+  const minSwipeDistance = 75;
 
   const onTouchStart = (e) => {
     setTouchEnd(null);
@@ -125,6 +125,15 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   const onTouchEndWithTransition = () => {
     if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
+    
+    const swipeEnabled = localStorage.getItem('swipeEnabled') !== 'false';
+    if (!swipeEnabled) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      setTouchStartY(null);
+      setTouchEndY(null);
+      return;
+    }
     
     const distanceX = Math.abs(touchStart - touchEnd);
     const distanceY = Math.abs(touchStartY - touchEndY);
@@ -331,7 +340,48 @@ function LoginWrapper({ onLoginSuccess, w }) {
   const handleLoginSuccess = () => {
     onLoginSuccess();
     setTimeout(() => {
-      navigate("/attendance");
+      let targetTab = localStorage.getItem('defaultTab') || '/attendance';
+      
+      if (targetTab === 'auto') {
+        const examStartDate = localStorage.getItem('examStartDate');
+        const examEndDate = localStorage.getItem('examEndDate');
+        
+        if (examStartDate && examEndDate) {
+          const now = new Date();
+          const examStart = new Date(examStartDate);
+          const examEnd = new Date(examEndDate);
+          const tomorrow = new Date(now);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
+          const isInExamPeriod = now >= examStart && now <= examEnd;
+          
+          if (isTomorrowExamStart || isInExamPeriod) {
+            targetTab = '/grades';
+          } else {
+            targetTab = '/attendance';
+          }
+        } else {
+          targetTab = '/attendance';
+        }
+      }
+      
+      const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+      if (!validRoutes.includes(targetTab)) {
+        console.warn(`Invalid default tab: ${targetTab}, falling back to /attendance`);
+        targetTab = '/attendance';
+      }
+      try {
+        navigate(targetTab, { replace: true });
+      } catch (error) {
+        console.error('Navigation failed, falling back to /attendance:', error);
+        navigate('/attendance', { replace: true });
+      }
+      setTimeout(() => {
+        if (window.location.hash.includes('/login') || window.location.hash === '#/') {
+          navigate('/attendance', { replace: true });
+        }
+      }, 2000);
     }, 100);
   };
 
@@ -342,7 +392,9 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [themeMode, setThemeMode] = useState("light");
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem('defaultTheme') || 'light';
+  });
   const [messMenuOpen, setMessMenuOpen] = useState(() => {
     return localStorage.getItem("messMenuOpen") === "true";
   });

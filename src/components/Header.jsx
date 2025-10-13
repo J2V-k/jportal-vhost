@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import ThemeBtn from "./ui/ThemeBtn";
 import MessMenu from './MessMenu';
 import { Utensils } from 'lucide-react';
+import SettingsDialog from './SettingsDialog';
 
 const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange }) => {
   const navigate = useNavigate();
@@ -39,27 +40,14 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange }) => {
           className="flex items-center space-x-4"
         >
           <MessMenu open={messMenuOpen} onOpenChange={onMessMenuChange}>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <div
               className="p-2 rounded-full focus:outline-none focus:ring-2 transition-colors duration-300 ease-in-out dark:text-gray-700 dark:hover:bg-gray-200 text-gray-300 hover:bg-[#0A0A0C] cursor-pointer"
             >
-              <Utensils className="w-5 h-5 text-[#D1D5DB] dark:text-[#47505F]" />
-            </motion.div>
+              <Utensils className="w-5 h-5" />
+            </div>
           </MessMenu>
           <ThemeBtn />
-          <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full focus:outline-none focus:ring-2 transition-colors duration-300 ease-in-out dark:text-gray-700 dark:hover:bg-gray-200 text-gray-300 hover:bg-[#0A0A0C]"
-          >
-            <img
-              src='/icons/logout.svg'
-              alt="Logout"
-              onClick={handleLogout}
-              className="w-6 h-6 cursor-pointer hover:opacity-80 transition-opacity dark:filter dark:invert"
-            />
-          </motion.div>
+          <SettingsDialog onLogout={handleLogout} />
         </motion.div>
       </div>
     </motion.header>

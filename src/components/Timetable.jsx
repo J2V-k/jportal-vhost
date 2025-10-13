@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Loader2 } from "lucide-react";
+import { Calendar, Loader2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selectedSubjectsSem }) => {
+  const navigate = useNavigate();
   const [timetableUrl, setTimetableUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -171,10 +173,21 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-[black] dark:bg-white">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-white dark:text-black animate-spin mx-auto mb-4" />
-          <p className="text-white dark:text-black">Loading timetable...</p>
+      <div className="min-h-[60vh] bg-[black] dark:bg-white">
+        <div className="p-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-2 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Go Back
+          </button>
+        </div>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 text-white dark:text-black animate-spin mx-auto mb-4" />
+            <p className="text-white dark:text-black">Loading timetable...</p>
+          </div>
         </div>
       </div>
     );
@@ -182,21 +195,32 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-[black] dark:bg-white p-4">
-        <div className="text-center max-w-md">
-          <Calendar className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white dark:text-black mb-2">
-            Timetable Unavailable
-          </h3>
-          <p className="text-gray-400 dark:text-gray-600 mb-4">
-            {error}
-          </p>
+      <div className="min-h-[60vh] bg-[black] dark:bg-white">
+        <div className="p-4">
           <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-2 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-lg transition-colors"
           >
-            Retry
+            <ArrowLeft className="w-4 h-4" />
+            Go Back
           </button>
+        </div>
+        <div className="flex items-center justify-center min-h-[50vh] p-4">
+          <div className="text-center max-w-md">
+            <Calendar className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white dark:text-black mb-2">
+              Timetable Unavailable
+            </h3>
+            <p className="text-gray-400 dark:text-gray-600 mb-4">
+              {error}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -207,11 +231,25 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex items-center justify-center min-h-[60vh] bg-[black] dark:bg-white"
+      className="min-h-[60vh] bg-[black] dark:bg-white"
     >
-      <div className="text-center">
-        <Calendar className="w-12 h-12 text-white dark:text-black mx-auto mb-4" />
-        <p className="text-white dark:text-black">Opening your personalized timetable...</p>
+      {/* Back Button */}
+      <div className="p-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-3 py-2 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Go Back
+        </button>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Calendar className="w-12 h-12 text-white dark:text-black mx-auto mb-4" />
+          <p className="text-white dark:text-black">Opening your personalized timetable...</p>
+        </div>
       </div>
     </motion.div>
   );

@@ -172,19 +172,19 @@ export default function Subjects({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex justify-center mt-8 mb-4"
+            className="flex justify-center mt-4"
           >
             <Link
               to="/timetable"
-              className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+              className="inline-flex items-center gap-3 px-6 py-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white rounded-lg hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-200 text-lg font-medium shadow-lg"
             >
               <Calendar size={20} />
-              View Timetable
+              Create personalized Timetable
             </Link>
           </motion.div>
         )}
         
-        <div className="h-16 md:h-20" />
+        <div className="h-8 md:h-12" />
       </div>
     )
 }
