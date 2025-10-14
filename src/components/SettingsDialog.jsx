@@ -58,9 +58,9 @@ export default function SettingsDialog({ onLogout }) {
 
   function applyTheme(theme) {
     if (theme === 'dark') {
-      darkTheme();
-    } else {
       lightTheme();
+    } else {
+      darkTheme();
     }
     localStorage.setItem('theme', theme);
   }
@@ -103,22 +103,22 @@ export default function SettingsDialog({ onLogout }) {
           <Settings className="w-6 h-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-black dark:bg-white border-2 border-white dark:border-black text-white dark:text-black">
+      <DialogContent className="bg-black dark:bg-white border-2 border-white dark:border-black text-white dark:text-black p-8">
         <DialogHeader>
           <DialogTitle className="text-white dark:text-black">Settings</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 items-center">
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Default theme</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 variant={selectedTheme === 'light' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleThemeChange('light')}
-                className={`${
+                className={`flex-1 ${
                   selectedTheme === 'light' 
-                    ? 'bg-white dark:bg-black text-black dark:text-white border-white dark:border-black' 
+                    ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800' 
                     : 'bg-transparent text-white dark:text-black border-white dark:border-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white'
                 }`}
               >
@@ -128,9 +128,9 @@ export default function SettingsDialog({ onLogout }) {
                 variant={selectedTheme === 'dark' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleThemeChange('dark')}
-                className={`${
+                className={`flex-1 ${
                   selectedTheme === 'dark' 
-                    ? 'bg-white dark:bg-black text-black dark:text-white border-white dark:border-black' 
+                    ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800' 
                     : 'bg-transparent text-white dark:text-black border-white dark:border-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white'
                 }`}
               >
@@ -139,7 +139,7 @@ export default function SettingsDialog({ onLogout }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
             <Select value={defaultTab} onValueChange={setDefaultTab}>
               <SelectTrigger className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black">
@@ -159,16 +159,15 @@ export default function SettingsDialog({ onLogout }) {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Enable swipe navigation</Label>
             <Switch 
               checked={swipeEnabled}
               onCheckedChange={setSwipeEnabled}
-              className="data-[state=checked]:bg-white dark:data-[state=checked]:bg-black"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Default mess menu view</Label>
             <Select value={defaultMessMenuView} onValueChange={setDefaultMessMenuView}>
               <SelectTrigger className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black">
@@ -188,7 +187,7 @@ export default function SettingsDialog({ onLogout }) {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Clear all cached data</Label>
             <Button
               variant="outline"
@@ -202,7 +201,7 @@ export default function SettingsDialog({ onLogout }) {
           </div>
         </div>
 
-        <div className="space-y-3 mt-6">
+        <div className="space-y-4 mt-8">
           <Button 
             onClick={handleLogout} 
             variant="destructive"

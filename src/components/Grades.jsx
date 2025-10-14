@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import useTheme from "@/context/ThemeContext";
 import {
   LineChart,
   Line,
@@ -86,6 +87,7 @@ export default function Grades({
   marksLoading,
   setMarksLoading,
 }) {
+  const { themeMode } = useTheme();
   const [isDownloading, setIsDownloading] = useState(false);
   const [mounted, setMounted] = useState(true);
   
@@ -339,7 +341,7 @@ export default function Grades({
   };
 
   const handleMarksSemesterChange = async (value) => {
-    try {
+    try {laaalllaa
       const semester = marksSemesters.find(
         (sem) => sem.registration_id === value
       );
@@ -399,6 +401,21 @@ export default function Grades({
     transition: { duration: 0.3 },
   };
 
+  const getTooltipStyle = () => ({
+    backgroundColor: themeMode === 'dark' ? 'black' : 'white',
+    border: themeMode === 'dark' ? '1px solid #374151' : '1px solid #d1d5db',
+    borderRadius: '8px',
+    color: themeMode === 'dark' ? 'white' : 'black',
+    fontWeight: '500',
+    boxShadow: themeMode === 'dark' 
+      ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+      : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  });
+
+  const getTooltipLabelStyle = () => ({
+    color: themeMode === 'dark' ? 'white' : 'black',
+  });
+
   if (gradesLoading) {
     return (
       <motion.div
@@ -429,7 +446,7 @@ export default function Grades({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-4 pb-8 px-4 md:px-8 mb-8 font-sans text-sm max-[390px]:text-xs"
+    className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-2 pb-24 md:pb-8 px-3 md:px-6 mb-4 font-sans text-sm max-[390px]:text-xs"
     >
       <Tabs
         value={activeTab}
@@ -438,7 +455,7 @@ export default function Grades({
       >
         {/* Mobile tabs */}
         <div className="md:hidden">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-6 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
             {["overview","marks", "semester"].map((tab, index) => (
               <TabsTrigger
                 key={tab}
@@ -460,11 +477,11 @@ export default function Grades({
 
         {/* Desktop view - Overview as main, with buttons for marks/semester */}
         <div className="hidden md:block">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <div className="flex bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                className={`px-4 py-1.5 rounded-md transition-all duration-200 ${
                   activeTab === "overview"
                     ? "bg-white dark:bg-black text-black dark:text-white"
                     : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
@@ -474,7 +491,7 @@ export default function Grades({
               </button>
               <button
                 onClick={() => setActiveTab("marks")}
-                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                className={`px-4 py-1.5 rounded-md transition-all duration-200 ${
                   activeTab === "marks"
                     ? "bg-white dark:bg-black text-black dark:text-white"
                     : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
@@ -484,7 +501,7 @@ export default function Grades({
               </button>
               <button
                 onClick={() => setActiveTab("semester")}
-                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                className={`px-4 py-1.5 rounded-md transition-all duration-200 ${
                   activeTab === "semester"
                     ? "bg-white dark:bg-black text-black dark:text-white"
                     : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
@@ -499,7 +516,7 @@ export default function Grades({
         {/* Content area */}
         <div className="w-full max-w-7xl mx-auto">
           <TabsContent value="overview">
-            <motion.div {...fadeInUp} className="space-y-6">
+            <motion.div {...fadeInUp} className="space-y-4">
               {gradesError ? (
                 <motion.div
                   {...fadeInUp}
@@ -515,15 +532,15 @@ export default function Grades({
                 <>
                   <motion.div
                     {...fadeInUp}
-                    className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-6 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+                    className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
                   >
-                    <h2 className="text-2xl font-bold mb-6 text-center">
+                    <h2 className="text-xl font-bold mb-4 text-center">
                       Grade Progression
                     </h2>
                     <ResponsiveContainer
                       width="100%"
-                      height={300}
-                      className="md:h-[400px]"
+                      height={250}
+                      className="md:h-[300px]"
                     >
                       <LineChart
                         data={semesterData}
@@ -554,13 +571,8 @@ export default function Grades({
                           tickFormatter={(value) => value.toFixed(1)}
                         />
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#374151",
-                            border: "none",
-                            borderRadius: "8px",
-                            color: "#fff",
-                            fontWeight: "500",
-                          }}
+                          contentStyle={getTooltipStyle()}
+                          labelStyle={getTooltipLabelStyle()}
                         />
                         <Legend verticalAlign="top" height={36} />
                         <Line
@@ -585,7 +597,7 @@ export default function Grades({
 
                   <motion.div
                     {...fadeInUp}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
                   >
                     {semesterData.map((sem, index) => (
                       <motion.div
@@ -593,7 +605,7 @@ export default function Grades({
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-6 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+                        className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
                       >
                         <div className="flex items-center justify-between">
                           <div>
@@ -606,9 +618,9 @@ export default function Grades({
                               {sem.totalcoursecredit * 10}
                             </p>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3">
                             <div className="text-center">
-                              <div className="text-lg md:text-xl font-bold text-green-400">
+                              <div className="text-base md:text-lg font-bold text-green-400">
                                 {sem.sgpa}
                               </div>
                               <div className="text-xs text-gray-400 dark:text-gray-600">
@@ -616,7 +628,7 @@ export default function Grades({
                               </div>
                             </div>
                             <div className="text-center">
-                              <div className="text-lg md:text-xl font-bold text-blue-400">
+                              <div className="text-base md:text-lg font-bold text-blue-400">
                                 {sem.cgpa}
                               </div>
                               <div className="text-xs text-gray-400 dark:text-gray-600">
@@ -638,7 +650,7 @@ export default function Grades({
           </TabsContent>
 
           <TabsContent value="semester">
-            <motion.div {...fadeInUp} className="space-y-4">
+            <motion.div {...fadeInUp} className="space-y-3">
               {gradeCardSemesters.length === 0 ? (
                 <motion.div
                   {...fadeInUp}
@@ -691,7 +703,7 @@ export default function Grades({
                       <motion.div
                         key="gradecard"
                         {...fadeInUp}
-                        className="space-y-4"
+                        className="space-y-3"
                       >
                         {gradeCard.gradecard.map((subject) => (
                           <GradeCard
@@ -717,7 +729,7 @@ export default function Grades({
           </TabsContent>
 
           <TabsContent value="marks">
-            <motion.div {...fadeInUp} className="space-y-4">
+            <motion.div {...fadeInUp} className="space-y-3">
               {marksSemesters.length === 0 ? (
                 <motion.div
                   {...fadeInUp}
@@ -786,7 +798,7 @@ export default function Grades({
                       <motion.div
                         key="marksdata"
                         {...fadeInUp}
-                        className="space-y-4"
+                        className="space-y-3"
                       >
                         {selectedMarksSem &&
                           gradeCards[selectedMarksSem.registration_id] &&
@@ -897,11 +909,11 @@ export default function Grades({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="w-full flex justify-end mt-6 max-w-4xl mx-auto"
+        className="w-full flex justify-end mt-4 max-w-4xl mx-auto"
       >
         <Button
           variant="outline"
-          className="flex items-center gap-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400 text-white dark:text-black border-none mb-4"
+          className="flex items-center gap-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400 text-white dark:text-black border-none mb-2"
           onClick={() => setIsDownloadDialogOpen(true)}
           disabled={isDownloading}
         >
@@ -932,7 +944,7 @@ export default function Grades({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-2"
+                className="space-y-1.5"
               >
                 {marksSemesters.map((sem, index) => (
                   <motion.div

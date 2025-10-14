@@ -51,7 +51,7 @@ export default function Profile({ w, profileData, setProfileData }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto max-w-4xl px-4 py-4 space-y-6"
+        className="container mx-auto max-w-4xl px-4 py-4 pb-24 md:pb-8 space-y-6"
     >
       <motion.div
         initial={{ y: -20 }}
@@ -78,7 +78,7 @@ export default function Profile({ w, profileData, setProfileData }) {
 
             <div className="flex-1 min-w-0">
               <h1 className="text-lg md:text-2xl font-semibold text-white dark:text-black truncate">{info.studentname}</h1>
-              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-300 dark:text-gray-700">
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-400 dark:text-gray-600">
                 <span className="flex items-center gap-2"><GraduationCap className="w-4 h-4" />{info.programcode}</span>
                 <span className="hidden md:inline">•</span>
                 <span className="flex items-center gap-2"><User className="w-4 h-4" />{info.registrationno}</span>
@@ -90,7 +90,7 @@ export default function Profile({ w, profileData, setProfileData }) {
 
           <div className="w-full md:w-auto mt-2 md:mt-0">
             {/* compact mobile summary */}
-            <div className="md:hidden text-sm text-gray-300">
+            <div className="md:hidden text-sm text-gray-400 dark:text-gray-600">
               <div className="flex flex-wrap gap-3">
                 <span>Sem: <span className="font-semibold text-white dark:text-black">{info.semester}</span></span>
                 <span>Sec: <span className="font-semibold text-white dark:text-black">{info.sectioncode}</span></span>
@@ -127,7 +127,7 @@ export default function Profile({ w, profileData, setProfileData }) {
               className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium ${
                 activeTab === tab
                   ? "text-white border-b-2 border-white dark:text-black dark:border-black"
-                  : "text-gray-300 hover:text-gray-100 dark:text-gray-700 dark:hover:text-gray-900"
+                  : "text-gray-400 hover:text-gray-200 dark:text-gray-600 dark:hover:text-gray-800"
               }`}
               onClick={() => setActiveTab(tab)}
             >
@@ -182,11 +182,11 @@ export default function Profile({ w, profileData, setProfileData }) {
                     >
                       <div className="flex items-center justify-between">
                         <div className="font-medium text-sm text-white dark:text-black">{qual.qualificationcode}</div>
-                        <div className="text-xs text-gray-400">{qual.yearofpassing}</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-600">{qual.yearofpassing}</div>
                       </div>
                       <div className="mt-1 grid grid-cols-2 gap-2 text-sm">
-                        <div className="text-gray-300 dark:text-gray-700">{qual.boardname}</div>
-                        <div className="text-gray-300 dark:text-gray-700 text-right">{qual.percentagemarks}%</div>
+                        <div className="text-gray-300 dark:text-gray-600">{qual.boardname}</div>
+                        <div className="text-gray-300 dark:text-gray-600 text-right">{qual.percentagemarks}%</div>
                       </div>
                     </motion.div>
                   ))}
@@ -201,22 +201,18 @@ export default function Profile({ w, profileData, setProfileData }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="text-center p-4 text-sm text-gray-300 dark:text-gray-700"
+        className="text-center p-4 text-sm text-gray-400 dark:text-gray-600"
       >
-        powered by{' '}
-        <a href="https://pyjiit.codelif.in/" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-          PyJiit
-        </a>
-        {' '}and originally created by{' '}
+        originally created by{' '}
         <a href="https://github.com/codeblech" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
           Yash Malik
         </a>
         <br />
         <span className="block mt-2">
-          Current Source code for this version on{' '}
+          Source code for this version on{' '}
           <a href="https://github.com/J2V-k/jportal-vhost" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
             GitHub
-          </a>
+          </a> 
         </span>
       </motion.div>
     </motion.div>
@@ -226,9 +222,9 @@ export default function Profile({ w, profileData, setProfileData }) {
 function InfoRow({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-3 py-2 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4">
-      <Icon className="h-4 w-4 text-gray-300 dark:text-gray-700 shrink-0" />
+      <Icon className="h-4 w-4 text-gray-500 dark:text-gray-500 shrink-0" />
       <div className="grid grid-cols-2 gap-4 flex-1 items-center">
-        <span className="text-sm font-medium text-gray-400 dark:text-gray-600">{label}</span>
+        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</span>
         <span className="text-sm text-white dark:text-black break-all font-medium">{value || "N/A"}</span>
       </div>
     </div>

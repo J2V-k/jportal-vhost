@@ -127,7 +127,8 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
     
     const swipeEnabled = localStorage.getItem('swipeEnabled') !== 'false';
-    if (!swipeEnabled) {
+    const isDesktop = window.innerWidth >= 768;
+    if (!swipeEnabled || isDesktop) {
       setTouchStart(null);
       setTouchEnd(null);
       setTouchStartY(null);
@@ -172,21 +173,23 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   };
 
   return (
-    <div 
-      className="h-screen flex flex-col select-none"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEndWithTransition}
-    >
-      <Analytics />
-      <div className="flex-none z-30 bg-[black] -mt-[2px]">
-        <Header 
-          setIsAuthenticated={setIsAuthenticated} 
-          messMenuOpen={messMenuOpen}
-          onMessMenuChange={onMessMenuChange}
-        />
-      </div>
-      <div className="flex-1 overflow-y-auto">
+    <div className="relative">
+      <Navbar messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
+      <div 
+        className="h-screen flex flex-col select-none"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEndWithTransition}
+      >
+        <Analytics />
+        <div className="flex-none z-30 bg-[black] -mt-[2px] md:ml-64">
+          <Header 
+            setIsAuthenticated={setIsAuthenticated} 
+            messMenuOpen={messMenuOpen}
+            onMessMenuChange={onMessMenuChange}
+          />
+        </div>
+        <div className="flex-1 overflow-y-auto md:ml-64">
         <TransitionGroup component={null}>
           <CSSTransition
             key={location.pathname}
@@ -196,8 +199,50 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
           >
             <div className="w-full min-h-full">
               <Routes location={location}>
-                <Route path="/" element={<Navigate to="/attendance" />} />
-                <Route path="/login" element={<Navigate to="/attendance" />} />
+                <Route path="/" element={<Navigate to={(() => {
+                  let targetTab = localStorage.getItem('defaultTab') || '/attendance';
+                  if (targetTab === 'auto') {
+                    const examStartDate = localStorage.getItem('examStartDate');
+                    const examEndDate = localStorage.getItem('examEndDate');
+                    if (examStartDate && examEndDate) {
+                      const now = new Date();
+                      const examStart = new Date(examStartDate);
+                      const examEnd = new Date(examEndDate);
+                      const tomorrow = new Date(now);
+                      tomorrow.setDate(tomorrow.getDate() + 1);
+                      const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
+                      const isInExamPeriod = now >= examStart && now <= examEnd;
+                      if (isTomorrowExamStart || isInExamPeriod) {
+                        return '/exams';
+                      }
+                    }
+                    return '/attendance';
+                  }
+                  const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+                  return validRoutes.includes(targetTab) ? targetTab : '/attendance';
+                })()} replace />} />
+                <Route path="/login" element={<Navigate to={(() => {
+                  let targetTab = localStorage.getItem('defaultTab') || '/attendance';
+                  if (targetTab === 'auto') {
+                    const examStartDate = localStorage.getItem('examStartDate');
+                    const examEndDate = localStorage.getItem('examEndDate');
+                    if (examStartDate && examEndDate) {
+                      const now = new Date();
+                      const examStart = new Date(examStartDate);
+                      const examEnd = new Date(examEndDate);
+                      const tomorrow = new Date(now);
+                      tomorrow.setDate(tomorrow.getDate() + 1);
+                      const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
+                      const isInExamPeriod = now >= examStart && now <= examEnd;
+                      if (isTomorrowExamStart || isInExamPeriod) {
+                        return '/exams';
+                      }
+                    }
+                    return '/attendance';
+                  }
+                  const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+                  return validRoutes.includes(targetTab) ? targetTab : '/attendance';
+                })()} replace />} />
         <Route
           path="/attendance"
           element={
@@ -329,7 +374,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         </CSSTransition>
       </TransitionGroup>
       </div>
-      <Navbar messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
+      </div>
     </div>
   );
 }
@@ -357,7 +402,7 @@ function LoginWrapper({ onLoginSuccess, w }) {
           const isInExamPeriod = now >= examStart && now <= examEnd;
           
           if (isTomorrowExamStart || isInExamPeriod) {
-            targetTab = '/grades';
+            targetTab = '/exams';
           } else {
             targetTab = '/attendance';
           }

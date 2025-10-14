@@ -1,8 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Calendar, Clock, MapPin, Armchair, Timer } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useEffect, useState } from "react";
+import { Calendar, Clock, MapPin, Armchair, Timer } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Exams({
   w,
@@ -15,8 +21,8 @@ export default function Exams({
   selectedExamEvent,
   setSelectedExamEvent,
 }) {
-  const [examEvents, setExamEvents] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [examEvents, setExamEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const updateExamDatesInLocalStorage = (examScheduleData) => {
     if (!examScheduleData || examScheduleData.length === 0) {
@@ -24,66 +30,66 @@ export default function Exams({
     }
 
     try {
-      const examDates = examScheduleData.map(exam => exam.datetime);
-      const examDatesAsDate = examDates.map(dateStr => {
-        const [day, month, year] = dateStr.split('/');
+      const examDates = examScheduleData.map((exam) => exam.datetime);
+      const examDatesAsDate = examDates.map((dateStr) => {
+        const [day, month, year] = dateStr.split("/");
         return new Date(`${month}/${day}/${year}`);
       });
-      
+
       const earliestDate = new Date(Math.min(...examDatesAsDate));
       const latestDate = new Date(Math.max(...examDatesAsDate));
-      
-      localStorage.setItem('examStartDate', earliestDate.toISOString());
-      localStorage.setItem('examEndDate', latestDate.toISOString());
+
+      localStorage.setItem("examStartDate", earliestDate.toISOString());
+      localStorage.setItem("examEndDate", latestDate.toISOString());
     } catch (error) {
-      console.error('Failed to update exam dates in localStorage:', error);
+      console.error("Failed to update exam dates in localStorage:", error);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
       if (examSemesters.length === 0) {
-        setLoading(true)
+        setLoading(true);
         try {
-          const examSems = await w.get_semesters_for_exam_events()
-          setExamSemesters(examSems)
+          const examSems = await w.get_semesters_for_exam_events();
+          setExamSemesters(examSems);
 
           if (examSems.length > 0) {
-            const firstSemester = examSems[0]
-            setSelectedExamSem(firstSemester)
+            const firstSemester = examSems[0];
+            setSelectedExamSem(firstSemester);
 
-            const events = await w.get_exam_events(firstSemester)
-            setExamEvents(events)
+            const events = await w.get_exam_events(firstSemester);
+            setExamEvents(events);
 
             if (events.length > 0) {
-              const firstEvent = events[events.length-1]
-              setSelectedExamEvent(firstEvent)
+              const firstEvent = events[events.length - 1];
+              setSelectedExamEvent(firstEvent);
 
-              const response = await w.get_exam_schedule(firstEvent)
+              const response = await w.get_exam_schedule(firstEvent);
               setExamSchedule({
                 [firstEvent.exam_event_id]: response.subjectinfo,
-              })
-              updateExamDatesInLocalStorage(response.subjectinfo)
+              });
+              updateExamDatesInLocalStorage(response.subjectinfo);
             }
           }
         } finally {
-          setLoading(false)
+          setLoading(false);
         }
       } else if (selectedExamSem && examEvents.length === 0) {
         // Fetch exam events if they're not available
-        setLoading(true)
+        setLoading(true);
         try {
-          const events = await w.get_exam_events(selectedExamSem)
-          setExamEvents(events)
+          const events = await w.get_exam_events(selectedExamSem);
+          setExamEvents(events);
           if (events.length > 0 && !selectedExamEvent) {
-            setSelectedExamEvent(events[events.length - 1])
+            setSelectedExamEvent(events[events.length - 1]);
           }
         } finally {
-          setLoading(false)
+          setLoading(false);
         }
       }
-    }
-    fetchInitialData()
+    };
+    fetchInitialData();
   }, [
     w,
     setExamSemesters,
@@ -94,94 +100,116 @@ export default function Exams({
     selectedExamSem,
     examEvents.length,
     selectedExamEvent,
-  ])
+  ]);
 
   const handleSemesterChange = async (value) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const semester = examSemesters.find((sem) => sem.registration_id === value)
-      setSelectedExamSem(semester)
-      const events = await w.get_exam_events(semester)
-      setExamEvents(events)
-      setSelectedExamEvent(null)
-      setExamSchedule({})
+      const semester = examSemesters.find(
+        (sem) => sem.registration_id === value
+      );
+      setSelectedExamSem(semester);
+      const events = await w.get_exam_events(semester);
+      setExamEvents(events);
+      setSelectedExamEvent(null);
+      setExamSchedule({});
 
       if (events.length > 0) {
-        const lastEvent = events[events.length - 1]
-        setSelectedExamEvent(lastEvent)
-        const response = await w.get_exam_schedule(lastEvent)
+        const lastEvent = events[events.length - 1];
+        setSelectedExamEvent(lastEvent);
+        const response = await w.get_exam_schedule(lastEvent);
         setExamSchedule({
           [lastEvent.exam_event_id]: response.subjectinfo,
-        })
-        updateExamDatesInLocalStorage(response.subjectinfo)
+        });
+        updateExamDatesInLocalStorage(response.subjectinfo);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleEventChange = async (value) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const selectedEvent = examEvents.find((evt) => evt.exam_event_id === value)
-      setSelectedExamEvent(selectedEvent)
+      const selectedEvent = examEvents.find(
+        (evt) => evt.exam_event_id === value
+      );
+      setSelectedExamEvent(selectedEvent);
 
       if (!examSchedule[value]) {
-        const response = await w.get_exam_schedule(selectedEvent)
+        const response = await w.get_exam_schedule(selectedEvent);
         setExamSchedule((prev) => ({
           ...prev,
           [value]: response.subjectinfo,
-        }))
-        updateExamDatesInLocalStorage(response.subjectinfo)
+        }));
+        updateExamDatesInLocalStorage(response.subjectinfo);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const currentSchedule = selectedExamEvent && examSchedule[selectedExamEvent.exam_event_id]
+  const currentSchedule =
+    selectedExamEvent && examSchedule[selectedExamEvent.exam_event_id];
 
   const formatDate = (dateStr) => {
-    const [day, month, year] = dateStr.split("/")
+    const [day, month, year] = dateStr.split("/");
     return new Date(`${month}/${day}/${year}`).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-[1440px] pb-24">
       <div className="bg-black dark:bg-white shadow rounded-lg p-6 md:max-w-[50%] md:mx-auto">
-        <h2 className="text-2xl font-bold mb-4 text-white dark:text-black">Exam Schedule</h2>
-        <div className="space-y-4">
-          <Select onValueChange={handleSemesterChange} value={selectedExamSem?.registration_id || ""}>
-            <SelectTrigger className="w-full bg-[#0B0B0D] text-white dark:bg-white dark:text-black border-gray-700 dark:border-gray-300">
-              <SelectValue placeholder="Select semester" />
-            </SelectTrigger>
-            <SelectContent>
-              {examSemesters.map((sem) => (
-                <SelectItem key={sem.registration_id} value={sem.registration_id}>
-                  {sem.registration_code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {selectedExamSem && (
-            <Select onValueChange={handleEventChange} value={selectedExamEvent?.exam_event_id || ""}>
+        <h2 className="text-2xl font-bold mb-4 text-white dark:text-black">
+          Exam Schedule
+        </h2>
+        <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
+          <div className="flex-1">
+            <Select
+              onValueChange={handleSemesterChange}
+              value={selectedExamSem?.registration_id || ""}
+            >
               <SelectTrigger className="w-full bg-[#0B0B0D] text-white dark:bg-white dark:text-black border-gray-700 dark:border-gray-300">
-                <SelectValue placeholder="Select exam event" />
+                <SelectValue placeholder="Select semester" />
               </SelectTrigger>
               <SelectContent>
-                {examEvents.map((event) => (
-                  <SelectItem key={event.exam_event_id} value={event.exam_event_id}>
-                    {event.exam_event_desc}
+                {examSemesters.map((sem) => (
+                  <SelectItem
+                    key={sem.registration_id}
+                    value={sem.registration_id}
+                  >
+                    {sem.registration_code}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          {selectedExamSem && (
+            <div className="flex-1">
+              <Select
+                onValueChange={handleEventChange}
+                value={selectedExamEvent?.exam_event_id || ""}
+              >
+                <SelectTrigger className="w-full bg-[#0B0B0D] text-white dark:bg-white dark:text-black border-gray-700 dark:border-gray-300">
+                  <SelectValue placeholder="Select exam event" />
+                </SelectTrigger>
+                <SelectContent>
+                  {examEvents.map((event) => (
+                    <SelectItem
+                      key={event.exam_event_id}
+                      value={event.exam_event_id}
+                    >
+                      {event.exam_event_desc}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
       </div>
@@ -189,42 +217,56 @@ export default function Exams({
       {loading ? (
         <LoadingSkeleton />
       ) : currentSchedule?.length > 0 ? (
-        <ExamScheduleGrid currentSchedule={currentSchedule} formatDate={formatDate} />
+        <ExamScheduleGrid
+          currentSchedule={currentSchedule}
+          formatDate={formatDate}
+        />
       ) : selectedExamEvent ? (
         <div className="bg-black dark:bg-white shadow rounded-lg p-6 flex items-center justify-center h-32">
-          <p className="text-gray-400 dark:text-gray-500">No exam schedule available</p>
+          <p className="text-gray-400 dark:text-gray-500">
+            No exam schedule available
+          </p>
         </div>
       ) : null}
     </div>
-  )
+  );
 }
 
 function ExamScheduleGrid({ currentSchedule, formatDate }) {
   const now = new Date();
   const fourHours = 4 * 60 * 60 * 1000;
-  
+
   const parseExamDateTime = (dateStr, timeStr) => {
-    const [day, month, year] = dateStr.split('/');
-    const [time, period] = timeStr.split(' ');
-    const [hours, minutes] = time.split(':');
-    
+    const [day, month, year] = dateStr.split("/");
+    const [time, period] = timeStr.split(" ");
+    const [hours, minutes] = time.split(":");
+
     let hour24 = parseInt(hours);
-    if (period?.toUpperCase() === 'PM' && hour24 !== 12) {
+    if (period?.toUpperCase() === "PM" && hour24 !== 12) {
       hour24 += 12;
-    } else if (period?.toUpperCase() === 'AM' && hour24 === 12) {
+    } else if (period?.toUpperCase() === "AM" && hour24 === 12) {
       hour24 = 0;
     }
 
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour24, parseInt(minutes));
+    return new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      hour24,
+      parseInt(minutes)
+    );
   };
 
   let nextExamId = null;
   let nearestTime = Infinity;
 
   currentSchedule.forEach((exam) => {
-    const examDateTime = parseExamDateTime(exam.datetime, exam.datetimefrom || '00:00');
+    const examDateTime = parseExamDateTime(
+      exam.datetime,
+      exam.datetimefrom || "00:00"
+    );
     const timeDiff = examDateTime.getTime() - now.getTime();
-    
+
     if (timeDiff > 0 && timeDiff <= fourHours && timeDiff < nearestTime) {
       nearestTime = timeDiff;
       nextExamId = `${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`;
@@ -232,13 +274,16 @@ function ExamScheduleGrid({ currentSchedule, formatDate }) {
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-4">
       {currentSchedule.map((exam) => (
         <ExamCard
           key={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`}
           exam={exam}
           formatDate={formatDate}
-          showTimer={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}` === nextExamId}
+          showTimer={
+            `${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}` ===
+            nextExamId
+          }
         />
       ))}
     </div>
@@ -260,7 +305,9 @@ function useCountdown(targetDate) {
 
       if (difference > 0 && within4Hours) {
         const hours = Math.floor(difference / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60)
+        );
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
         setTimeLeft({ hours, minutes, seconds });
@@ -280,33 +327,43 @@ function useCountdown(targetDate) {
 
 function ExamCard({ exam, formatDate, showTimer = false }) {
   const parseExamDateTime = (dateStr, timeStr) => {
-    const [day, month, year] = dateStr.split('/');
-    const [time, period] = timeStr.split(' ');
-    const [hours, minutes] = time.split(':');
-    
+    const [day, month, year] = dateStr.split("/");
+    const [time, period] = timeStr.split(" ");
+    const [hours, minutes] = time.split(":");
+
     let hour24 = parseInt(hours);
-    if (period?.toUpperCase() === 'PM' && hour24 !== 12) {
+    if (period?.toUpperCase() === "PM" && hour24 !== 12) {
       hour24 += 12;
-    } else if (period?.toUpperCase() === 'AM' && hour24 === 12) {
+    } else if (period?.toUpperCase() === "AM" && hour24 === 12) {
       hour24 = 0;
     }
 
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour24, parseInt(minutes));
+    return new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      hour24,
+      parseInt(minutes)
+    );
   };
 
-  const examDateTime = parseExamDateTime(exam.datetime, exam.datetimefrom || '00:00');
+  const examDateTime = parseExamDateTime(
+    exam.datetime,
+    exam.datetimefrom || "00:00"
+  );
   const { timeLeft } = useCountdown(examDateTime);
 
   return (
-    <div className="bg-black dark:bg-white shadow rounded-lg p-6">
-      <div className="space-y-4">
+  <div className="bg-black dark:bg-white shadow rounded-lg p-6 border border-gray-700 dark:border-gray-300">
+      <div className="space-y-2">
         {/* Countdown Timer */}
         {showTimer && timeLeft && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-500 dark:to-orange-500 p-4 rounded-lg border-2 border-red-400 shadow-lg">
             <div className="flex items-center justify-center gap-2 text-white">
               <Timer className="w-5 h-5 animate-pulse" />
               <span className="font-bold text-lg">
-                Exam starts in: {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+                Exam starts in: {timeLeft.hours}h {timeLeft.minutes}m{" "}
+                {timeLeft.seconds}s
               </span>
             </div>
           </div>
@@ -341,7 +398,10 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
                 <div className="flex items-center bg-blue-900/30 dark:bg-blue-100 px-3 py-2 rounded-lg">
                   <MapPin className="mr-2 h-5 w-5 text-blue-400 dark:text-blue-600" />
                   <span className="text-blue-200 dark:text-blue-800 font-medium">
-                    Room: <span className="text-blue-100 dark:text-blue-900 font-semibold">{exam.roomcode}</span>
+                    Room:{" "}
+                    <span className="text-blue-100 dark:text-blue-900 font-semibold">
+                      {exam.roomcode}
+                    </span>
                   </span>
                 </div>
               )}
@@ -349,7 +409,10 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
                 <div className="flex items-center bg-green-900/30 dark:bg-green-100 px-3 py-2 rounded-lg">
                   <Armchair className="mr-2 h-5 w-5 text-green-400 dark:text-green-600" />
                   <span className="text-green-200 dark:text-green-800 font-medium">
-                    Seat: <span className="text-green-100 dark:text-green-900 font-semibold">{exam.seatno}</span>
+                    Seat:{" "}
+                    <span className="text-green-100 dark:text-green-900 font-semibold">
+                      {exam.seatno}
+                    </span>
                   </span>
                 </div>
               )}
@@ -358,7 +421,7 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -381,6 +444,5 @@ function LoadingSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
-
