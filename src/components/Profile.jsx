@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react"
-import { User, Mail, Phone, MapPin, GraduationCap, Loader2 } from "lucide-react"
+import { User, Mail, Phone, MapPin, GraduationCap, Loader2, Calendar, ArrowRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 
 export default function Profile({ w, profileData, setProfileData }) {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("personal")
+  const navigate = useNavigate()
 
 
   useEffect(() => {
@@ -196,6 +198,24 @@ export default function Profile({ w, profileData, setProfileData }) {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="grid grid-cols-3 gap-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/academic-calendar')}
+            className="aspect-square bg-[#0B0B0D] dark:bg-gray-200/80 hover:bg-gray-700 dark:hover:bg-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-400"
+          >
+            <Calendar className="w-8 h-8 mb-2 text-gray-400 dark:text-gray-600" />
+            <span className="text-xs font-medium text-center">Academic Calendar</span>
+          </motion.button>
+        </div>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0 }}

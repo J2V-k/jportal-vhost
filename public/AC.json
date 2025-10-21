@@ -1,0 +1,1152 @@
+{
+  "timelineTitle": "JIIT Academic Calendar 2025-26",
+  "lastUpdated": "20 June 2025",
+  "timelineEvents": [
+    {
+      "startDate": "2025-07-10",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Registration / Reporting",
+      "description": "Registration of 1st Semester (B.Tech, Intgt M.Tech, All UG and Diploma)"
+    },
+    {
+      "startDate": "2025-07-11",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Orientation / Commencement of Classes",
+      "description": "Induction Program and Commencement of Academic Activities for UG 1st Year"
+    },
+    {
+      "startDate": "2025-07-21",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Existing PhD Scholars",
+      "description": "Registration"
+    },
+    {
+      "startDate": "2025-07-24",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Orientation / Commencement of Classes",
+      "description": "Commencement of Classes for all batches (except 1st Sem UG Program)"
+    },
+    {
+      "startDate": "2025-07-24",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Registration / Reporting",
+      "description": "Registration All students except 1st Semester (Online)"
+    },
+    {
+      "startDate": "2025-07-24",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Registration / Reporting",
+      "description": "Registration of 1st Semester (All PG Programs and Lateral Entry)"
+    },
+    {
+      "startDate": "2025-07-29",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Ph.D New Admissions",
+      "description": "Enrolment"
+    },
+    {
+      "startDate": "2025-07-31",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Registration / Reporting",
+      "description": "Last date to exercise options for Add & Drop Subjects (except 1st Semester students)"
+    },
+    {
+      "startDate": "2025-07-31",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Ph.D New Admissions",
+      "description": "Orientation (Odd Sem)"
+    },
+    {
+      "startDate": "2025-08-01",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Deactivation of Un-Registered Students",
+      "description": "Deactivation of Un-Registered Students"
+    },
+    {
+      "startDate": "2025-08-02",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Meeting",
+      "category": "Ph.D New Admissions",
+      "description": "DPMAC Meeting and Completion of follow-up Registration requirements"
+    },
+    {
+      "startDate": "2025-08-04",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Ph.D New Admissions",
+      "description": "Registration"
+    },
+    {
+      "startDate": "2025-08-07",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Registration / Reporting",
+      "description": "Last Date for Registration of MOOC subject on web-portal"
+    },
+    {
+      "startDate": "2025-08-09",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Rakshabandhan"
+    },
+    {
+      "startDate": "2025-08-15",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Independence Day"
+    },
+    {
+      "startDate": "2025-08-16",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Janmashtami"
+    },
+    {
+      "startDate": "2025-08-23",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Other",
+      "category": "Ebullience/Welcome function of 1st year students",
+      "description": "Ebullience/Welcome function of 1st year students"
+    },
+    {
+      "startDate": "2025-08-27",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Attendance Review",
+      "description": "Attendance Review before T1 exam"
+    },
+    {
+      "startDate": "2025-08-29",
+      "endDate": "2025-09-06",
+      "semester": "Odd",
+      "type": "Exam",
+      "category": "T1 Examination & Results",
+      "description": "T1 Examination Schedule"
+    },
+    {
+      "startDate": "2025-09-12",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "T1 Examination & Results",
+      "description": "Showing of Evaluated Answer Sheets to students (Latest by)"
+    },
+    {
+      "startDate": "2025-09-15",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "T1 Examination & Results",
+      "description": "Results Uploading on System (Latest by)"
+    },
+    {
+      "startDate": "2025-09-16",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Summer Training Viva",
+      "description": "Summer Training Viva - Locking of Marks (Upto)"
+    },
+    {
+      "startDate": "2025-10-02",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Gandhi Jayanti / Dussehra"
+    },
+    {
+      "startDate": "2025-10-08",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Lab/Projects - Mid Term",
+      "description": "Allocation of Topics for Seminar/Term Paper for M.Tech 3rd Sem"
+    },
+    {
+      "startDate": "2025-10-08",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Attendance Review",
+      "description": "Attendance Review before T2 exam"
+    },
+    {
+      "startDate": "2025-10-10",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Lab/Projects - Mid Term",
+      "description": "Mid-term seminar for term paper (M.Tech-3rd Sem) - Results to be uploaded by"
+    },
+    {
+      "startDate": "2025-10-10",
+      "endDate": "2025-10-18",
+      "semester": "Odd",
+      "type": "Exam",
+      "category": "T2 Examination & Results",
+      "description": "T2 Examination Schedule"
+    },
+    {
+      "startDate": "2025-10-19",
+      "endDate": "2025-10-26",
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Student Vacation",
+      "description": "Mid-semester break (Diwali)"
+    },
+    {
+      "startDate": "2025-10-20",
+      "endDate": "2025-10-21",
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Deepawali"
+    },
+    {
+      "startDate": "2025-10-20",
+      "endDate": "2025-10-25",
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Faculty Vacation",
+      "description": "Faculty Vacations (Diwali)"
+    },
+    {
+      "startDate": "2025-10-20",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Pre-Registration",
+      "description": "Final List of Electives to be sent to Registrar's Office"
+    },
+    {
+      "startDate": "2025-10-22",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Govardhan Puja"
+    },
+    {
+      "startDate": "2025-10-22",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Sharing draft curriculum with Dean (A&R)-2"
+    },
+    {
+      "startDate": "2025-10-23",
+      "endDate": "2025-10-28",
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Finalized curriculum (including electives) to be entered in ERP system"
+    },
+    {
+      "startDate": "2025-10-31",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "T2 Examination & Results",
+      "description": "Showing of Evaluated Answer Sheets to students (Latest by)"
+    },
+    {
+      "startDate": "2025-11-03",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "T2 Examination & Results",
+      "description": "Results Uploading on System (Latest by)"
+    },
+    {
+      "startDate": "2025-11-05",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Guru Nanak Jayanti"
+    },
+    {
+      "startDate": "2025-11-05",
+      "endDate": "2025-11-07",
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Orientation program by the department/s to help students to select electives"
+    },
+    {
+      "startDate": "2025-11-08",
+      "endDate": "2025-11-11",
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Pre-Registration by students through webportal"
+    },
+    {
+      "startDate": "2025-11-11",
+      "endDate": "2025-11-15",
+      "semester": "Odd",
+      "type": "Exam",
+      "category": "Make-up Examination",
+      "description": "Make-up Examination (All)"
+    },
+    {
+      "startDate": "2025-11-18",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Project / Dissertation",
+      "description": "Major Project allocation for next year by"
+    },
+    {
+      "startDate": "2025-11-18",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Project / Dissertation",
+      "description": "Minor Project allocation for next Semester by"
+    },
+    {
+      "startDate": "2025-11-20",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Exam",
+      "category": "Project / Dissertation",
+      "description": "Final Project Viva / End-Term Seminar / Evaluation of Dissertation"
+    },
+    {
+      "startDate": "2025-11-21",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Feedback",
+      "description": "Students' Online Feed Back Collection by"
+    },
+    {
+      "startDate": "2025-11-25",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Attendance Review",
+      "description": "End Semester Attendance Review"
+    },
+    {
+      "startDate": "2025-11-25",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Project / Dissertation",
+      "description": "Submission of Project/Dissertation reports/Term Paper"
+    },
+    {
+      "startDate": "2025-11-28",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "End of Classes",
+      "description": "Classes to be over"
+    },
+    {
+      "startDate": "2025-11-28",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Meeting",
+      "category": "Academic",
+      "description": "Meeting of Time Table Committee for courses of next semester"
+    },
+    {
+      "startDate": "2025-11-29",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Academic",
+      "description": "Debar list to be displayed"
+    },
+    {
+      "startDate": "2025-12-01",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Lab/Projects - End Term",
+      "description": "End-Semester Seminar / Viva for Labs and Minor Projects - Results uploaded by"
+    },
+    {
+      "startDate": "2025-12-01",
+      "endDate": "2025-12-13",
+      "semester": "Odd",
+      "type": "Exam",
+      "category": "End Semester Examination",
+      "description": "Examination Schedule"
+    },
+    {
+      "startDate": "2025-12-14",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Lab/Projects - End Term",
+      "description": "Final minor project results shared (Upto)"
+    },
+    {
+      "startDate": "2025-12-14",
+      "endDate": "2026-01-01",
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Student Vacation",
+      "description": "Holiday"
+    },
+    {
+      "startDate": "2025-12-17",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "End Semester Examination",
+      "description": "Showing of Evaluated Answer Sheets to students by"
+    },
+    {
+      "startDate": "2025-12-19",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Meeting",
+      "category": "Exam Results",
+      "description": "Meeting of IAMC for results of all courses (FN)"
+    },
+    {
+      "startDate": "2025-12-19",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Exam Results",
+      "description": "Provisional Grades Display (AN)"
+    },
+    {
+      "startDate": "2025-12-20",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Exam Results",
+      "description": "Freezing the grades/Submission of Final Grades to Registrar"
+    },
+    {
+      "startDate": "2025-12-20",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Other",
+      "category": "Alumni",
+      "description": "JIIT Alumni Meet"
+    },
+    {
+      "startDate": "2025-12-22",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Exam Results",
+      "description": "Publish of Results by Registrar"
+    },
+    {
+      "startDate": "2025-12-22",
+      "endDate": "2025-12-24",
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Supplementary Examination",
+      "description": "Registration for Supl Exam"
+    },
+    {
+      "startDate": "2025-12-25",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Christmas"
+    },
+    {
+      "startDate": "2025-12-26",
+      "endDate": "2026-01-01",
+      "semester": "Odd",
+      "type": "Holiday",
+      "category": "Faculty Vacation",
+      "description": "Faculty Vacations (Winter)"
+    },
+    {
+      "startDate": "2025-12-29",
+      "endDate": "2025-12-31",
+      "semester": "Odd",
+      "type": "Exam",
+      "category": "Supplementary Examination",
+      "description": "Supplementary Exam Schedule"
+    },
+    {
+      "startDate": "2026-01-02",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Next Semester",
+      "description": "Commencement of Next Semester (Even Sem)"
+    },
+    {
+      "startDate": "2026-01-02",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Orientation / Commencement of Classes",
+      "description": "Commencement of Classes for all batches (except 1st Sem UG Program)"
+    },
+    {
+      "startDate": "2026-01-02",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Registration / Reporting",
+      "description": "Registration All students except 1st Semester (Online)"
+    },
+    {
+      "startDate": "2026-01-02",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Registration / Reporting",
+      "description": "Registration of 1st Semester (All PG Programs and Lateral Entry)"
+    },
+    {
+      "startDate": "2026-01-03",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Meeting",
+      "category": "Supplementary Examination",
+      "description": "IAMC meeting for finalization Suppl. Results"
+    },
+    {
+      "startDate": "2026-01-04",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Existing PhD Scholars",
+      "description": "Registration"
+    },
+    {
+      "startDate": "2026-01-05",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Academic",
+      "category": "Supplementary Examination",
+      "description": "Decl. of Results of Suppl. Exam"
+    },
+    {
+      "startDate": "2026-01-05",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Registration / Reporting",
+      "description": "Registration of 1st Semester (B.Tech, Intgt M.Tech, All UG and Diploma)"
+    },
+    {
+      "startDate": "2026-01-05",
+      "endDate": null,
+      "semester": "Odd",
+      "type": "Deadline",
+      "category": "Supplementary Examination",
+      "description": "Submission of Suppl. Exam Grades by Faculty and Freezing"
+    },
+    {
+      "startDate": "2026-01-09",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Registration / Reporting",
+      "description": "Last date to exercise options for Add & Drop Subjects (except 1st Semester students)"
+    },
+    {
+      "startDate": "2026-01-10",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Deactivation of Un-Registered Students",
+      "description": "Deactivation of Un-Registered Students"
+    },
+    {
+      "startDate": "2026-01-16",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Registration / Reporting",
+      "description": "Last Date for Registration of MOOC subject on web-portal"
+    },
+    {
+      "startDate": "2026-01-26",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Republic day"
+    },
+    {
+      "startDate": "2026-02-06",
+      "endDate": "2026-02-08",
+      "semester": "Even",
+      "type": "Other",
+      "category": "JYC Function",
+      "description": "JYC Function"
+    },
+    {
+      "startDate": "2026-02-07",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Attendance Review",
+      "description": "Attendance Review before T1 exam"
+    },
+    {
+      "startDate": "2026-02-10",
+      "endDate": "2026-02-18",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "T1 Examination & Results",
+      "description": "T1 Examination Schedule"
+    },
+    {
+      "startDate": "2026-02-15",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Maha Shivratri"
+    },
+    {
+      "startDate": "2026-02-24",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "T1 Examination & Results",
+      "description": "Showing of Evaluated Answer Sheets to students (Latest by)"
+    },
+    {
+      "startDate": "2026-02-28",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "T1 Examination & Results",
+      "description": "Results Uploading on System (Latest by)"
+    },
+    {
+      "startDate": "2026-03-01",
+      "endDate": "2026-03-08",
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Student Vacation",
+      "description": "Mid-semester break (Holi)"
+    },
+    {
+      "startDate": "2026-03-02",
+      "endDate": "2026-03-07",
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Faculty Vacation",
+      "description": "Faculty Vacations (Holi)"
+    },
+    {
+      "startDate": "2026-03-03",
+      "endDate": "2026-03-04",
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Holi"
+    },
+    {
+      "startDate": "2026-03-21",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Attendance Review",
+      "description": "Attendance Review before T2 exam"
+    },
+    {
+      "startDate": "2026-03-21",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Eid-Ul-Fitr",
+      "details": "*Subject to visibility of moon"
+    },
+    {
+      "startDate": "2026-03-24",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Lab/Projects - Mid Term",
+      "description": "Mid-term seminar for term paper - Results to be uploaded by"
+    },
+    {
+      "startDate": "2026-03-24",
+      "endDate": "2026-04-02",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "T2 Examination & Results",
+      "description": "T2 Examination Schedule"
+    },
+    {
+      "startDate": "2026-03-26",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Ram Navami"
+    },
+    {
+      "startDate": "2026-03-31",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Mahavir Jayanti"
+    },
+    {
+      "startDate": "2026-04-04",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Pre-Registration",
+      "description": "Final List of Electives to be sent to Registrar's Office"
+    },
+    {
+      "startDate": "2026-04-06",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Sharing draft curriculum with Dean (A&R)-2"
+    },
+    {
+      "startDate": "2026-04-07",
+      "endDate": "2026-04-11",
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Finalized curriculum (including electives) to be entered in ERP system"
+    },
+    {
+      "startDate": "2026-04-08",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "T2 Examination & Results",
+      "description": "Showing of Evaluated Answer Sheets to students (Latest by)"
+    },
+    {
+      "startDate": "2026-04-11",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "T2 Examination & Results",
+      "description": "Results Uploading on System (Latest by)"
+    },
+    {
+      "startDate": "2026-04-14",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Ambedkar Jayanti"
+    },
+    {
+      "startDate": "2026-04-15",
+      "endDate": "2026-04-17",
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Orientation program by the department/s to help students to select electives"
+    },
+    {
+      "startDate": "2026-04-18",
+      "endDate": "2026-04-21",
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Pre-Registration",
+      "description": "Pre-Registration by students through webportal"
+    },
+    {
+      "startDate": "2026-04-20",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Summer Semester",
+      "description": "List of subjects to be offered in Summer Semester to be forwarded to Registrar's Office"
+    },
+    {
+      "startDate": "2026-04-21",
+      "endDate": "2026-04-25",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "Make-up Examination",
+      "description": "Make-up Examination (All)"
+    },
+    {
+      "startDate": "2026-04-22",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Project / Dissertation",
+      "description": "Major Project allocation for next year by"
+    },
+    {
+      "startDate": "2026-04-22",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Project / Dissertation",
+      "description": "Minor Project allocation for next Semester by"
+    },
+    {
+      "startDate": "2026-04-24",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Summer Semester",
+      "description": "Summer Semester notice to Website"
+    },
+    {
+      "startDate": "2026-04-27",
+      "endDate": "2026-05-02",
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Summer Semester",
+      "description": "Fee payment and Subject Registration by Students"
+    },
+    {
+      "startDate": "2026-05-01",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Holiday",
+      "description": "Budh Purnima 2026"
+    },
+    {
+      "startDate": "2026-05-01",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Exam",
+      "category": "Project / Dissertation",
+      "description": "Final Project Viva / End-Term Seminar / Evaluation of Dissertation"
+    },
+    {
+      "startDate": "2026-05-05",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Summer Semester",
+      "description": "List of Registered students to be forwarded to Dean (A&R-2)"
+    },
+    {
+      "startDate": "2026-05-06",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Attendance Review",
+      "description": "End Semester Attendance Review"
+    },
+    {
+      "startDate": "2026-05-07",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Project / Dissertation",
+      "description": "Submission of Project/Dissertation reports/Term Paper"
+    },
+    {
+      "startDate": "2026-05-08",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "End of Classes",
+      "description": "Classes to be over"
+    },
+    {
+      "startDate": "2026-05-08",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Academic",
+      "description": "Debar list to be displayed"
+    },
+    {
+      "startDate": "2026-05-08",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Summer Semester",
+      "description": "Display of Final list of subjects to students"
+    },
+    {
+      "startDate": "2026-05-09",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Meeting",
+      "category": "Academic",
+      "description": "Meeting of Time Table Committee for courses of next semester"
+    },
+    {
+      "startDate": "2026-05-11",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Lab/Projects - End Term",
+      "description": "End-Semester Seminar / Viva for Labs and Minor Projects - Results uploaded by"
+    },
+    {
+      "startDate": "2026-05-11",
+      "endDate": "2026-05-23",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "End Semester Examination",
+      "description": "Examination Schedule"
+    },
+    {
+      "startDate": "2026-05-18",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Summer Semester",
+      "description": "Time Table for Summer Semester (By)"
+    },
+    {
+      "startDate": "2026-05-25",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Meeting",
+      "category": "Academic",
+      "description": "Meeting of Disciplinary Committee (Disciplinary Grade Finalization)"
+    },
+    {
+      "startDate": "2026-05-27",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "End Semester Examination",
+      "description": "Showing of Evaluated Answer Sheets to students by"
+    },
+    {
+      "startDate": "2026-05-27",
+      "endDate": "2026-07-22",
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Student Vacation",
+      "description": "Summer Vacation"
+    },
+    {
+      "startDate": "2026-05-28",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Internship",
+      "description": "Summer Internship (Industrial Trg) Period (Starts)",
+      "details": "for 6 Weeks"
+    },
+    {
+      "startDate": "2026-05-29",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Meeting",
+      "category": "Exam Results",
+      "description": "Meeting of IAMC for results of all courses (FN)"
+    },
+    {
+      "startDate": "2026-05-29",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Exam Results",
+      "description": "Provisional Grades Display (AN)"
+    },
+    {
+      "startDate": "2026-05-30",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Lab/Projects - End Term",
+      "description": "Final minor project results shared (Upto)"
+    },
+    {
+      "startDate": "2026-05-30",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Exam Results",
+      "description": "Freezing the grades/Submission of Final Grades to Registrar"
+    },
+    {
+      "startDate": "2026-06-01",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Exam Results",
+      "description": "Publish of Results by Registrar"
+    },
+    {
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-03",
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Supplementary Examination",
+      "description": "Registration for Supl Exam"
+    },
+    {
+      "startDate": "2026-06-02",
+      "endDate": "2026-07-09",
+      "semester": "Even",
+      "type": "Holiday",
+      "category": "Faculty Vacation",
+      "description": "Faculty Vacations (Summer)"
+    },
+    {
+      "startDate": "2026-06-05",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Summer Semester",
+      "description": "Commencement of Classes"
+    },
+    {
+      "startDate": "2026-06-05",
+      "endDate": "2026-06-08",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "Supplementary Examination",
+      "description": "Supplementary Exam Schedule"
+    },
+    {
+      "startDate": "2026-06-06",
+      "endDate": "2026-06-08",
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Summer Semester",
+      "description": "Re-opening of Registration for Summer Semester (backlog)"
+    },
+    {
+      "startDate": "2026-06-11",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Meeting",
+      "category": "Supplementary Examination",
+      "description": "IAMC meeting for finalization Suppl. Results"
+    },
+    {
+      "startDate": "2026-06-13",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Supplementary Examination",
+      "description": "Decl. of Results of Suppl. Exam"
+    },
+    {
+      "startDate": "2026-06-13",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Supplementary Examination",
+      "description": "Submission of Suppl. Exam Grades by Faculty and Freezing"
+    },
+    {
+      "startDate": "2026-06-24",
+      "endDate": "2026-06-26",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "Summer Semester",
+      "description": "Summer Semester Mid Term Test"
+    },
+    {
+      "startDate": "2026-07-15",
+      "endDate": "2026-07-17",
+      "semester": "Even",
+      "type": "Exam",
+      "category": "Summer Semester",
+      "description": "Summer Semester End Term Test"
+    },
+    {
+      "startDate": "2026-07-20",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Summer Semester",
+      "description": "Showing of answer scripts to the students"
+    },
+    {
+      "startDate": "2026-07-21",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Meeting",
+      "category": "Summer Semester",
+      "description": "IAMC Meeting finalization of Result"
+    },
+    {
+      "startDate": "2026-07-22",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Deadline",
+      "category": "Summer Semester",
+      "description": "Submission of Exam Grades by Faculty and Freezing"
+    },
+    {
+      "startDate": "2026-07-23",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Next Semester",
+      "description": "Commencement of Next Semester (Odd Sem 2026-27)"
+    },
+    {
+      "startDate": "2026-07-23",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Summer Semester",
+      "description": "Declaration of result"
+    },
+    {
+      "startDate": "2026-07-27",
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Progression",
+      "description": "Finalization of progression of 1st yr students into 2nd yr."
+    },
+    {
+      "startDate": null,
+      "endDate": null,
+      "semester": "Even",
+      "type": "Academic",
+      "category": "Ph.D New Admissions",
+      "description": "Orientation (Even Sem) - To be notified Separately"
+    }
+  ]
+}

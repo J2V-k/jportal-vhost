@@ -12,11 +12,21 @@ const navItems = [
   { name: "Profile", path: "/profile", icon: User },
 ]
 
+const desktopNavItems = [
+  { name: "Attendance", path: "/attendance", icon: ClipboardList },
+  { name: "Grades", path: "/grades", icon: ChartSpline },
+  { name: "Exams", path: "/exams", icon: FileText },
+  { name: "Subjects", path: "/subjects", icon: Book },
+  { name: "Academic Calendar", path: "/academic-calendar", icon: Calendar },
+  { name: "Profile", path: "/profile", icon: User },
+]
+
 export default function Navbar() {
   const location = useLocation()
 
   return (
     <>
+      {/* Mobile Bottom Navigation */}
       <motion.nav
         initial={{ y: 100 }}
         animate={{ y: 0 }}
@@ -68,6 +78,8 @@ export default function Navbar() {
           })}
         </ul>
       </motion.nav>
+
+      {/* Desktop Sidebar Navigation */}
       <motion.nav
         initial={{ x: -100 }}
         animate={{ x: 0 }}
@@ -79,7 +91,7 @@ export default function Navbar() {
         </div>
         
         <ul className="flex-1 px-3 py-4 space-y-2">
-          {navItems.map((item) => {
+          {desktopNavItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
             return (

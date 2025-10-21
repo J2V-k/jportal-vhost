@@ -19,6 +19,7 @@ import Exams from "./components/Exams";
 import Subjects from "./components/Subjects";
 import Profile from "./components/Profile";
 import Timetable from "./components/Timetable";
+import AcademicCalendar from "./components/AcademicCalendar";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Analytics } from "@vercel/analytics/react";
@@ -356,6 +357,10 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
               setProfileData={setProfileData}
             />
           }
+        />
+        <Route
+          path="/academic-calendar"
+          element={<AcademicCalendar />}
         />
         <Route
           path="/timetable"
