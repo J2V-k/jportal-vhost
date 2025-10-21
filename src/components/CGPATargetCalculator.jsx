@@ -12,13 +12,14 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog"
+import { motion } from "framer-motion"
 
 export default function CGPATargetCalculator({ 
   w,
   semesterData: sd = []
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("cgpa");
+  const [activeTab, setActiveTab] = useState("sgpa");
   
   const [subjectSemesters, setSubjectSemesters] = useState([]);
   const [selectedSemester, setSelectedSemester] = useState(null);
@@ -28,35 +29,57 @@ export default function CGPATargetCalculator({
   
   let initialSemesters =
     Array.isArray(sd) && sd.length > 0
-      ? sd.map((s) => ({
-          g: s.sgpa?.toString() || "",
-          c: s.totalcoursecredit?.toString() || "",
-        }))
+      ? sd.map((s, index) => {
+          console.log(`Semester ${index}:`, s);
+          return {
+            g: s.sgpa ? s.sgpa.toString() : "",
+            c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
+          };
+        })
       : [
           { g: "", c: "" },
           { g: "", c: "" },
         ];
+  console.log("Initial semesters created:", initialSemesters);
   const lastCredits = sd?.[sd.length - 1]?.totalcoursecredit || "";
   initialSemesters = [
     ...initialSemesters,
     { g: "", c: lastCredits ? lastCredits.toString() : "" },
   ];
-  const [cgpaSemesters, setCgpaSemesters] = useState(initialSemesters);
+  const [cgpaSemesters, setCgpaSemesters] = useState([{ g: "", c: "" }]);
   const maxSemesters = 10;
 
   const [sgpaSubjects, setSgpaSubjects] = useState([]);
 
   useEffect(() => {
-    if (isOpen && w && subjectSemesters.length === 0) {
-      fetchSubjectSemesters();
+    if (sd && Array.isArray(sd) && sd.length > 0) {
+      const updatedSemesters = sd.map((s) => ({
+        g: s.sgpa ? s.sgpa.toString() : "",
+        c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
+      }));
+      
+      // Add current semester slot
+      const lastCredits = sd[sd.length - 1]?.totalcoursecredit || "";
+      updatedSemesters.push({ g: "", c: lastCredits ? lastCredits.toString() : "" });
+      
+      setCgpaSemesters(updatedSemesters);
+    } else {
+      // If no semester data, just keep the default empty semester
+      setCgpaSemesters([{ g: "", c: "" }]);
     }
-  }, [isOpen, w]);
+  }, [sd]);
 
   useEffect(() => {
     if (selectedSemester && w && !subjectData[selectedSemester.registration_id]) {
       fetchSubjectsForSemester(selectedSemester);
     }
   }, [selectedSemester, w]);
+
+  useEffect(() => {
+    if (isOpen && activeTab === "sgpa" && w && subjectSemesters.length === 0) {
+      fetchSubjectSemesters();
+    }
+  }, [isOpen, activeTab, w, subjectSemesters.length]);
 
   const fetchSubjectSemesters = async () => {
     setIsLoadingSemesters(true);
@@ -180,6 +203,43 @@ export default function CGPATargetCalculator({
     }
   };
 
+  const calculateProjectedCGPA = () => {
+    const currentSgpa = parseFloat(calculateSGPA());
+    if (isNaN(currentSgpa) || currentSgpa === 0) return "-";
+    
+    // Calculate current semester credits
+    let currentCredits = 0;
+    sgpaSubjects.forEach(subject => {
+      if (subject.credits > 0) {
+        currentCredits += subject.credits;
+      }
+    });
+    
+    if (currentCredits === 0) return "-";
+    
+    // Get previous semesters data from props
+    let previousGradePoints = 0;
+    let previousCredits = 0;
+    
+    if (sd && Array.isArray(sd)) {
+      sd.forEach(sem => {
+        const sgpa = parseFloat(sem.sgpa);
+        const credits = parseFloat(sem.totalcoursecredit);
+        if (!isNaN(sgpa) && !isNaN(credits)) {
+          previousGradePoints += sgpa * credits;
+          previousCredits += credits;
+        }
+      });
+    }
+    
+    // Calculate total grade points and credits
+    const totalGradePoints = previousGradePoints + (currentSgpa * currentCredits);
+    const totalCredits = previousCredits + currentCredits;
+    
+    if (totalCredits === 0) return "-";
+    return (totalGradePoints / totalCredits).toFixed(2);
+  };
+
   const calculateCGPA = () => {
     let totalPoints = 0;
     let totalCredits = 0;
@@ -198,29 +258,34 @@ export default function CGPATargetCalculator({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 w-full justify-center bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700">
-          <Calculator className="w-5 h-5" />
-          GPA Calculator
-        </Button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+        >
+          <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+          <span className="text-xs font-medium text-center">GPA Calculator</span>
+        </motion.button>
       </DialogTrigger>
       <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl md:max-w-3xl lg:max-w-5xl max-h-[90vh] p-0 bg-black dark:bg-white text-white dark:text-black rounded-lg overflow-hidden z-50">
-        <DialogClose asChild>
-          <Button variant="ghost" size="icon" className="fixed md:absolute top-3 right-3 z-50 text-gray-400 hover:text-red-500 bg-transparent hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors" aria-label="Close dialog" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-          </Button>
-        </DialogClose>
         <DialogHeader className="sticky top-0 z-10 bg-gradient-to-r from-black to-black dark:from-white dark:to-white p-4 md:p-5 border-b border-gray-700 dark:border-gray-300 shadow-lg">
-          <DialogTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-white dark:text-black">
-            <div className="p-2 bg-white dark:bg-black rounded-lg">
-              <Calculator className="w-5 h-5 md:w-6 md:h-6 text-black dark:text-white" />
-            </div>
-            GPA Calculator Suite
-          </DialogTitle>
-          <p className="text-sm text-gray-300 dark:text-gray-600 mt-2">Calculate your academic performance with precision</p>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-white dark:text-black">
+              <div className="p-2 bg-white dark:bg-black rounded-lg">
+                <Calculator className="w-5 h-5 md:w-6 md:h-6 text-black dark:text-white" />
+              </div>
+              GPA Calculator
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button variant="outline" className="h-9 md:h-10 px-4 md:px-6 text-sm md:text-base font-semibold bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all rounded-lg">
+                Close Calculator
+              </Button>
+            </DialogClose>
+          </div>
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mx-4 md:mx-6 mt-5 md:mt-6 bg-gradient-to-r from-black to-black dark:from-white dark:to-white h-11 md:h-13 rounded-xl border border-gray-600 dark:border-gray-400">
+          <TabsList className="grid grid-cols-2 mx-4 md:mx-6 mt-2 md:mt-2 bg-gradient-to-r from-black to-black dark:from-white dark:to-white h-11 md:h-13 rounded-xl border border-gray-600 dark:border-gray-400">
             <TabsTrigger 
               value="sgpa" 
               className="flex items-center gap-2 text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-white data-[state=active]:to-white data-[state=active]:text-black dark:data-[state=active]:from-black dark:data-[state=active]:to-black dark:data-[state=active]:text-white text-gray-300 dark:text-gray-600 hover:text-white dark:hover:text-black transition-all rounded-lg m-1"
@@ -237,12 +302,8 @@ export default function CGPATargetCalculator({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="sgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 pb-32 md:pb-36 space-y-4 md:space-y-5">
+          <TabsContent value="sgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 space-y-4 md:space-y-5 py-2">
             <div className="space-y-3 md:space-y-4">
-              <div className="flex items-center gap-2 text-sm md:text-base font-semibold text-white dark:text-black">
-                <BookOpen className="w-4 h-4 text-gray-400 dark:text-gray-600" />
-                Select Semester for SGPA Calculation:
-              </div>
               <Select onValueChange={handleSemesterChange} value={selectedSemester?.registration_id || ""}>
                 <SelectTrigger className="w-full md:max-w-sm h-11 md:h-12 bg-gradient-to-r from-black to-black dark:from-white dark:to-white text-white dark:text-black border-2 border-gray-600 dark:border-gray-400 hover:border-gray-400 dark:hover:border-gray-600 text-sm rounded-lg transition-all shadow-lg">
                   <SelectValue placeholder={isLoadingSemesters ? "Loading semesters..." : "Choose your semester"} />
@@ -315,15 +376,30 @@ export default function CGPATargetCalculator({
                         </div>
                       ))}
                     </div>
-                    <div className="mt-6 p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between max-w-md mx-auto">
-                      <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Calculated SGPA</span>
-                      <span className={`text-2xl md:text-3xl font-bold ${
-                        calculateSGPA() !== "-" && parseFloat(calculateSGPA()) < 6 
-                          ? "text-red-500 dark:text-red-600" 
-                          : "text-white dark:text-black"
-                      }`}>
-                        {calculateSGPA()}
-                      </span>
+                    <div className="mt-6 space-y-3">
+                    
+
+        
+                      <div className="p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between max-w-md mx-auto">
+                        <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Calculated SGPA</span>
+                        <span className={`text-2xl md:text-3xl font-bold ${
+                          calculateSGPA() !== "-" && parseFloat(calculateSGPA()) < 6 
+                            ? "text-red-500 dark:text-red-600" 
+                            : "text-white dark:text-black"
+                        }`}>
+                          {calculateSGPA()}
+                        </span>
+                      </div>
+                      <div className="p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between max-w-md mx-auto">
+                        <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Projected CGPA</span>
+                        <span className={`text-2xl md:text-3xl font-bold ${
+                          calculateProjectedCGPA() !== "-" && parseFloat(calculateProjectedCGPA()) < 6 
+                            ? "text-red-500 dark:text-red-600" 
+                            : "text-white dark:text-black"
+                        }`}>
+                          {calculateProjectedCGPA()}
+                        </span>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -337,15 +413,19 @@ export default function CGPATargetCalculator({
             )}
           </TabsContent>
 
-          <TabsContent value="cgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 pb-32 md:pb-36 space-y-4 md:space-y-6">
+          <TabsContent value="cgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 space-y-4 md:space-y-6">
             <div className="flex flex-col gap-4 md:gap-6">
               <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
                 {cgpaSemesters.map((sem, i) => (
-                  <div key={i} className="bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-700 dark:border-gray-300 hover:border-gray-600 dark:hover:border-gray-400 transition-colors">
+                  <div key={i} className={`bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-3 md:p-4 border transition-colors ${
+                    i < (sd?.length || 0) 
+                      ? "border-blue-700 dark:border-blue-300 bg-blue-900/10 dark:bg-blue-50/10" 
+                      : "border-gray-700 dark:border-gray-300 hover:border-gray-600 dark:hover:border-gray-400"
+                  }`}>
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
                         <label className="block text-sm md:text-base font-medium text-white dark:text-black">
-                          Sem {i + 1}
+                          Sem {i + 1} {i < (sd?.length || 0) ? "(Previous)" : ""}
                         </label>
                       </div>
                       <div className="flex-1 grid grid-cols-2 gap-3">
@@ -359,8 +439,13 @@ export default function CGPATargetCalculator({
                             placeholder="0.00"
                             value={sem.g}
                             onChange={e => handleCgpaChange(i, "g", e.target.value)}
-                            className="bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black h-8 md:h-9 text-xs md:text-sm"
+                            className={`h-8 md:h-9 text-xs md:text-sm ${
+                              i < (sd?.length || 0)
+                                ? "bg-blue-900/30 dark:bg-blue-50/30 border-blue-600 dark:border-blue-400 text-blue-100 dark:text-blue-900"
+                                : "bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black"
+                            }`}
                             inputMode="decimal"
+                            readOnly={i < (sd?.length || 0)}
                           />
                         </div>
                         <div>
@@ -373,12 +458,17 @@ export default function CGPATargetCalculator({
                             placeholder="0"
                             value={sem.c}
                             onChange={e => handleCgpaChange(i, "c", e.target.value)}
-                            className="bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black h-8 md:h-9 text-xs md:text-sm"
+                            className={`h-8 md:h-9 text-xs md:text-sm ${
+                              i < (sd?.length || 0)
+                                ? "bg-blue-900/30 dark:bg-blue-50/30 border-blue-600 dark:border-blue-400 text-blue-100 dark:text-blue-900"
+                                : "bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black"
+                            }`}
                             inputMode="decimal"
+                            readOnly={i < (sd?.length || 0)}
                           />
                         </div>
                       </div>
-                      {i === cgpaSemesters.length - 1 && cgpaSemesters.length > 1 && (
+                      {i === cgpaSemesters.length - 1 && cgpaSemesters.length > 1 && i >= (sd?.length || 0) && (
                         <div className="flex-shrink-0">
                           <Button
                             variant="ghost"
@@ -418,14 +508,6 @@ export default function CGPATargetCalculator({
             </div>
           </TabsContent>
         </Tabs>
-        
-        <div className="sticky bottom-0 bg-black dark:bg-white p-4 md:p-6 border-t border-gray-700 dark:border-gray-300">
-          <DialogClose asChild>
-            <Button variant="outline" className="w-full md:max-w-md md:mx-auto h-10 md:h-11 text-sm md:text-base font-semibold bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all rounded-lg">
-              Close Calculator
-            </Button>
-          </DialogClose>
-        </div>
       </DialogContent>
     </Dialog>
   );

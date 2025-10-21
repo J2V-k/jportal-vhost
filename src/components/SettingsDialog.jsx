@@ -11,6 +11,7 @@ import {
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
+import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
 import { Settings, LogOut, Trash2 } from 'lucide-react';
@@ -29,12 +30,12 @@ const MESS_MENU_VIEWS = [
   { key: 'weekly', label: 'Weekly View' },
 ];
 
-export default function SettingsDialog({ onLogout }) {
+export default function SettingsDialog({ onLogout, attendanceGoal, setAttendanceGoal }) {
   const { themeMode, darkTheme, lightTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(themeMode || 'light');
   const [defaultTab, setDefaultTab] = useState(() => {
-    return localStorage.getItem('defaultTab') || '/attendance';
+    return localStorage.getItem('defaultTab') || 'auto';
   });
   const [swipeEnabled, setSwipeEnabled] = useState(() => {
     return localStorage.getItem('swipeEnabled') !== 'false';
@@ -48,13 +49,7 @@ export default function SettingsDialog({ onLogout }) {
     setSelectedTheme(currentTheme);
   }, [themeMode]);
 
-  useEffect(() => {
-    if (open) {
-      setSwipeEnabled(localStorage.getItem('swipeEnabled') !== 'false');
-      setDefaultMessMenuView(localStorage.getItem('defaultMessMenuView') || 'daily');
-      setDefaultTab(localStorage.getItem('defaultTab') || '/attendance');
-    }
-  }, [open]);
+
 
   function applyTheme(theme) {
     if (theme === 'dark') {
@@ -80,11 +75,26 @@ export default function SettingsDialog({ onLogout }) {
     window.location.reload();
   }
 
-  function handleSave() {
-    localStorage.setItem('defaultTab', defaultTab);
-    localStorage.setItem('swipeEnabled', swipeEnabled.toString());
-    localStorage.setItem('defaultMessMenuView', defaultMessMenuView);
-    setOpen(false);
+  function handleDefaultTabChange(value) {
+    setDefaultTab(value);
+    localStorage.setItem('defaultTab', value);
+  }
+
+  function handleSwipeEnabledChange(value) {
+    setSwipeEnabled(value);
+    localStorage.setItem('swipeEnabled', value.toString());
+  }
+
+  function handleMessMenuViewChange(value) {
+    setDefaultMessMenuView(value);
+    localStorage.setItem('defaultMessMenuView', value);
+  }
+
+  function handleTargetAttendanceChange(e) {
+    const value = e.target.value;
+    if (value === '' || (!isNaN(value) && value >= 0 && value <= 100)) {
+      setAttendanceGoal(value === '' ? '' : parseInt(value));
+    }
   }
 
   function handleLogout() {
@@ -103,7 +113,7 @@ export default function SettingsDialog({ onLogout }) {
           <Settings className="w-6 h-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-black dark:bg-white border-2 border-white dark:border-black text-white dark:text-black p-8">
+      <DialogContent className="bg-black dark:bg-white border-2 border-white dark:border-black text-white dark:text-black p-8 rounded-lg">
         <DialogHeader>
           <DialogTitle className="text-white dark:text-black">Settings</DialogTitle>
         </DialogHeader>
@@ -141,7 +151,7 @@ export default function SettingsDialog({ onLogout }) {
 
           <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
-            <Select value={defaultTab} onValueChange={setDefaultTab}>
+            <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
               <SelectTrigger className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black">
                 <SelectValue />
               </SelectTrigger>
@@ -163,13 +173,13 @@ export default function SettingsDialog({ onLogout }) {
             <Label className="text-sm font-medium text-white dark:text-black">Enable swipe navigation</Label>
             <Switch 
               checked={swipeEnabled}
-              onCheckedChange={setSwipeEnabled}
+              onCheckedChange={handleSwipeEnabledChange}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Default mess menu view</Label>
-            <Select value={defaultMessMenuView} onValueChange={setDefaultMessMenuView}>
+            <Select value={defaultMessMenuView} onValueChange={handleMessMenuViewChange}>
               <SelectTrigger className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black">
                 <SelectValue />
               </SelectTrigger>
@@ -188,6 +198,19 @@ export default function SettingsDialog({ onLogout }) {
           </div>
 
           <div className="grid grid-cols-2 gap-6 items-center py-2">
+            <Label className="text-sm font-medium text-white dark:text-black">Target attendance %</Label>
+            <Input
+              type="number"
+              value={attendanceGoal}
+              onChange={handleTargetAttendanceChange}
+              min="0"
+              max="100"
+              className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black"
+              placeholder="75"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 items-center py-2">
             <Label className="text-sm font-medium text-white dark:text-black">Clear all cached data</Label>
             <Button
               variant="outline"
@@ -201,7 +224,7 @@ export default function SettingsDialog({ onLogout }) {
           </div>
         </div>
 
-        <div className="space-y-4 mt-8">
+        <div className="mt-8">
           <Button 
             onClick={handleLogout} 
             variant="destructive"
@@ -210,22 +233,6 @@ export default function SettingsDialog({ onLogout }) {
             <LogOut className="w-4 h-4 mr-2" /> 
             Logout
           </Button>
-          <div className="flex gap-2 w-full">
-            <DialogClose asChild>
-              <Button 
-                variant="outline"
-                className="bg-transparent text-white dark:text-black border-2 border-white dark:border-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white flex-1"
-              >
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button 
-              onClick={handleSave}
-              className="bg-white dark:bg-black text-black dark:text-white border-2 border-white dark:border-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black flex-1"
-            >
-              Save
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

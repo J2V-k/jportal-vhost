@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react"
-import { User, Mail, Phone, MapPin, GraduationCap, Loader2, Calendar, ArrowRight } from "lucide-react"
+import { User, Mail, Phone, MapPin, GraduationCap, Loader2, Calendar, ArrowRight, Github } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
+import CGPATargetCalculator from "./CGPATargetCalculator"
 
-export default function Profile({ w, profileData, setProfileData }) {
+export default function Profile({ w, profileData, setProfileData, semesterData: initialSemesterData }) {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("personal")
   const navigate = useNavigate()
-
+  const [localSemesterData, setLocalSemesterData] = useState(initialSemesterData || [])
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -30,6 +31,28 @@ export default function Profile({ w, profileData, setProfileData }) {
 
     fetchProfileData()
   }, [w, profileData, setProfileData])
+
+  useEffect(() => {
+    const fetchGradesData = async () => {
+      try {
+        console.log("Profile: Fetching grades data for GPA calculator");
+        const data = await w.get_sgpa_cgpa()
+        console.log("Profile: Grades data received:", data);
+        if (data && data.semesterList) {
+          console.log("Profile: Setting semester data:", data.semesterList);
+          setLocalSemesterData(data.semesterList)
+        } else {
+          console.log("Profile: No semesterList found in data");
+        }
+      } catch (error) {
+        console.error("Failed to fetch grades data for GPA calculator:", error)
+      }
+    }
+
+    if (w) {
+      fetchGradesData()
+    }
+  }, [w])
 
 
 
@@ -204,37 +227,32 @@ export default function Profile({ w, profileData, setProfileData }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3 md:gap-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/academic-calendar')}
-            className="aspect-square bg-[#0B0B0D] dark:bg-gray-200/80 hover:bg-gray-700 dark:hover:bg-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-400"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
-            <Calendar className="w-8 h-8 mb-2 text-gray-400 dark:text-gray-600" />
+            <Calendar className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Academic Calendar</span>
           </motion.button>
+          <CGPATargetCalculator w={w} semesterData={localSemesterData} />
+          <motion.a
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            href="https://github.com/J2V-k/jportal-vhost"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300 group"
+          >
+            <Github className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600 group-hover:text-blue-400 dark:group-hover:text-blue-500 transition-colors duration-200" />
+            <span className="text-xs font-medium text-center mb-1">View Source Code</span>
+            <span className="hidden md:inline text-xs text-blue-400 dark:text-blue-500 group-hover:text-blue-300 dark:group-hover:text-blue-400 transition-colors duration-200">and Contribute</span>
+          </motion.a>
         </div>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-center p-4 text-sm text-gray-400 dark:text-gray-600"
-      >
-        originally created by{' '}
-        <a href="https://github.com/codeblech" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-          Yash Malik
-        </a>
-        <br />
-        <span className="block mt-2">
-          Source code for this version on{' '}
-          <a href="https://github.com/J2V-k/jportal-vhost" className="text-blue-500 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a> 
-        </span>
-      </motion.div>
     </motion.div>
   )
 }

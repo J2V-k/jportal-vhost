@@ -120,7 +120,16 @@ const AcademicCalendar = () => {
   const nextUpcomingEventIndex = filteredEvents.findIndex(event => isEventUpcoming(event));
   const targetEventIndex = firstTodayEventIndex !== -1 ? firstTodayEventIndex : nextUpcomingEventIndex;
 
-  // Auto-scroll to today's event when data loads - REMOVED as per user request
+  useEffect(() => {
+    if (!loading && filteredEvents.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById('today');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
+    }
+  }, [loading, filteredEvents.length, targetEventIndex]);
 
   const scrollToCurrentEvent = () => {
     const element = document.getElementById('today');

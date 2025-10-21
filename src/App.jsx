@@ -71,6 +71,18 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     localStorage.setItem("attendanceGoal", attendanceGoal.toString());
   }, [attendanceGoal]);
 
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'attendanceGoal') {
+        const newValue = e.newValue ? parseInt(e.newValue) : 75;
+        setAttendanceGoal(newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const [profileData, setProfileData] = useState(null);
 
   const [activeGradesTab, setActiveGradesTab] = useState("overview");
@@ -188,6 +200,8 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
             setIsAuthenticated={setIsAuthenticated} 
             messMenuOpen={messMenuOpen}
             onMessMenuChange={onMessMenuChange}
+            attendanceGoal={attendanceGoal}
+            setAttendanceGoal={setAttendanceGoal}
           />
         </div>
         <div className="flex-1 overflow-y-auto md:ml-64">
@@ -355,6 +369,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
               w={w}
               profileData={profileData}
               setProfileData={setProfileData}
+              semesterData={gradesSemesterData}
             />
           }
         />

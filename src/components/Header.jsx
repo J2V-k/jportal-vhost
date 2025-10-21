@@ -6,7 +6,7 @@ import MessMenu from './MessMenu';
 import { Utensils } from 'lucide-react';
 import SettingsDialog from './SettingsDialog';
 
-const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange }) => {
+const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -47,7 +47,7 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange }) => {
             </div>
           </MessMenu>
           <ThemeBtn />
-          <SettingsDialog onLogout={handleLogout} />
+          <SettingsDialog onLogout={handleLogout} attendanceGoal={attendanceGoal} setAttendanceGoal={setAttendanceGoal} />
         </motion.div>
       </div>
     </motion.header>

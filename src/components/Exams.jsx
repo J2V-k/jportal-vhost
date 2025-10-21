@@ -55,10 +55,10 @@ export default function Exams({
           setExamSemesters(examSems);
 
           if (examSems.length > 0) {
-            const firstSemester = examSems[0];
-            setSelectedExamSem(firstSemester);
+            const lastSemester = examSems[examSems.length - 1];
+            setSelectedExamSem(lastSemester);
 
-            const events = await w.get_exam_events(firstSemester);
+            const events = await w.get_exam_events(lastSemester);
             setExamEvents(events);
 
             if (events.length > 0) {

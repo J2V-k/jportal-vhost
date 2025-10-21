@@ -640,12 +640,30 @@ export default function Grades({
                       </motion.div>
                     ))}
                   </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <div className="grid grid-cols-3 gap-4">
+                      <CGPATargetCalculator 
+                        w={w}
+                        semesterData={semesterData}
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsDownloadDialogOpen(true)}
+                        disabled={isDownloading}
+                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+                      >
+                        <Download className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+                        <span className="text-xs font-medium text-center">Download Marks</span>
+                      </motion.button>
+                    </div>
+                  </motion.div>
                 </>
               )}
-              <CGPATargetCalculator 
-                w={w}
-                semesterData={semesterData}
-              />
             </motion.div>
           </TabsContent>
 
@@ -705,13 +723,31 @@ export default function Grades({
                         {...fadeInUp}
                         className="space-y-3"
                       >
-                        {gradeCard.gradecard.map((subject) => (
-                          <GradeCard
-                            key={subject.subjectcode}
-                            subject={subject}
-                            getGradeColor={getGradeColor}
-                          />
-                        ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {gradeCard.gradecard.map((subject) => (
+                            <GradeCard
+                              key={subject.subjectcode}
+                              subject={subject}
+                              getGradeColor={getGradeColor}
+                            />
+                          ))}
+                        </div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="flex justify-center mt-6"
+                        >
+                          <Button
+                            variant="outline"
+                            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
+                            onClick={() => setIsDownloadDialogOpen(true)}
+                            disabled={isDownloading}
+                          >
+                            <Download className="h-5 w-5" />
+                            Download Marks
+                          </Button>
+                        </motion.div>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -878,15 +914,17 @@ export default function Grades({
                             );
                           })()}
 
-                        {marksSemesterData.courses.map((course) => (
-                          <MarksCard
-                            key={course.code}
-                            course={course}
-                            gradeInfo={
-                              gradeCards[selectedMarksSem?.registration_id]
-                            }
-                          />
-                        ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {marksSemesterData.courses.map((course) => (
+                            <MarksCard
+                              key={course.code}
+                              course={course}
+                              gradeInfo={
+                                gradeCards[selectedMarksSem?.registration_id]
+                              }
+                            />
+                          ))}
+                        </div>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -898,33 +936,33 @@ export default function Grades({
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex justify-center mt-6"
+                  >
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
+                      onClick={() => setIsDownloadDialogOpen(true)}
+                      disabled={isDownloading}
+                    >
+                      {isDownloading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Download className="h-5 w-5" />
+                      )}
+                      {isDownloading ? "Downloading..." : "Download Marks"}
+                    </Button>
+                  </motion.div>
                 </>
               )}
             </motion.div>
           </TabsContent>
         </div>
       </Tabs>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="w-full flex justify-end mt-4 max-w-4xl mx-auto"
-      >
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400 text-white dark:text-black border-none mb-2"
-          onClick={() => setIsDownloadDialogOpen(true)}
-          disabled={isDownloading}
-        >
-          {isDownloading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
-          {isDownloading ? "Downloading..." : "Download Marks"}
-        </Button>
-      </motion.div>
 
       <AnimatePresence>
         {isDownloadDialogOpen && (
