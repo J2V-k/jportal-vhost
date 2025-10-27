@@ -181,13 +181,22 @@ export default function Grades({
   }, [w, marksSemesters.length]);
 
   useEffect(() => {
-    if (marksSemesters.length > 0 && !selectedMarksSem) {
-      console.log('🎯 Auto-selecting first semester for marks:', marksSemesters[0]);
-      setSelectedMarksSem(marksSemesters[0]);
+    // Auto-select the marks semester only when the Marks tab is active
+    if (activeTab === 'marks' && marksSemesters.length > 0 && !selectedMarksSem) {
+      const currentYear = new Date().getFullYear().toString();
+      const currentYearSemester = marksSemesters.find(sem =>
+        sem.registration_code && sem.registration_code.includes(currentYear)
+      );
+      const selectedSemester = currentYearSemester || marksSemesters[0];
+      console.log('🎯 Auto-selecting semester for marks (on Marks tab):', selectedSemester);
+      setSelectedMarksSem(selectedSemester);
     }
-  }, [marksSemesters, selectedMarksSem, setSelectedMarksSem]);
+  }, [marksSemesters, selectedMarksSem, setSelectedMarksSem, activeTab]);
 
   useEffect(() => {
+    // Only load/parse heavy marks PDF data when the user is actually viewing the Marks tab
+    if (activeTab !== 'marks') return;
+
     setMounted(true);
 
     const processPdfMarks = async () => {
@@ -298,7 +307,7 @@ export default function Grades({
     return () => {
       setMounted(false);
     };
-  }, [selectedMarksSem, w.session, marksData]);
+  }, [selectedMarksSem, w.session, marksData, activeTab]);
 
   const handleSemesterChange = async (value) => {
     setGradeCardLoading(true);
@@ -341,7 +350,7 @@ export default function Grades({
   };
 
   const handleMarksSemesterChange = async (value) => {
-    try {laaalllaa
+    try {
       const semester = marksSemesters.find(
         (sem) => sem.registration_id === value
       );

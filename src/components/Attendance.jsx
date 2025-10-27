@@ -61,7 +61,11 @@ const Attendance = ({
     const fetchSemesters = async () => {
       if (semestersData) {
         if (semestersData.semesters.length > 0 && !selectedSem) {
-          setSelectedSem(semestersData.latest_semester);
+          const currentYear = new Date().getFullYear().toString();
+          const currentYearSemester = semestersData.semesters.find(sem =>
+            sem.registration_code && sem.registration_code.includes(currentYear)
+          );
+          setSelectedSem(currentYearSemester || semestersData.latest_semester);
         }
         return;
       }
@@ -79,64 +83,63 @@ const Attendance = ({
           latest_semester: latestSem,
         });
 
+        const currentYear = new Date().getFullYear().toString();
+        const currentYearSemester = meta.semesters.find(sem =>
+          sem.registration_code && sem.registration_code.includes(currentYear)
+        );
+        const semesterToLoad = currentYearSemester || latestSem;
+
         const username = w.username || "user";
-        console.log('🔍 Checking attendance cache for user:', username, 'semester:', latestSem?.registration_code);
-        const cached = await getAttendanceFromCache(username, latestSem);
-        console.log('📦 Cache result:', cached ? 'Found cached data' : 'No cached data');
+        const cached = await getAttendanceFromCache(username, semesterToLoad);
         if (cached) {
           setAttendanceData((prev) => ({
             ...prev,
-            [latestSem.registration_id]: cached.data || cached,
+            [semesterToLoad.registration_id]: cached.data || cached,
           }));
-          setSelectedSem(latestSem);
+          setSelectedSem(semesterToLoad);
           setCacheTimestamp(cached.timestamp || null);
-          console.log('📅 Cache timestamp set:', cached.timestamp ? new Date(cached.timestamp) : 'null');
-          console.log('📦 cacheTimestamp state will be:', cached.timestamp || null);
           setIsFromCache(true);
           setIsAttendanceMetaLoading(false);
           setIsAttendanceDataLoading(false);
           setIsRefreshing(true);
           try {
-            const data = await w.get_attendance(header, latestSem);
+            const data = await w.get_attendance(header, semesterToLoad);
             setAttendanceData((prev) => ({
               ...prev,
-              [latestSem.registration_id]: data,
+              [semesterToLoad.registration_id]: data,
             }));
-            await saveAttendanceToCache(data, username, latestSem);
-            console.log('💾 Saved fresh attendance data to cache for user:', username, 'semester:', latestSem?.registration_code);
+            await saveAttendanceToCache(data, username, semesterToLoad);
             setCacheTimestamp(Date.now());
             setIsFromCache(false);
           } catch (error) {
+            setAttendanceData((prev) => ({
+              ...prev,
+              [semesterToLoad.registration_id]: {
+                error: error.message
+              },
+            }));
           }
           setIsRefreshing(false);
           return;
         }
 
         try {
-          const data = await w.get_attendance(header, latestSem);
+          const data = await w.get_attendance(header, semesterToLoad);
           setAttendanceData((prev) => ({
             ...prev,
-            [latestSem.registration_id]: data,
+            [semesterToLoad.registration_id]: data,
           }));
-          setSelectedSem(latestSem);
-          await saveAttendanceToCache(data, username, latestSem);
+          setSelectedSem(semesterToLoad);
+          await saveAttendanceToCache(data, username, semesterToLoad);
           setCacheTimestamp(Date.now());
         } catch (error) {
-          if (error.message.includes("NO Attendance Found")) {
-            const previousSem = meta.semesters[1];
-            if (previousSem) {
-              const data = await w.get_attendance(header, previousSem);
-              setAttendanceData((prev) => ({
-                ...prev,
-                [previousSem.registration_id]: data,
-              }));
-              setSelectedSem(previousSem);
-              await saveAttendanceToCache(data, username, previousSem);
-              setCacheTimestamp(Date.now());
-            }
-          } else {
-            throw error;
-          }
+          setAttendanceData((prev) => ({
+            ...prev,
+            [semesterToLoad.registration_id]: {
+              error: error.message
+            },
+          }));
+          setSelectedSem(semesterToLoad);
         }
       } catch (error) {
         console.error("Failed to fetch attendance:", error);
@@ -172,10 +175,8 @@ const Attendance = ({
         [value]: cached.data || cached,
       }));
       setCacheTimestamp(cached.timestamp || null);
-      console.log('📅 Cache timestamp set:', cached.timestamp ? new Date(cached.timestamp) : 'null');
       setIsFromCache(true);
       setIsAttendanceDataLoading(false);
-      // Refresh in background
       setIsRefreshing(true);
       try {
         const meta = await w.get_attendance_meta();
@@ -189,6 +190,10 @@ const Attendance = ({
         setCacheTimestamp(Date.now());
         setIsFromCache(false);
       } catch (error) {
+        setAttendanceData((prev) => ({
+          ...prev,
+          [value]: { error: error.message },
+        }));
       }
       setIsRefreshing(false);
       return;
@@ -204,14 +209,10 @@ const Attendance = ({
       await saveAttendanceToCache(data, username, semester);
       setCacheTimestamp(Date.now());
     } catch (error) {
-      if (error.message.includes("NO Attendance Found")) {
-        setAttendanceData((prev) => ({
-          ...prev,
-          [value]: { error: "Attendance not available for this semester" },
-        }));
-      } else {
-        console.error("Failed to fetch attendance:", error);
-      }
+      setAttendanceData((prev) => ({
+        ...prev,
+        [value]: { error: error.message },
+      }));
     } finally {
       setIsAttendanceDataLoading(false);
       setIsRefreshing(false);
@@ -293,21 +294,17 @@ const Attendance = ({
   const fetchSubjectAttendance = async (subject) => {
     try {
       const username = w.username || "user";
-      console.log('🔍 Checking subject attendance cache for:', subject.name);
       const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
       
       if (cached) {
-        console.log('📦 Found cached subject attendance for:', subject.name);
         setSubjectAttendanceData((prev) => ({
           ...prev,
           [subject.name]: cached.data || cached,
         }));
         
-        console.log('🔄 Starting background refresh for subject:', subject.name);
         await fetchFreshSubjectData(subject, username);
         return;
       }
-    console.log('📡 No cache found, fetching fresh subject data for:', subject.name);
       await fetchFreshSubjectData(subject, username);
     } catch (error) {
       console.error("Failed to fetch subject attendance:", error);
@@ -346,7 +343,6 @@ const Attendance = ({
       }));
 
       await saveSubjectDataToCache(freshData, subject.name, username, selectedSem);
-      console.log('💾 Cached fresh subject attendance for:', subject.name);
     } catch (error) {
       console.error("Failed to fetch fresh subject attendance:", error);
     }
@@ -425,7 +421,6 @@ const Attendance = ({
         </div>
       </div>
 
-      {/* Show cached timestamp and refreshing indicator - hide if there's an error */}
       {!attendanceData[selectedSem?.registration_id]?.error && (
         <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
           <span>
@@ -504,7 +499,6 @@ const Attendance = ({
           <TabsContent value="daily">
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                {/* Calendar Section */}
                 <div className="lg:col-span-1 order-2 lg:order-1">
                   <div className="sticky top-4">
                     <div className="bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-lg flex flex-col items-center">
@@ -554,7 +548,6 @@ const Attendance = ({
                   </div>
                 </div>
 
-                {/* Classes Section */}
                 <div className="lg:col-span-2 order-1 lg:order-2">
                   <div className="min-h-[400px]">
                     {isAttendanceDataLoading ? (

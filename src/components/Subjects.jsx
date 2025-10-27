@@ -21,15 +21,7 @@ export default function Subjects({
     const fetchSemesters = async () => {
       if (semestersData) {
         if (semestersData.semesters.length > 0 && !selectedSem) {
-          setSelectedSem(semestersData.latest_semester)
-
-          if (!subjectData?.[semestersData.latest_semester.registration_id]) {
-            const data = await w.get_registered_subjects_and_faculties(semestersData.latest_semester)
-            setSubjectData((prev) => ({
-              ...prev,
-              [semestersData.latest_semester.registration_id]: data,
-            }))
-          }
+          await findFirstSemesterWithSubjects(semestersData.semesters)
         }
         return
       }
@@ -38,22 +30,13 @@ export default function Subjects({
       setSubjectsLoading(true)
       try {
         const registeredSems = await w.get_registered_semesters()
-        const latestSem = registeredSems[0]
-
+        
         setSemestersData({
           semesters: registeredSems,
-          latest_semester: latestSem,
+          latest_semester: registeredSems[0],
         })
 
-        setSelectedSem(latestSem)
-
-        if (!subjectData?.[latestSem.registration_id]) {
-          const data = await w.get_registered_subjects_and_faculties(latestSem)
-          setSubjectData((prev) => ({
-            ...prev,
-            [latestSem.registration_id]: data,
-          }))
-        }
+        await findFirstSemesterWithSubjects(registeredSems)
       } catch (err) {
         console.error(err)
       } finally {
@@ -62,8 +45,41 @@ export default function Subjects({
       }
     }
 
+    const findFirstSemesterWithSubjects = async (semesters) => {
+      for (const semester of semesters) {
+        try {
+          if (subjectData?.[semester.registration_id]) {
+            const existingData = subjectData[semester.registration_id]
+            if (existingData?.subjects && existingData.subjects.length > 0) {
+              setSelectedSem(semester)
+              return
+            }
+          } else {
+            const data = await w.get_registered_subjects_and_faculties(semester)
+            setSubjectData((prev) => ({
+              ...prev,
+              [semester.registration_id]: data,
+            }))
+            
+            if (data?.subjects && data.subjects.length > 0) {
+              setSelectedSem(semester)
+              return
+            }
+          }
+        } catch (err) {
+          setSubjectData((prev) => ({
+            ...prev,
+            [semester.registration_id]: { error: err.message },
+          }));
+        }
+      }
+      if (semesters.length > 0) {
+        setSelectedSem(semesters[0])
+      }
+    }
+
     fetchSemesters()
-  }, [w, setSubjectData, semestersData, setSemestersData, selectedSem]) // Added selectedSem to dependencies
+  }, [w, setSubjectData, semestersData, setSemestersData, selectedSem, subjectData])
 
   const handleSemesterChange = async (value) => {
     setSubjectsLoading(true)
@@ -82,13 +98,18 @@ export default function Subjects({
         [semester.registration_id]: data,
       }))
     } catch (err) {
-      console.error(err)
+      setSubjectData((prev) => ({
+        ...prev,
+        [semester.registration_id]: { error: err.message },
+      }));
     } finally {
       setSubjectsLoading(false)
     }
   }
 
   const currentSubjects = selectedSem && subjectData?.[selectedSem.registration_id]
+  const currentSubjectsError = currentSubjects?.error
+
   const groupedSubjects =
     currentSubjects?.subjects?.reduce((acc, subject) => {
       const baseCode = subject.subject_code
@@ -132,7 +153,7 @@ export default function Subjects({
               </SelectContent>
             </Select>
             <motion.div className="flex items-center space-x-2 mt-2 md:mt-0">
-              <span className="text-sm font-medium text-gray-400 dark:text-gray-300">Total Credits</span>
+              <span className="text-sm font-medium text-gray-300 dark:text-gray-600">Total Credits</span>
               <span className="text-lg font-semibold text-white dark:text-black">{currentSubjects?.total_credits || 0}</span>
             </motion.div>
           </div>
@@ -146,8 +167,33 @@ export default function Subjects({
             transition={{ duration: 0.3 }}
             className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]"
           >
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <span className="ml-2">Loading subjects...</span>
+            <Loader2 className="w-8 h-8 animate-spin text-white dark:text-black" />
+            <span className="ml-2 text-white dark:text-black">Loading subjects...</span>
+          </motion.div>
+        ) : currentSubjectsError ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-center py-8"
+          >
+            <div className="text-center bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-6 max-w-md">
+              <p className="text-xl text-red-400 mb-2">Subjects Unavailable</p>
+              <p className="text-gray-400 dark:text-gray-600">{currentSubjectsError}</p>
+            </div>
+          </motion.div>
+        ) : Object.keys(groupedSubjects).length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-center py-8"
+          >
+            <div className="text-center bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-6 max-w-md">
+              <p className="text-gray-400 dark:text-gray-600">No subjects found for this semester.</p>
+            </div>
           </motion.div>
         ) : (
           <AnimatePresence>

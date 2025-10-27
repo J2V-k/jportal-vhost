@@ -55,8 +55,12 @@ export default function Exams({
           setExamSemesters(examSems);
 
           if (examSems.length > 0) {
-            const lastSemester = examSems[examSems.length - 1];
-            setSelectedExamSem(lastSemester);
+            const currentYear = new Date().getFullYear().toString();
+            const currentYearSemester = examSems.find(sem => 
+              sem.registration_code && sem.registration_code.includes(currentYear)
+            );
+            const selectedSemester = currentYearSemester || examSems[examSems.length - 1];
+            setSelectedExamSem(selectedSemester);
 
             const events = await w.get_exam_events(lastSemester);
             setExamEvents(events);
@@ -76,7 +80,6 @@ export default function Exams({
           setLoading(false);
         }
       } else if (selectedExamSem && examEvents.length === 0) {
-        // Fetch exam events if they're not available
         setLoading(true);
         try {
           const events = await w.get_exam_events(selectedExamSem);
@@ -356,7 +359,6 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
   return (
   <div className="bg-black dark:bg-white shadow rounded-lg p-6 border border-gray-700 dark:border-gray-300">
       <div className="space-y-2">
-        {/* Countdown Timer */}
         {showTimer && timeLeft && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-500 dark:to-orange-500 p-4 rounded-lg border-2 border-red-400 shadow-lg">
             <div className="flex items-center justify-center gap-2 text-white">
@@ -369,7 +371,6 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
           </div>
         )}
 
-        {/* Exam Name Row */}
         <div className="border-b border-gray-800 dark:border-gray-200 pb-3">
           <h3 className="font-semibold text-lg sm:text-xl text-white dark:text-black">
             {exam.subjectdesc.split("(")[0].trim()}
@@ -379,7 +380,6 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
           </p>
         </div>
 
-        {/* Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-3 text-sm text-gray-300 dark:text-gray-600">
             <div className="flex items-center">
