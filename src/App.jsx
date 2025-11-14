@@ -19,6 +19,7 @@ import Exams from "./components/Exams";
 import Subjects from "./components/Subjects";
 import Profile from "./components/Profile";
 import Timetable from "./components/Timetable";
+import Fee from "./components/Fee";
 import AcademicCalendar from "./components/AcademicCalendar";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -26,19 +27,12 @@ import { Analytics } from "@vercel/analytics/react";
 import { Loader2 } from "lucide-react";
 import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./components/ui/dialog";
-import { UtensilsCrossed, Calendar } from "lucide-react";
+import { UtensilsCrossed } from "lucide-react";
 
 import {
   WebPortal,
   LoginError,
-} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.20/dist/jsjiit.esm.js";
+} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.22/dist/jsjiit.esm.js";
 
 const w = new WebPortal();
 
@@ -59,7 +53,6 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   const [gradesSemesterData, setGradesSemesterData] = useState(null);
 
   const [selectedAttendanceSem, setSelectedAttendanceSem] = useState(null);
-  const [selectedGradesSem, setSelectedGradesSem] = useState(null);
   const [selectedSubjectsSem, setSelectedSubjectsSem] = useState(null);
 
   const [attendanceGoal, setAttendanceGoal] = useState(() => {
@@ -371,6 +364,12 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
               setProfileData={setProfileData}
               semesterData={gradesSemesterData}
             />
+          }
+        />
+        <Route
+          path="/fee"
+          element={
+            <Fee w={w} />
           }
         />
         <Route
