@@ -182,7 +182,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     <div className="relative">
       <Navbar messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
       <div 
-        className="h-screen flex flex-col select-none"
+        className="h-screen flex flex-col"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEndWithTransition}
@@ -583,7 +583,7 @@ function App() {
   return (
     <ThemeProvider value={{ themeMode, darkTheme, lightTheme }}>
       <Router>
-        <div className="min-h-screen bg-[black] dark:bg-white dark:text-black select-none">
+        <div className="min-h-screen bg-[black] dark:bg-white dark:text-black">
           {" "}
           {!isAuthenticated || !w.session ? (
             <Routes>

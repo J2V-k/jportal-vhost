@@ -1,66 +1,113 @@
-import React, { useState, useEffect } from "react"
-import { User, Mail, Phone, MapPin, GraduationCap, Loader2, Calendar, ArrowRight, Github, FileText } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useNavigate } from "react-router-dom"
-import CGPATargetCalculator from "./CGPATargetCalculator"
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
+  Loader2,
+  Calendar,
+  ArrowRight,
+  Github,
+  FileText,
+  Home,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import CGPATargetCalculator from "./CGPATargetCalculator";
 
-export default function Profile({ w, profileData, setProfileData, semesterData: initialSemesterData }) {
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("personal")
-  const navigate = useNavigate()
-  const [localSemesterData, setLocalSemesterData] = useState(initialSemesterData || [])
+export default function Profile({
+  w,
+  profileData,
+  setProfileData,
+  semesterData: initialSemesterData,
+}) {
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("personal");
+  const navigate = useNavigate();
+  const [localSemesterData, setLocalSemesterData] = useState(
+    initialSemesterData || []
+  );
+  const [hostelData, setHostelData] = useState(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       if (profileData) {
-        setLoading(false)
-        return
+        setLoading(false);
+        return;
       }
 
-      setLoading(true)
+      setLoading(true);
       try {
-        const data = await w.get_personal_info()
-        console.log("Profile data fetched:", data)
-        setProfileData(data)
+        const data = await w.get_personal_info();
+        console.log("Profile data fetched:", data);
+        setProfileData(data);
       } catch (error) {
-        console.error("Failed to fetch profile data:", error)
+        console.error("Failed to fetch profile data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProfileData()
-  }, [w, profileData, setProfileData])
+    fetchProfileData();
+  }, [w, profileData, setProfileData]);
 
   useEffect(() => {
     const fetchGradesData = async () => {
       try {
         console.log("Profile: Fetching grades data for GPA calculator");
-        const data = await w.get_sgpa_cgpa()
+        const data = await w.get_sgpa_cgpa();
         console.log("Profile: Grades data received:", data);
         if (data && data.semesterList) {
           console.log("Profile: Setting semester data:", data.semesterList);
-          setLocalSemesterData(data.semesterList)
+          setLocalSemesterData(data.semesterList);
         } else {
           console.log("Profile: No semesterList found in data");
         }
       } catch (error) {
-        console.error("Failed to fetch grades data for GPA calculator:", error)
+        console.error("Failed to fetch grades data for GPA calculator:", error);
       }
-    }
+    };
 
     if (w) {
-      fetchGradesData()
+      fetchGradesData();
     }
-  }, [w])
+  }, [w]);
 
+  useEffect(() => {
+    const fetchHostelData = async () => {
+      try {
+        console.log("Profile: Fetching hostel details");
+        const data = await w.get_hostel_details();
+        console.log("Profile: Hostel data received:", data);
+        console.log("Profile: Hostel data status:", data?.status);
+        console.log("Profile: Hostel data response:", data?.response);
+        console.log(
+          "Profile: Hostel presenthosteldetail:",
+          data?.response?.presenthosteldetail
+        );
 
+        if (data && data.presenthosteldetail) {
+          setHostelData(data);
+          console.log("Profile: Hostel data set successfully");
+        } else {
+          console.log("Profile: Hostel data not set - condition not met");
+        }
+      } catch (error) {
+        console.error("Failed to fetch hostel data:", error);
+      }
+    };
 
-  const info = profileData?.generalinformation || {}
-  const qualifications = profileData?.qualification || []
+    if (w) {
+      fetchHostelData();
+    }
+  }, [w]);
+
+  const info = profileData?.generalinformation || {};
+  const qualifications = profileData?.qualification || [];
   // guard photo access safely
-  const photosrc = profileData?.['photo&signature']?.photo
-    ? `data:image/jpg;base64,${profileData['photo&signature'].photo}`
+  const photosrc = profileData?.["photo&signature"]?.photo
+    ? `data:image/jpg;base64,${profileData["photo&signature"].photo}`
     : null;
 
   if (loading) {
@@ -68,7 +115,7 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 text-white dark:text-black animate-spin" />
       </div>
-    )
+    );
   }
 
   return (
@@ -76,7 +123,7 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-        className="container mx-auto max-w-4xl px-4 py-4 pb-24 md:pb-8 space-y-6"
+      className="container mx-auto max-w-4xl px-4 py-4 pb-24 md:pb-8 space-y-6"
     >
       <motion.div
         initial={{ y: -20 }}
@@ -102,13 +149,24 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
             )}
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg md:text-2xl font-semibold text-white dark:text-black truncate">{info.studentname}</h1>
+              <h1 className="text-lg md:text-2xl font-semibold text-white dark:text-black truncate">
+                {info.studentname}
+              </h1>
               <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-400 dark:text-gray-600">
-                <span className="flex items-center gap-2"><GraduationCap className="w-4 h-4" />{info.programcode}</span>
+                <span className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  {info.programcode}
+                </span>
                 <span className="hidden md:inline">•</span>
-                <span className="flex items-center gap-2"><User className="w-4 h-4" />{info.registrationno}</span>
+                <span className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  {info.registrationno}
+                </span>
                 <span className="hidden md:inline">•</span>
-                <span className="flex items-center gap-2 truncate"><Mail className="w-4 h-4" />{info.studentemailid}</span>
+                <span className="flex items-center gap-2 truncate">
+                  <Mail className="w-4 h-4" />
+                  {info.studentemailid}
+                </span>
               </div>
             </div>
           </div>
@@ -117,22 +175,47 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
             {/* compact mobile summary */}
             <div className="md:hidden text-sm text-gray-400 dark:text-gray-600">
               <div className="flex flex-wrap gap-3">
-                <span>Sem: <span className="font-semibold text-white dark:text-black">{info.semester}</span></span>
-                <span>Sec: <span className="font-semibold text-white dark:text-black">{info.sectioncode}</span></span>
-                <span>Batch: <span className="font-semibold text-white dark:text-black">{info.batch}</span></span>
+                <span>
+                  Sem:{" "}
+                  <span className="font-semibold text-white dark:text-black">
+                    {info.semester}
+                  </span>
+                </span>
+                <span>
+                  Sec:{" "}
+                  <span className="font-semibold text-white dark:text-black">
+                    {info.sectioncode}
+                  </span>
+                </span>
+                <span>
+                  Batch:{" "}
+                  <span className="font-semibold text-white dark:text-black">
+                    {info.batch}
+                  </span>
+                </span>
               </div>
             </div>
 
             {/* desktop: 2-column grid of academic fields */}
             <div className="hidden md:grid grid-cols-2 gap-3 min-w-[220px] text-sm">
               <div className="text-gray-400 dark:text-gray-600">Semester</div>
-              <div className="font-semibold text-white dark:text-black">{info.semester}</div>
+              <div className="font-semibold text-white dark:text-black">
+                {info.semester}
+              </div>
               <div className="text-gray-400 dark:text-gray-600">Section</div>
-              <div className="font-semibold text-white dark:text-black">{info.sectioncode}</div>
+              <div className="font-semibold text-white dark:text-black">
+                {info.sectioncode}
+              </div>
               <div className="text-gray-400 dark:text-gray-600">Batch</div>
-              <div className="font-semibold text-white dark:text-black">{info.batch}</div>
-              <div className="text-gray-400 dark:text-gray-600">Academic Year</div>
-              <div className="font-semibold text-white dark:text-black">{info.academicyear}</div>
+              <div className="font-semibold text-white dark:text-black">
+                {info.batch}
+              </div>
+              <div className="text-gray-400 dark:text-gray-600">
+                Academic Year
+              </div>
+              <div className="font-semibold text-white dark:text-black">
+                {info.academicyear}
+              </div>
             </div>
           </div>
         </div>
@@ -140,25 +223,31 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
 
       <div className="bg-[#0B0B0D] dark:bg-white shadow rounded-lg">
         <div className="flex overflow-x-auto border-b border-gray-700 dark:border-gray-200">
-          {[
-            "personal",
-            "contact",
-            "education"
-          ].map((tab) => (
-            <motion.button
-              key={tab}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium ${
-                activeTab === tab
-                  ? "text-white border-b-2 border-white dark:text-black dark:border-black"
-                  : "text-gray-400 hover:text-gray-200 dark:text-gray-600 dark:hover:text-gray-800"
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </motion.button>
-          ))}
+          {(() => {
+            const tabs = [
+              "personal",
+              "contact",
+              "education",
+              ...(hostelData?.presenthosteldetail ? ["hostel"] : []),
+            ];
+            console.log("Profile: Available tabs:", tabs);
+            console.log("Profile: Hostel data in render:", hostelData);
+            return tabs.map((tab) => (
+              <motion.button
+                key={tab}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium ${
+                  activeTab === tab
+                    ? "text-white border-b-2 border-white dark:text-black dark:border-black"
+                    : "text-gray-400 hover:text-gray-200 dark:text-gray-600 dark:hover:text-gray-800"
+                }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </motion.button>
+            ));
+          })()}
         </div>
         <AnimatePresence mode="wait">
           <motion.div
@@ -170,52 +259,202 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
             className="p-4"
           >
             {activeTab === "personal" && (
-              <div className="space-y-1">
-                <InfoRow icon={User} label="Date of Birth" value={info.dateofbirth} />
+              <div className="space-y-0.5">
+                <InfoRow
+                  icon={User}
+                  label="Date of Birth"
+                  value={info.dateofbirth}
+                />
                 <InfoRow icon={User} label="Gender" value={info.gender} />
-                <InfoRow icon={User} label="Blood Group" value={info.bloodgroup} />
-                <InfoRow icon={User} label="Nationality" value={info.nationality} />
+                <InfoRow
+                  icon={User}
+                  label="Blood Group"
+                  value={info.bloodgroup}
+                />
+                <InfoRow
+                  icon={User}
+                  label="Nationality"
+                  value={info.nationality}
+                />
                 <InfoRow icon={User} label="Category" value={info.category} />
+                <InfoRow icon={User} label="APAAR ID" value={info.apaarid} />
+                <InfoRow
+                  icon={User}
+                  label="Admission Year"
+                  value={info.admissionyear}
+                />
+                <InfoRow
+                  icon={User}
+                  label="Institute Code"
+                  value={info.institutecode}
+                />
+                <InfoRow
+                  icon={User}
+                  label="Bank Account No"
+                  value={info.bankaccountno}
+                />
+                <InfoRow icon={User} label="Bank Name" value={info.bankname} />
+                <InfoRow
+                  icon={User}
+                  label="Father's Designation"
+                  value={info.designation}
+                />
               </div>
             )}
             {/* academic tab removed - details now shown in header */}
             {activeTab === "contact" && (
-              <div className="space-y-1">
-                <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
-                <InfoRow icon={Mail} label="Personal Email" value={info.studentpersonalemailid} />
-                <InfoRow icon={Phone} label="Mobile" value={info.studentcellno} />
-                <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
-                <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
-                <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
-                <InfoRow icon={MapPin} label="Current Address" value={[info.caddress1, info.caddress3].filter(Boolean).join(", ")} />
-                <InfoRow icon={MapPin} label="City" value={info.ccityname} />
-                <InfoRow icon={MapPin} label="District" value={info.cdistrict} />
-                <InfoRow icon={MapPin} label="State" value={info.cstatename} />
-                <InfoRow icon={MapPin} label="Postal Code" value={info.cpostalcode} />
+              <div className="space-y-0.5">
+                <InfoRow
+                  icon={Mail}
+                  label="College Email"
+                  value={info.studentemailid}
+                />
+                <InfoRow
+                  icon={Mail}
+                  label="Personal Email"
+                  value={info.studentpersonalemailid}
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Mobile"
+                  value={info.studentcellno}
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Telephone"
+                  value={info.studenttelephoneno || "N/A"}
+                />
+                <InfoRow
+                  icon={User}
+                  label="Father's Name"
+                  value={info.fathersname}
+                />
+                <InfoRow
+                  icon={User}
+                  label="Mother's Name"
+                  value={info.mothername}
+                />
+                <InfoRow
+                  icon={Mail}
+                  label="Parent Email"
+                  value={info.parentemailid}
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Parent Mobile"
+                  value={info.parentcellno}
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Parent Telephone"
+                  value={info.parenttelephoneno}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Address"
+                  value={[info.paddress1, info.paddress2, info.paddress3]
+                    .filter(Boolean)
+                    .join(", ")}
+                />
+                <InfoRow icon={MapPin} label="City" value={info.pcityname} />
+                <InfoRow
+                  icon={MapPin}
+                  label="District"
+                  value={info.pdistrict}
+                />
+                <InfoRow icon={MapPin} label="State" value={info.pstatename} />
+                <InfoRow
+                  icon={MapPin}
+                  label="Postal Code"
+                  value={info.ppostalcode}
+                />
               </div>
             )}
             {activeTab === "education" && (
-              <div className="space-y-2">
-                <div className="grid gap-2">
-                  {qualifications.map((qual, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      className="p-2 rounded bg-white/3 dark:bg-black/3"
-                    >
+              <div className="space-y-0.5">
+                {qualifications.map((qual, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="flex items-center gap-3 py-1 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4"
+                  >
+                    <GraduationCap className="h-4 w-4 text-gray-500 dark:text-gray-500 shrink-0" />
+                    <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium text-sm text-white dark:text-black">{qual.qualificationcode}</div>
-                        <div className="text-xs text-gray-400 dark:text-gray-600">{qual.yearofpassing}</div>
+                        <span className="text-sm font-medium text-white dark:text-black">
+                          {qual.qualificationcode}
+                        </span>
+                        <span className="text-xs text-gray-300 dark:text-gray-600">
+                          {qual.yearofpassing}
+                        </span>
                       </div>
-                      <div className="mt-1 grid grid-cols-2 gap-2 text-sm">
-                        <div className="text-gray-300 dark:text-gray-600">{qual.boardname}</div>
-                        <div className="text-gray-300 dark:text-gray-600 text-right">{qual.percentagemarks}%</div>
+                      <div className="mt-0.5 flex items-center justify-between text-sm">
+                        <span className="text-gray-300 dark:text-gray-600">
+                          {qual.boardname}
+                        </span>
+                        <span className="text-gray-300 dark:text-gray-600">
+                          {qual.percentagemarks}%
+                        </span>
                       </div>
-                    </motion.div>
-                  ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+            {activeTab === "hostel" && hostelData?.presenthosteldetail && (
+              <div className="space-y-0.5">
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold text-white dark:text-black">
+                    Hostel Information
+                  </h3>
                 </div>
+                <InfoRow
+                  icon={MapPin}
+                  label="Hostel Name"
+                  value={hostelData.presenthosteldetail.hosteldescription}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Hostel Code"
+                  value={hostelData.presenthosteldetail.hostelcode}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Room Number"
+                  value={hostelData.presenthosteldetail.allotedroomno}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Floor"
+                  value={hostelData.presenthosteldetail.floor}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Bed Number"
+                  value={hostelData.presenthosteldetail.beddesc}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Room Type"
+                  value={hostelData.presenthosteldetail.roomtype}
+                />
+                <InfoRow
+                  icon={Calendar}
+                  label="Allotted From"
+                  value={hostelData.presenthosteldetail.allotedfromdate}
+                />
+                <InfoRow
+                  icon={Calendar}
+                  label="Allotted Till"
+                  value={hostelData.presenthosteldetail.allotedtilldate}
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Hostel Type"
+                  value={hostelData.presenthosteldetail.hosteltypedesc}
+                />
               </div>
             )}
           </motion.div>
@@ -231,16 +470,18 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/academic-calendar')}
+            onClick={() => navigate("/academic-calendar")}
             className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
             <Calendar className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
-            <span className="text-xs font-medium text-center">Academic Calendar</span>
+            <span className="text-xs font-medium text-center">
+              Academic Calendar
+            </span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/fee')}
+            onClick={() => navigate("/fee")}
             className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
             <FileText className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
@@ -256,25 +497,31 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
             className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300 group"
           >
             <Github className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600 group-hover:text-blue-400 dark:group-hover:text-blue-500 transition-colors duration-200" />
-            <span className="text-xs font-medium text-center mb-1">View Source Code</span>
-            <span className="hidden md:inline text-xs text-blue-400 dark:text-blue-500 group-hover:text-blue-300 dark:group-hover:text-blue-400 transition-colors duration-200">and Contribute</span>
+            <span className="text-xs font-medium text-center mb-1">
+              View Source Code
+            </span>
+            <span className="hidden md:inline text-xs text-blue-400 dark:text-blue-500 group-hover:text-blue-300 dark:group-hover:text-blue-400 transition-colors duration-200">
+              and Contribute
+            </span>
           </motion.a>
         </div>
       </motion.div>
-
     </motion.div>
-  )
+  );
 }
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-center gap-3 py-2 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4">
+    <div className="flex items-center gap-3 py-1 px-2 rounded transition-colors hover:bg-white/4 dark:hover:bg-black/4">
       <Icon className="h-4 w-4 text-gray-500 dark:text-gray-500 shrink-0" />
       <div className="grid grid-cols-2 gap-4 flex-1 items-center">
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</span>
-        <span className="text-sm text-white dark:text-black break-all font-medium">{value || "N/A"}</span>
+        <span className="text-sm font-medium dark:text-gray-900 text-gray-400">
+          {label}
+        </span>
+        <span className="text-sm dark:text-black text-white break-all font-medium">
+          {value || "N/A"}
+        </span>
       </div>
     </div>
-  )
+  );
 }
-

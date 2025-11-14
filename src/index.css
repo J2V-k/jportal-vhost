@@ -67,6 +67,14 @@
   }
 }
 
+/* Ensure text is selectable */
+* {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
 @layer utilities {
   * {
     -ms-overflow-style: none;
@@ -84,4 +92,25 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
   }
+}
+
+/* PWA Splash Screen Optimization */
+@media all and (display-mode: standalone) {
+  body {
+    -webkit-app-region: drag;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  #root {
+    -webkit-app-region: no-drag;
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+}
+
+/* Reduce splash screen duration */
+html, body {
+  visibility: visible !important;
+  opacity: 1 !important;
 }
