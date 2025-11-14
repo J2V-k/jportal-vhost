@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { User, Mail, Phone, MapPin, GraduationCap, Loader2, Calendar, ArrowRight, Github } from "lucide-react"
+import { User, Mail, Phone, MapPin, GraduationCap, Loader2, Calendar, ArrowRight, Github, FileText } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import CGPATargetCalculator from "./CGPATargetCalculator"
@@ -236,6 +236,15 @@ export default function Profile({ w, profileData, setProfileData, semesterData: 
           >
             <Calendar className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Academic Calendar</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/fee')}
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+          >
+            <FileText className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+            <span className="text-xs font-medium text-center">Fee Details</span>
           </motion.button>
           <CGPATargetCalculator w={w} semesterData={localSemesterData} />
           <motion.a
