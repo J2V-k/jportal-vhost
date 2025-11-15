@@ -88,8 +88,11 @@ export default function CGPATargetCalculator({
       setSubjectSemesters(semesters);
       
       if (semesters.length > 0) {
-        const latestSemester = semesters[0];
-        setSelectedSemester(latestSemester);
+        const currentYear = new Date().getFullYear().toString();
+        const currentYearSemester = semesters.find(sem =>
+          sem.registration_code && sem.registration_code.includes(currentYear)
+        );
+        setSelectedSemester(currentYearSemester || semesters[0]);
       }
     } catch (error) {
       console.error('Failed to fetch semesters:', error);

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Fee({ w }) {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,6 +38,17 @@ export default function Fee({ w }) {
 
   return (
     <div className="space-y-6 pb-20 md:pb-6 px-4 md:px-6 lg:px-8">
+      {/* Back Button */}
+      <div className="flex items-center justify-start mb-4 md:hidden">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-800 to-gray-700 dark:from-gray-200 dark:to-gray-300 hover:from-gray-700 hover:to-gray-600 dark:hover:from-gray-300 dark:hover:to-gray-400 text-white dark:text-black rounded-lg border border-gray-600 dark:border-gray-400 shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+      </div>
+
       {data && (data.response || data.feeHeads || data.studentInfo) ? (() => {
         const feeData = data.response || data;
         return (
