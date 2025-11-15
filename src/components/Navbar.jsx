@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom"
-import { ClipboardList } from "lucide-react"
+import { ArrowUpDown, ClipboardList } from "lucide-react"
 import { motion } from "framer-motion"
 import { Calendar, User, Book, FileText, ChartSpline } from "lucide-react"
 import InstallPWA from "./InstallPWA"
@@ -19,6 +19,7 @@ const desktopNavItems = [
   { name: "Subjects", path: "/subjects", icon: Book },
   { name: "Fee", path: "/fee", icon: FileText },
   { name: "Academic Calendar", path: "/academic-calendar", icon: Calendar },
+  { name: "Elective Swap", path: "/electivexchange", icon: ArrowUpDown },
   { name: "Profile", path: "/profile", icon: User },
 ]
 

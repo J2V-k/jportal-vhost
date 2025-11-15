@@ -21,6 +21,7 @@ import Profile from "./components/Profile";
 import Timetable from "./components/Timetable";
 import Fee from "./components/Fee";
 import AcademicCalendar from "./components/AcademicCalendar";
+import ElectiveXchange from "./components/ElectiveXchange";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Analytics } from "@vercel/analytics/react";
@@ -375,7 +376,11 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         <Route
           path="/academic-calendar"
           element={<AcademicCalendar />}
-        />
+        />  
+         <Route
+          path="/electivexchange"
+          element={<ElectiveXchange />}
+        />        
         <Route
           path="/timetable"
           element={
@@ -389,6 +394,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
           }
         />
             </Routes>
+            
           </div>
         </CSSTransition>
       </TransitionGroup>
