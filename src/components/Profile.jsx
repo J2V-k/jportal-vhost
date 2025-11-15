@@ -487,6 +487,15 @@ export default function Profile({
             <FileText className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Fee Details</span>
           </motion.button>
+                    <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/electivexchange")}
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+          >
+            <FileText className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+            <span className="text-xs font-medium text-center">Elective Swap</span>
+          </motion.button>
           <CGPATargetCalculator w={w} semesterData={localSemesterData} />
           <motion.a
             whileHover={{ scale: 1.05 }}
