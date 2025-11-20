@@ -33,7 +33,9 @@ const MESS_MENU_VIEWS = [
 export default function SettingsDialog({ onLogout, attendanceGoal, setAttendanceGoal }) {
   const { themeMode, darkTheme, lightTheme } = useTheme();
   const [open, setOpen] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState(themeMode || 'light');
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    return localStorage.getItem('defaultTheme') || 'light';
+  });
   const [defaultTab, setDefaultTab] = useState(() => {
     return localStorage.getItem('defaultTab') || 'auto';
   });
@@ -45,19 +47,17 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
   });
 
   useEffect(() => {
-    const currentTheme = themeMode || localStorage.getItem('theme') || 'light';
-    setSelectedTheme(currentTheme);
+    setSelectedTheme(themeMode);
   }, [themeMode]);
 
 
 
   function applyTheme(theme) {
     if (theme === 'dark') {
-      lightTheme();
-    } else {
       darkTheme();
+    } else {
+      lightTheme();
     }
-    localStorage.setItem('theme', theme);
   }
 
   function handleThemeChange(theme) {

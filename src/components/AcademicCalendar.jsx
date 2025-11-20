@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Calendar, Clock, BookOpen, GraduationCap, Users, Award, Target, Filter, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const AcademicCalendar = () => {
+const AcademicCalendar = ({ isDialog = false }) => {
   const [calendarData, setCalendarData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedSemesters, setSelectedSemesters] = useState([]);
@@ -150,9 +150,9 @@ const AcademicCalendar = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black dark:bg-white text-white dark:text-black">
-      {/* Header - Hidden on Desktop */}
-      <div className="sticky top-0 bg-black dark:bg-white border-b border-gray-800 dark:border-gray-200 z-10 md:hidden">
+    <div className={`${isDialog ? '' : 'min-h-screen'} bg-black dark:bg-white text-white dark:text-black`}>
+      {!isDialog && (
+        <div className="sticky top-0 bg-black dark:bg-white border-b border-gray-800 dark:border-gray-200 z-10 md:hidden">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <button
@@ -165,6 +165,7 @@ const AcademicCalendar = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Timeline */}
       <div className="max-w-6xl mx-auto px-4 pb-24">
@@ -318,18 +319,20 @@ const AcademicCalendar = () => {
       </div>
 
       {/* Floating Go to Current Event Button */}
-      <button
-        onClick={scrollToCurrentEvent}
-        disabled={filteredEvents.length === 0}
-        className={`fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50 group ${
-          filteredEvents.length === 0
-            ? 'bg-yellow-500/50 cursor-not-allowed opacity-50 border border-yellow-400'
-            : 'bg-yellow-500 hover:bg-yellow-600 border border-yellow-400'
-        }`}
-        title={filteredEvents.length === 0 ? "No events available" : targetEventIndex !== -1 ? "Go to Current Event" : "Go to First Event"}
-      >
-        <Target className={`w-4 h-4 ${filteredEvents.length === 0 ? 'text-yellow-200' : 'text-white group-hover:scale-110 transition-transform duration-200'}`} />
-      </button>
+      {!isDialog && (
+        <button
+          onClick={scrollToCurrentEvent}
+          disabled={filteredEvents.length === 0}
+          className={`fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50 group ${
+            filteredEvents.length === 0
+              ? 'bg-yellow-500/50 cursor-not-allowed opacity-50 border border-yellow-400'
+              : 'bg-yellow-500 hover:bg-yellow-600 border border-yellow-400'
+          }`}
+          title={filteredEvents.length === 0 ? "No events available" : targetEventIndex !== -1 ? "Go to Current Event" : "Go to First Event"}
+        >
+          <Target className={`w-4 h-4 ${filteredEvents.length === 0 ? 'text-yellow-200' : 'text-white group-hover:scale-110 transition-transform duration-200'}`} />
+        </button>
+      )}
     </div>
   );
 };

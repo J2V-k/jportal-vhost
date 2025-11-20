@@ -8,7 +8,6 @@ const InstallPWA = () => {
   const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
-    // Check if it's Android
     setIsAndroid(/android/i.test(navigator.userAgent));
 
     const handler = (e) => {
@@ -18,7 +17,6 @@ const InstallPWA = () => {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setSupportsPWA(false);
     }
