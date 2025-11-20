@@ -32,7 +32,7 @@ import { UtensilsCrossed } from "lucide-react";
 import {
   WebPortal,
   LoginError,
-} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.22/dist/jsjiit.esm.js";
+} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 
 const w = new WebPortal();
 
@@ -145,7 +145,6 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     const distanceX = Math.abs(touchStart - touchEnd);
     const distanceY = Math.abs(touchStartY - touchEndY);
     
-    // Ignore if vertical movement is greater than horizontal (diagonal or vertical swipe)
     if (distanceY > distanceX) {
       setTouchStart(null);
       setTouchEnd(null);
@@ -505,14 +504,21 @@ function App() {
 
   const darkTheme = () => {
     setThemeMode("dark");
+    localStorage.setItem('defaultTheme', 'dark');
   };
   const lightTheme = () => {
     setThemeMode("light");
+    localStorage.setItem('defaultTheme', 'light');
   };
   useEffect(() => {
     document.querySelector("html")?.classList.remove("dark", "light");
     document.querySelector("html")?.classList.add(themeMode);
   }, [themeMode]);
+
+  useEffect(() => {
+    document.querySelector("html")?.classList.remove("dark", "light");
+    document.querySelector("html")?.classList.add(themeMode);
+  }, []);
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -563,7 +569,6 @@ function App() {
           <Loader2 className="w-8 h-8 animate-spin mb-2" />
           <p className="text-lg font-semibold mb-1">Signing in...</p>
           <p className="text-sm mb-4">Welcome to JP_Portal</p>
-          {/* Quick Access Card */}
           <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
             <span className="text-xs text-white/60 mb-1">Quick Access</span>
             <div className="flex gap-2">

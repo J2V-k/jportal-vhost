@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   getAttendanceFromCache,
   saveAttendanceToCache,
@@ -22,6 +22,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  ArrowUpDown,
   Calendar,
   BarChart3,
 } from "lucide-react";
@@ -56,6 +57,28 @@ const Attendance = ({
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFromCache, setIsFromCache] = useState(false);
+  const [sortOrder, setSortOrder] = useState('default');
+
+  const getRelativeTime = (timestamp) => {
+    const now = new Date();
+    const timeDiff = now - new Date(timestamp);
+    
+    const minutes = Math.floor(timeDiff / (1000 * 60));
+    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+    if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
+    
+    // For older dates, show the actual date
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   useEffect(() => {
     const fetchSemesters = async () => {
@@ -229,8 +252,8 @@ const Attendance = ({
   const safeDailyDate =
     dailyDate instanceof Date && !isNaN(dailyDate) ? dailyDate : new Date();
 
-  const subjects = useMemo(() =>
-    (selectedSem &&
+  const subjects = useMemo(() => {
+    const mappedSubjects = (selectedSem &&
       attendanceData[selectedSem.registration_id]?.studentattendancelist?.map(
         (item) => {
           const {
@@ -286,10 +309,30 @@ const Attendance = ({
                 : "",
             classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
             classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
+            hasPractical: (Ptotalclass || 0) > 0,
           };
         }
       )) ||
-    [], [selectedSem, attendanceData, attendanceGoal]);
+    [];
+
+    if (sortOrder === 'default') {
+      const isDesktop = window.innerWidth > 768;
+      if (isDesktop) {
+        return mappedSubjects.sort((a, b) => {
+          if (a.hasPractical && !b.hasPractical) return 1;
+          if (!a.hasPractical && b.hasPractical) return -1;
+          return 0;
+        });
+      }
+      return mappedSubjects;
+    }
+    return [...mappedSubjects].sort((a, b) => {
+      const aPerc = parseFloat(a.combined) || 0;
+      const bPerc = parseFloat(b.combined) || 0;
+      if (sortOrder === 'asc') return aPerc - bPerc;
+      return bPerc - aPerc;
+    });
+  }, [selectedSem, attendanceData, attendanceGoal, sortOrder]);
 
   const fetchSubjectAttendance = async (subject) => {
     try {
@@ -418,6 +461,28 @@ const Attendance = ({
             className="w-32 bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black"
             placeholder="Goal %"
           />
+          <button
+            onClick={() => setSortOrder(prev => prev === 'default' ? 'asc' : prev === 'asc' ? 'desc' : 'default')}
+            className="flex items-center gap-2 px-3 py-1 bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border border-white dark:border-black rounded text-xs font-medium hover:bg-[#1A1A1D] dark:hover:bg-gray-200 hover:text-white dark:hover:text-black transition-colors"
+            title={`Sort by attendance: ${sortOrder === 'default' ? 'Default' : sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+          >
+            {sortOrder === 'asc' ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                <span className="hidden md:inline">Ascending</span>
+              </>
+            ) : sortOrder === 'desc' ? (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <span className="hidden md:inline">Descending</span>
+              </>
+            ) : (
+              <>
+                <ArrowUpDown className="w-4 h-4" />
+                <span className="hidden md:inline">Default</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -426,15 +491,7 @@ const Attendance = ({
           <span>
             {cacheTimestamp  && isFromCache ? (
               <>
-                 📁 Cached: {new Date(cacheTimestamp).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                })} at {new Date(cacheTimestamp).toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                })}
+                 📁 Cached: {getRelativeTime(cacheTimestamp)}
               </>
             ) : (
               ''

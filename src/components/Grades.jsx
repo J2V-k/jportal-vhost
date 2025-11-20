@@ -90,8 +90,6 @@ export default function Grades({
   const { themeMode } = useTheme();
   const [isDownloading, setIsDownloading] = useState(false);
   const [mounted, setMounted] = useState(true);
-  
-  // Cache state variables for marks
   const [marksCacheTimestamp, setMarksCacheTimestamp] = useState(null);
   const [isMarksRefreshing, setIsMarksRefreshing] = useState(false);
   const [isMarksFromCache, setIsMarksFromCache] = useState(false);

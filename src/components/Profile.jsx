@@ -105,7 +105,6 @@ export default function Profile({
 
   const info = profileData?.generalinformation || {};
   const qualifications = profileData?.qualification || [];
-  // guard photo access safely
   const photosrc = profileData?.["photo&signature"]?.photo
     ? `data:image/jpg;base64,${profileData["photo&signature"].photo}`
     : null;

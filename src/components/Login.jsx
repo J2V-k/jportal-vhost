@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.20/dist/jsjiit.esm.js"
-import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh } from "lucide-react"
+import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff } from "lucide-react"
 import MessMenu from "./MessMenu"
+import AcademicCalendarDialog from "./AcademicCalendarDialog"
+import ThemeBtn from "./ui/ThemeBtn"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const formSchema = z.object({
@@ -28,6 +30,7 @@ export default function Login({ onLoginSuccess, w }) {
   const [isFeatureOpen, setIsFeatureOpen] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [showInstall, setShowInstall] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -85,6 +88,16 @@ export default function Login({ onLoginSuccess, w }) {
     return () => window.removeEventListener("appinstalled", handler)
   }, [])
 
+  useEffect(() => {
+    const username = localStorage.getItem("username")
+    const password = localStorage.getItem("password")
+    if (username && password) {
+      form.setValue("enrollmentNumber", username)
+      form.setValue("password", password)
+      setLoginStatus(prev => ({ ...prev, credentials: { enrollmentNumber: username, password } }))
+    }
+  }, [])
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
@@ -104,26 +117,32 @@ export default function Login({ onLoginSuccess, w }) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="py-6 px-4 border-b border-white/10">
-        <div className="container mx-auto flex items-center justify-center">
-          <h1 className="text-3xl font-bold tracking-tighter">Modern JIIT WebKiosk</h1>
+    <div className="min-h-screen bg-black dark:bg-white text-white dark:text-black flex flex-col">
+      <header className="py-6 px-4 border-b border-white/10 dark:border-gray-300">
+        <div className="container mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tighter text-white dark:text-black">Modern JIIT WebKiosk</h1>
+          <ThemeBtn />
         </div>
       </header>
 
       <main className="flex-grow container mx-auto px-4 py-12 flex flex-col items-center justify-center gap-12">
         {showInstall && (
-          <div className="w-full max-w-md mb-4">
-            <button
-              onClick={handleInstallClick}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-            >
-              Install as an App
-            </button>
-          </div>
+          <>
+            <div className="hidden md:flex justify-center mb-4">
+              <img src="/pwa-icons/wheel.svg" alt="JP Portal Logo" className="w-16 h-16 rounded-lg shadow-lg" />
+            </div>
+            <div className="w-full max-w-md mb-4">
+              <button
+                onClick={handleInstallClick}
+                className="w-full bg-[#0B0D0D] border border-white/20 text-white py-2 rounded-lg font-semibold hover:bg-[#1A1A1D] transition-colors"
+              >
+                Install as an App
+              </button>
+            </div>
+          </>
         )}
         <div className="w-full max-w-md">
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/10">
+          <div className="bg-white/5 dark:bg-gray-100 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/10 dark:border-gray-300">
             <h2 className="text-2xl font-bold mb-6">Login to Your WebKiosk  Account</h2>
             {loginStatus.error && (
               <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
@@ -138,16 +157,16 @@ export default function Login({ onLoginSuccess, w }) {
                   name="enrollmentNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/80">Enrollment Number</FormLabel>
+                      <FormLabel className="text-white/80 dark:text-gray-700">Enrollment Number</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             placeholder="Enter enrollment number"
-                            className="bg-white/5 border-white/10 text-white pl-10"
+                            className="bg-white/5 dark:bg-gray-100 border-white/10 dark:border-gray-300 text-white dark:text-black pl-10"
                             {...field}
                           />
                           <User
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40"
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 dark:text-gray-500"
                             size={18}
                           />
                         </div>
@@ -161,19 +180,26 @@ export default function Login({ onLoginSuccess, w }) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/80">Password</FormLabel>
+                      <FormLabel className="text-white/80 dark:text-gray-700">Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="Enter password"
-                            className="bg-white/5 border-white/10 text-white pl-10"
+                            className="bg-white/5 dark:bg-gray-100 border-white/10 dark:border-gray-300 text-white dark:text-black pl-10 pr-10"
                             {...field}
                           />
                           <Lock
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40"
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 dark:text-gray-500"
                             size={18}
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 dark:text-gray-500 hover:text-white/60 dark:hover:text-gray-700"
+                          >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -182,7 +208,7 @@ export default function Login({ onLoginSuccess, w }) {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-white text-black hover:bg-white/90 transition-colors"
+                  className="w-full bg-white dark:bg-black text-black dark:text-white hover:bg-white/90 dark:hover:bg-gray-900 transition-colors"
                   disabled={loginStatus.isLoading}
                 >
                   {loginStatus.isLoading ? "Signing in..." : "Sign In"}
@@ -194,24 +220,29 @@ export default function Login({ onLoginSuccess, w }) {
                   <span className="w-full border-t border-white/10" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-black px-2 text-white/60">Or continue without login</span>
+                  <span className="px-2 text-white/60 dark:text-gray-600 bg-[#0D0D0D] dark:bg-[#F3F4F6]">Or continue without login</span>
                 </div>
               </div>
               <div className="flex justify-center gap-2">
                 <MessMenu>
-                  <button className="flex items-center justify-center px-6 py-2 bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:text-green-300 transition-colors rounded-lg text-sm font-medium gap-2">
+                  <button className="flex items-center justify-center px-6 py-2 bg-green-600/20 dark:bg-green-100 border border-green-500/30 dark:border-green-300 text-green-400 dark:text-green-700 hover:bg-green-700/40 dark:hover:bg-green-50 hover:text-green-200 dark:hover:text-green-600 transition-colors rounded-lg text-sm font-medium gap-2">
                     <UtensilsCrossed size={18} /> Mess Menu
                   </button>
                 </MessMenu>
+                <AcademicCalendarDialog>
+                  <button className="flex items-center justify-center px-6 py-2 bg-blue-600/20 dark:bg-blue-100 border border-blue-500/30 dark:border-blue-300 text-blue-400 dark:text-blue-700 hover:bg-blue-700/40 dark:hover:bg-blue-50 hover:text-blue-200 dark:hover:text-blue-600 transition-colors rounded-lg text-sm font-medium gap-2">
+                    <Calendar size={18} /> Academic Calendar
+                  </button>
+                </AcademicCalendarDialog>
               </div>
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="py-6 text-center text-white/40">
+      <footer className="py-6 text-center text-white/40 dark:text-gray-500">
         <p className="flex items-center justify-center gap-1">
-          Created with <Heart className="w-4 h-4 text-red-400" /> for JIIT students only
+          Created with <Heart className="w-4 h-4 text-red-400 dark:text-red-500" /> for JIIT students only
         </p>
         <p className="text-sm mt-2 flex items-center justify-center gap-1">
           Not liable for attendance-related emotional damage <Laugh className="w-4 h-4" />
