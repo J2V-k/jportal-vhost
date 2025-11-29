@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from 'react-helmet-async';
+import axios from 'axios';
 
 export default function Fee({ w }) {
   const navigate = useNavigate();
@@ -8,15 +10,104 @@ export default function Fee({ w }) {
   const [fines, setFines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return "N/A";
     const num = parseFloat(amount);
     if (isNaN(num)) return "N/A";
-    return `₹${num.toLocaleString("en-IN", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    })}`;
+
+    const formatIndianNumber = (number) => {
+      const numStr = Math.floor(number).toString();
+      const lastThree = numStr.substring(numStr.length - 3);
+      const otherNumbers = numStr.substring(0, numStr.length - 3);
+      const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + (otherNumbers ? "," : "") + lastThree;
+      return formatted;
+    };
+
+    const formattedNumber = formatIndianNumber(num);
+    const decimalPart = num % 1;
+    if (decimalPart > 0) {
+      return `₹${formattedNumber}.${decimalPart.toFixed(2).substring(2)}`;
+    }
+    return `₹${formattedNumber}`;
+  };
+
+  const formatNumber = (number) => {
+    if (number === null || number === undefined) return "N/A";
+    const num = parseFloat(number);
+    if (isNaN(num)) return "N/A";
+
+    const numStr = Math.floor(num).toString();
+    const lastThree = numStr.substring(numStr.length - 3);
+    const otherNumbers = numStr.substring(0, numStr.length - 3);
+    const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + (otherNumbers ? "," : "") + lastThree;
+
+    const decimalPart = num % 1;
+    if (decimalPart > 0) {
+      return `${formatted}.${decimalPart.toFixed(2).substring(2)}`;
+    }
+    return formatted;
+  };
+
+  const downloadFeeDemandReport = async () => {
+    if (!w || !w.session) {
+      alert("Please login first");
+      return;
+    }
+
+    setDownloadingReport(true);
+    try {
+      const headers = await w.session.get_headers();
+      const payload = "bYqadZjD08twkFNPn4WDVP8609zntRwG9HdjwGKoLES+x85x+jkSmzpZfHSUSJu2WInymk3T60HAI2rnxlEuddmLZuJk+GlsL4uMlEovunKzZWqhF1aPNxXDBwsTrK3MjRRtmg/FV8mexQge0Od5cA==";
+      const response = await axios.post(
+        'https://webportal.jiit.ac.in:6011/StudentPortalAPI/feedemandreportcontroller/generatereportforpdf',
+        payload,
+        {
+          headers: {
+            ...headers,
+            'Content-Type': 'text/plain',
+            'Accept': 'application/pdf, application/json, text/plain, */*',
+          },
+          responseType: 'blob',
+          timeout: 30000
+        }
+      );
+
+      const blob = response.data;
+
+      if (blob.size === 0) {
+        throw new Error('Received empty response');
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'FeeDemandReport.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      alert('Fee demand report downloaded successfully!');
+
+    } catch (error) {
+      console.error('Error downloading fee demand report:', error);
+
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        alert(`Server error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        alert('Network error: No response from server. This might be a CORS issue.');
+      } else {
+        alert(`Request error: ${error.message}`);
+      }
+    } finally {
+      setDownloadingReport(false);
+    }
   };
 
   useEffect(() => {
@@ -57,8 +148,16 @@ export default function Fee({ w }) {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4 pb-20 md:pb-6 px-4 md:px-6 lg:px-8">
-      {/* Back Button */}
+    <>
+      <Helmet>
+        <title>Fee Details - JP_Portal | JIIT Student Portal</title>
+        <meta name="description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
+        <meta property="og:title" content="Fee Details - JP_Portal | Unofficial JIIT Student Portal" />
+        <meta property="og:description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/fee" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/fee" />
+      </Helmet>
+      <div className="max-w-7xl mx-auto space-y-4 pb-20 md:pb-6 px-4 md:px-6 lg:px-8">
       <div className="flex items-center justify-start mb-2 md:hidden">
         <button
           onClick={() => navigate(-1)}
@@ -79,9 +178,7 @@ export default function Fee({ w }) {
 
         return (
           <div className="space-y-6">
-            {/* Desktop Layout */}
             <div className="hidden lg:grid lg:grid-cols-12 lg:gap-6">
-              {/* Student Info Sidebar */}
               <div className="lg:col-span-4 space-y-4">
                 {feeData.studentInfo && feeData.studentInfo.length > 0 && (
                   <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
@@ -117,33 +214,50 @@ export default function Fee({ w }) {
                   </div>
                 )}
 
-                {/* Compact Totals Summary for Desktop */}
                 {feeData.feeHeads && feeData.feeHeads.length > 0 && (
                   <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
                     <h3 className="text-sm font-semibold text-gray-200 dark:text-gray-800 mb-3 uppercase tracking-wide">Summary</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-green-400 dark:text-green-700 font-medium">Paid</span>
-                        <span className="text-sm font-bold text-green-400 dark:text-green-700">₹{totalPaid.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-green-400 dark:text-green-700">₹{formatNumber(totalPaid)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-red-400 dark:text-red-700 font-medium">Due</span>
-                        <span className="text-sm font-bold text-red-400 dark:text-red-700">₹{totalDue.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-red-400 dark:text-red-700">₹{formatNumber(totalDue)}</span>
                       </div>
                       {totalFines > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-orange-400 dark:text-orange-700 font-medium">Fines</span>
-                          <span className="text-sm font-bold text-orange-400 dark:text-orange-700">₹{totalFines.toLocaleString()}</span>
+                          <span className="text-sm font-bold text-orange-400 dark:text-orange-700">₹{formatNumber(totalFines)}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
+
+                <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
+                  <button
+                    onClick={downloadFeeDemandReport}
+                    disabled={downloadingReport}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#0B0B0D] dark:bg-gray-50 text-white dark:text-black border border-gray-600 dark:border-gray-300 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {downloadingReport ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white dark:border-b-2 dark:border-black"></div>
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-5 h-5" />
+                        <span>Download Fee Demand Report</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
-              {/* Main Content */}
               <div className="lg:col-span-8 space-y-4">
-                {/* Fines */}
                 {fines.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-200 dark:text-gray-800">Pending Fines</h3>
@@ -179,7 +293,6 @@ export default function Fee({ w }) {
                   </div>
                 )}
 
-                {/* Fee Details */}
                 {feeData.feeHeads && feeData.feeHeads.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-200 dark:text-gray-800">Fee Details</h3>
@@ -203,16 +316,16 @@ export default function Fee({ w }) {
                           <div className="grid grid-cols-3 gap-3 mb-3">
                             <div className="text-center p-2 bg-gray-800/50 dark:bg-gray-100/50 rounded">
                               <div className="text-xs text-gray-400 dark:text-gray-600 font-medium">Fee</div>
-                              <div className="text-sm font-bold text-gray-200 dark:text-gray-800">₹{fee.feeamount.toLocaleString()}</div>
+                              <div className="text-sm font-bold text-gray-200 dark:text-gray-800">₹{formatNumber(fee.feeamount)}</div>
                             </div>
                             <div className="text-center p-2 bg-green-500/10 dark:bg-green-100/50 rounded">
                               <div className="text-xs text-green-400 dark:text-green-700 font-medium">Paid</div>
-                              <div className="text-sm font-bold text-green-400 dark:text-green-700">₹{fee.receiveamount.toLocaleString()}</div>
+                              <div className="text-sm font-bold text-green-400 dark:text-green-700">₹{formatNumber(fee.receiveamount)}</div>
                             </div>
                             <div className="text-center p-2 bg-red-500/10 dark:bg-red-100/50 rounded">
                               <div className="text-xs text-red-400 dark:text-red-700 font-medium">Due</div>
                               <div className={`text-sm font-bold ${fee.dueamount > 0 ? 'text-red-400 dark:text-red-700' : 'text-gray-200 dark:text-gray-800'}`}>
-                                ₹{fee.dueamount.toLocaleString()}
+                                ₹{formatNumber(fee.dueamount)}
                               </div>
                             </div>
                           </div>
@@ -225,13 +338,13 @@ export default function Fee({ w }) {
                             {fee.transferinamount > 0 && (
                               <div className="flex justify-between">
                                 <span className="text-gray-400 dark:text-gray-600">Transfer In</span>
-                                <span className="text-blue-400 dark:text-blue-600 font-medium">₹{fee.transferinamount.toLocaleString()}</span>
+                                <span className="text-blue-400 dark:text-blue-600 font-medium">₹{formatNumber(fee.transferinamount)}</span>
                               </div>
                             )}
                             {fee.waiveramount > 0 && (
                               <div className="flex justify-between">
                                 <span className="text-gray-400 dark:text-gray-600">Waiver</span>
-                                <span className="text-purple-400 dark:text-purple-600 font-medium">₹{fee.waiveramount.toLocaleString()}</span>
+                                <span className="text-purple-400 dark:text-purple-600 font-medium">₹{formatNumber(fee.waiveramount)}</span>
                               </div>
                             )}
                           </div>
@@ -243,9 +356,7 @@ export default function Fee({ w }) {
               </div>
             </div>
 
-            {/* Mobile Layout */}
             <div className="lg:hidden space-y-4">
-              {/* Student Info Card */}
               {feeData.studentInfo && feeData.studentInfo.length > 0 && (
                 <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
                   <h4 className="text-base font-semibold text-gray-200 dark:text-gray-800 mb-3">{feeData.studentInfo[0].name}</h4>
@@ -278,7 +389,6 @@ export default function Fee({ w }) {
                 </div>
               )}
 
-              {/* Fines */}
               {fines.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-base font-semibold text-gray-200 dark:text-gray-800">Pending Fines</h3>
@@ -312,30 +422,28 @@ export default function Fee({ w }) {
                 </div>
               )}
 
-              {/* Totals Summary */}
               {feeData.feeHeads && feeData.feeHeads.length > 0 && (
                 <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
                   <h3 className="text-sm font-semibold text-gray-200 dark:text-gray-800 mb-3 uppercase tracking-wide">Summary</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="text-center p-3 bg-green-500/10 dark:bg-green-100/50 rounded">
                       <div className="text-xs text-green-400 dark:text-green-700 font-medium mb-1">Paid</div>
-                      <div className="text-sm font-bold text-green-400 dark:text-green-700">₹{totalPaid.toLocaleString()}</div>
+                      <div className="text-sm font-bold text-green-400 dark:text-green-700">₹{formatNumber(totalPaid)}</div>
                     </div>
                     <div className="text-center p-3 bg-red-500/10 dark:bg-red-100/50 rounded">
                       <div className="text-xs text-red-400 dark:text-red-700 font-medium mb-1">Due</div>
-                      <div className="text-sm font-bold text-red-400 dark:text-red-700">₹{totalDue.toLocaleString()}</div>
+                      <div className="text-sm font-bold text-red-400 dark:text-red-700">₹{formatNumber(totalDue)}</div>
                     </div>
                     {totalFines > 0 && (
                       <div className="text-center p-3 bg-orange-500/10 dark:bg-orange-100/50 rounded">
                         <div className="text-xs text-orange-400 dark:text-orange-700 font-medium mb-1">Fines</div>
-                        <div className="text-sm font-bold text-orange-400 dark:text-orange-700">₹{totalFines.toLocaleString()}</div>
+                        <div className="text-sm font-bold text-orange-400 dark:text-orange-700">₹{formatNumber(totalFines)}</div>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Fee Details */}
               {feeData.feeHeads && feeData.feeHeads.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-base font-semibold text-gray-200 dark:text-gray-800">Fee Details</h3>
@@ -359,16 +467,16 @@ export default function Fee({ w }) {
                         <div className="grid grid-cols-3 gap-2 mb-3">
                           <div className="text-center p-2 bg-gray-800/50 dark:bg-gray-100/50 rounded">
                             <div className="text-xs text-gray-400 dark:text-gray-600 font-medium">Fee</div>
-                            <div className="text-sm font-bold text-gray-200 dark:text-gray-800">₹{fee.feeamount.toLocaleString()}</div>
+                            <div className="text-sm font-bold text-gray-200 dark:text-gray-800">₹{formatNumber(fee.feeamount)}</div>
                           </div>
                           <div className="text-center p-2 bg-green-500/10 dark:bg-green-100/50 rounded">
                             <div className="text-xs text-green-400 dark:text-green-700 font-medium">Paid</div>
-                            <div className="text-sm font-bold text-green-400 dark:text-green-700">₹{fee.receiveamount.toLocaleString()}</div>
+                            <div className="text-sm font-bold text-green-400 dark:text-green-700">₹{formatNumber(fee.receiveamount)}</div>
                           </div>
                           <div className="text-center p-2 bg-red-500/10 dark:bg-red-100/50 rounded">
                             <div className="text-xs text-red-400 dark:text-red-700 font-medium">Due</div>
                             <div className={`text-sm font-bold ${fee.dueamount > 0 ? 'text-red-400 dark:text-red-700' : 'text-gray-200 dark:text-gray-800'}`}>
-                              ₹{fee.dueamount.toLocaleString()}
+                              ₹{formatNumber(fee.dueamount)}
                             </div>
                           </div>
                         </div>
@@ -381,13 +489,13 @@ export default function Fee({ w }) {
                           {fee.transferinamount > 0 && (
                             <div className="flex justify-between">
                               <span className="text-gray-400 dark:text-gray-600">Transfer In</span>
-                              <span className="text-blue-400 dark:text-blue-600 font-medium">₹{fee.transferinamount.toLocaleString()}</span>
+                              <span className="text-blue-400 dark:text-blue-600 font-medium">₹{formatNumber(fee.transferinamount)}</span>
                             </div>
                           )}
                           {fee.waiveramount > 0 && (
                             <div className="flex justify-between">
                               <span className="text-gray-400 dark:text-gray-600">Waiver</span>
-                              <span className="text-purple-400 dark:text-purple-600 font-medium">₹{fee.waiveramount.toLocaleString()}</span>
+                              <span className="text-purple-400 dark:text-purple-600 font-medium">₹{formatNumber(fee.waiveramount)}</span>
                             </div>
                           )}
                         </div>
@@ -396,6 +504,26 @@ export default function Fee({ w }) {
                   </div>
                 </div>
               )}
+
+              <div className="mt-6">
+                <button
+                  onClick={downloadFeeDemandReport}
+                  disabled={downloadingReport}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#0B0B0D] dark:bg-gray-50 text-white dark:text-black border border-gray-600 dark:border-gray-300 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {downloadingReport ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white dark:border-b-2 dark:border-black"></div>
+                      <span>Downloading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-5 h-5" />
+                      <span>Download Fee Demand Report</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -404,6 +532,8 @@ export default function Fee({ w }) {
           <div className="text-gray-400 dark:text-gray-600">No fee data available</div>
         </div>
       )}
+
     </div>
+    </>
   );
 }
