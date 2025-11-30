@@ -30,7 +30,6 @@ export default function CGPATargetCalculator({
   let initialSemesters =
     Array.isArray(sd) && sd.length > 0
       ? sd.map((s, index) => {
-          console.log(`Semester ${index}:`, s);
           return {
             g: s.sgpa ? s.sgpa.toString() : "",
             c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
@@ -40,7 +39,6 @@ export default function CGPATargetCalculator({
           { g: "", c: "" },
           { g: "", c: "" },
         ];
-  console.log("Initial semesters created:", initialSemesters);
   const lastCredits = sd?.[sd.length - 1]?.totalcoursecredit || "";
   initialSemesters = [
     ...initialSemesters,
@@ -52,19 +50,35 @@ export default function CGPATargetCalculator({
   const [sgpaSubjects, setSgpaSubjects] = useState([]);
 
   useEffect(() => {
+    const cached = localStorage.getItem('cgpaCalculatorSemesters');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCgpaSemesters(parsed);
+        }
+      } catch (error) {
+        console.error('Failed to parse cached CGPA semesters:', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cgpaCalculatorSemesters', JSON.stringify(cgpaSemesters));
+  }, [cgpaSemesters]);
+
+  useEffect(() => {
     if (sd && Array.isArray(sd) && sd.length > 0) {
       const updatedSemesters = sd.map((s) => ({
         g: s.sgpa ? s.sgpa.toString() : "",
         c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
       }));
       
-      // Add current semester slot
       const lastCredits = sd[sd.length - 1]?.totalcoursecredit || "";
       updatedSemesters.push({ g: "", c: lastCredits ? lastCredits.toString() : "" });
       
       setCgpaSemesters(updatedSemesters);
     } else {
-      // If no semester data, just keep the default empty semester
       setCgpaSemesters([{ g: "", c: "" }]);
     }
   }, [sd]);
@@ -210,7 +224,6 @@ export default function CGPATargetCalculator({
     const currentSgpa = parseFloat(calculateSGPA());
     if (isNaN(currentSgpa) || currentSgpa === 0) return "-";
     
-    // Calculate current semester credits
     let currentCredits = 0;
     sgpaSubjects.forEach(subject => {
       if (subject.credits > 0) {
@@ -220,7 +233,6 @@ export default function CGPATargetCalculator({
     
     if (currentCredits === 0) return "-";
     
-    // Get previous semesters data from props
     let previousGradePoints = 0;
     let previousCredits = 0;
     
@@ -235,7 +247,6 @@ export default function CGPATargetCalculator({
       });
     }
     
-    // Calculate total grade points and credits
     const totalGradePoints = previousGradePoints + (currentSgpa * currentCredits);
     const totalCredits = previousCredits + currentCredits;
     

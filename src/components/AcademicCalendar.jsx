@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Calendar, Clock, BookOpen, GraduationCap, Users, Award, Target, Filter, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const AcademicCalendar = ({ isDialog = false }) => {
   const [calendarData, setCalendarData] = useState(null);
@@ -150,7 +151,16 @@ const AcademicCalendar = ({ isDialog = false }) => {
   }
 
   return (
-    <div className={`${isDialog ? '' : 'min-h-screen'} bg-black dark:bg-white text-white dark:text-black`}>
+    <>
+      <Helmet>
+        <title>Academic Calendar - JP_Portal | JIIT Student Portal</title>
+        <meta name="description" content="View the academic calendar for Jaypee Institute of Information Technology (JIIT) with important dates, exam schedules, holidays, and semester events." />
+        <meta property="og:title" content="Academic Calendar - JP_Portal | JIIT Student Portal" />
+        <meta property="og:description" content="View the academic calendar for Jaypee Institute of Information Technology (JIIT) with important dates, exam schedules, holidays, and semester events." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/academic-calendar" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/academic-calendar" />
+      </Helmet>
+      <div className={`${isDialog ? '' : 'min-h-screen'} bg-black dark:bg-white text-white dark:text-black`}>
       {!isDialog && (
         <div className="sticky top-0 bg-black dark:bg-white border-b border-gray-800 dark:border-gray-200 z-10 md:hidden">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -334,6 +344,7 @@ const AcademicCalendar = ({ isDialog = false }) => {
         </button>
       )}
     </div>
+    </>
   );
 };
 

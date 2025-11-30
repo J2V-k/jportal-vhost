@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Helmet } from 'react-helmet-async';
 import {
   generate_local_name,
   API,
@@ -111,7 +112,6 @@ export default function Grades({
 
         setGradesData(data);
         setSemesterData(data.semesterList);
-        console.log(data.semisterList);
       } catch (err) {
         if (err.message.includes("Unexpected end of JSON input")) {
           setGradesError("Grade sheet is not available");
@@ -131,7 +131,7 @@ export default function Grades({
     setSemesterData,
     setGradesError,
     setGradesLoading,
-  ]); // Added setGradesLoading to dependencies
+  ]);
 
   useEffect(() => {
     const fetchGradeCardSemesters = async () => {
@@ -179,20 +179,17 @@ export default function Grades({
   }, [w, marksSemesters.length]);
 
   useEffect(() => {
-    // Auto-select the marks semester only when the Marks tab is active
     if (activeTab === 'marks' && marksSemesters.length > 0 && !selectedMarksSem) {
       const currentYear = new Date().getFullYear().toString();
       const currentYearSemester = marksSemesters.find(sem =>
         sem.registration_code && sem.registration_code.includes(currentYear)
       );
       const selectedSemester = currentYearSemester || marksSemesters[0];
-      console.log('🎯 Auto-selecting semester for marks (on Marks tab):', selectedSemester);
       setSelectedMarksSem(selectedSemester);
     }
   }, [marksSemesters, selectedMarksSem, setSelectedMarksSem, activeTab]);
 
   useEffect(() => {
-    // Only load/parse heavy marks PDF data when the user is actually viewing the Marks tab
     if (activeTab !== 'marks') return;
 
     setMounted(true);
@@ -202,7 +199,6 @@ export default function Grades({
         return;
       }
 
-      // If data already exists in memory, just return
       if (marksData[selectedMarksSem.registration_id]) {
         return;
       }
@@ -211,7 +207,6 @@ export default function Grades({
       const username = w.username || "user";
       const cacheKey = `marks-${selectedMarksSem.registration_code}-${username}`;
 
-      // Try to get from cache first
       const cached = await getFromCache(cacheKey);
       if (cached && mounted) {
         setMarksSemesterData(cached.data || cached);
@@ -223,14 +218,12 @@ export default function Grades({
         setIsMarksFromCache(true);
         setMarksLoading(false);
         
-        // Start background refresh
         setIsMarksRefreshing(true);
         await fetchFreshMarksData();
         setIsMarksRefreshing(false);
         return;
       }
 
-      // No cache: fetch fresh data
       await fetchFreshMarksData();
     };
 
@@ -352,10 +345,8 @@ export default function Grades({
       const semester = marksSemesters.find(
         (sem) => sem.registration_id === value
       );
-      console.log(semester);
       setSelectedMarksSem(semester);
 
-      // Fetch grade card if not already cached
       if (!gradeCards[value]) {
         try {
           const data = await w.get_grade_card(semester);
@@ -388,7 +379,6 @@ export default function Grades({
         setMarksCacheTimestamp(cached.timestamp || null);
         setIsMarksFromCache(true);
         
-        // Start background refresh with fresh data
         setIsMarksRefreshing(true);
         try {
           await fetchFreshMarksData();
@@ -448,19 +438,27 @@ export default function Grades({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-2 pb-24 md:pb-8 px-3 md:px-6 mb-4 font-sans text-sm max-[390px]:text-xs"
-    >
+    <>
+      <Helmet>
+        <title>Grades & Marks - JP_Portal | JIIT Student Portal</title>
+        <meta name="description" content="View your academic grades, SGPA, CGPA, semester-wise marks, and grade progression charts at Jaypee Institute of Information Technology (JIIT)." />
+        <meta property="og:title" content="Grades & Marks - JP_Portal | JIIT Student Portal" />
+        <meta property="og:description" content="View your academic grades, SGPA, CGPA, semester-wise marks, and grade progression charts at Jaypee Institute of Information Technology (JIIT)." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/grades" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/grades" />
+      </Helmet>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-2 pb-24 md:pb-8 px-3 md:px-6 mb-4 font-sans text-sm max-[390px]:text-xs"
+      >
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
         className="w-full max-w-7xl mx-auto"
       >
-        {/* Mobile tabs */}
         <div className="md:hidden">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
             {["overview","marks", "semester"].map((tab, index) => (
@@ -482,7 +480,6 @@ export default function Grades({
           </TabsList>
         </div>
 
-        {/* Desktop view - Overview as main, with buttons for marks/semester */}
         <div className="hidden md:block">
           <div className="flex justify-center mb-4">
             <div className="flex bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-1">
@@ -520,7 +517,6 @@ export default function Grades({
           </div>
         </div>
 
-        {/* Content area */}
         <div className="w-full max-w-7xl mx-auto">
           <TabsContent value="overview">
             <motion.div {...fadeInUp} className="space-y-4">
@@ -853,9 +849,8 @@ export default function Grades({
 
                             if (currentSemesterGradeInfo.gradecard) {
                               currentSemesterGradeInfo.gradecard
-                                .filter((subject) => subject.sgpapoints != 0) // Filter out audit subjects
+                                .filter((subject) => subject.sgpapoints != 0)
                                 .forEach((subject) => {
-                                  console.log("Regular subject:", subject);
                                   const credits = parseFloat(
                                     subject.coursecreditpoint
                                   );
@@ -1015,5 +1010,6 @@ export default function Grades({
         )}
       </AnimatePresence>
     </motion.div>
+    </>
   );
 }

@@ -26,6 +26,7 @@ import {
   Calendar,
   BarChart3,
 } from "lucide-react";
+import { Helmet } from 'react-helmet-async';
 
 const Attendance = ({
   w,
@@ -422,7 +423,16 @@ const Attendance = ({
   };
 
   return (
-    <div className="text-white dark:text-black font-sans">
+    <>
+      <Helmet>
+        <title>Attendance - JP_Portal | JIIT Student Portal</title>
+        <meta name="description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
+        <meta property="og:title" content="Attendance - JP_Portal | JIIT Student Portal" />
+        <meta property="og:description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/attendance" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/attendance" />
+      </Helmet>
+      <div className="text-white dark:text-black font-sans">
       <div className="top-14 left-0 right-0 bg-[black] dark:bg-white z-10">
         <div className="flex gap-2 py-2 px-3 max-w-[1440px] mx-auto">
           <Select
@@ -756,6 +766,7 @@ const Attendance = ({
       )}
       <div className="h-16 md:h-20" />
     </div>
+    </>
   );
 };
 

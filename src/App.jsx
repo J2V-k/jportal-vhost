@@ -21,6 +21,8 @@ import Profile from "./components/Profile";
 import Timetable from "./components/Timetable";
 import Fee from "./components/Fee";
 import AcademicCalendar from "./components/AcademicCalendar";
+import AcademicCalendarDialog from "./components/AcademicCalendarDialog";
+import { Calendar as CalendarIcon } from "lucide-react";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Analytics } from "@vercel/analytics/react";
@@ -28,6 +30,7 @@ import { Loader2 } from "lucide-react";
 import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
+import { HelmetProvider } from 'react-helmet-async';
 
 import {
   WebPortal,
@@ -188,14 +191,14 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
       >
         <Analytics />
         <div className="flex-none z-30 bg-[black] -mt-[2px] md:ml-64">
-          <Header 
-            setIsAuthenticated={setIsAuthenticated} 
-            messMenuOpen={messMenuOpen}
-            onMessMenuChange={onMessMenuChange}
-            attendanceGoal={attendanceGoal}
-            setAttendanceGoal={setAttendanceGoal}
-          />
-        </div>
+            <Header 
+              setIsAuthenticated={setIsAuthenticated} 
+              messMenuOpen={messMenuOpen}
+              onMessMenuChange={onMessMenuChange}
+              attendanceGoal={attendanceGoal}
+              setAttendanceGoal={setAttendanceGoal}
+            />
+          </div>
         <div className="flex-1 overflow-y-auto md:ml-64">
         <TransitionGroup component={null}>
           <CSSTransition
@@ -550,10 +553,8 @@ function App() {
         } else {
           console.error("Auto-login failed:", error);
           setError("Auto-login failed. Please login again.");
+          setIsAuthenticated(false);
         }
-        localStorage.removeItem("username");
-        localStorage.removeItem("password");
-        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
@@ -577,6 +578,11 @@ function App() {
                   <UtensilsCrossed size={18} /> Mess Menu
                 </span>
               </MessMenu>
+              <AcademicCalendarDialog>
+                <span className="flex items-center justify-center px-6 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
+                  <CalendarIcon size={18} /> Academic Calendar
+                </span>
+              </AcademicCalendarDialog>
               <InstallPWA />
             </div>
           </div>
@@ -586,40 +592,42 @@ function App() {
   }
 
   return (
-    <ThemeProvider value={{ themeMode, darkTheme, lightTheme }}>
-      <Router>
-        <div className="min-h-screen bg-[black] dark:bg-white dark:text-black">
-          {" "}
-          {!isAuthenticated || !w.session ? (
-            <Routes>
-              <Route
-                path="*"
-                element={
-                  <>
-                    {error && (
-                      <div className="text-red-500 dark:text-red-500 text-center pt-4">
-                        {error}
-                      </div>
-                    )}
-                    <LoginWrapper
-                      onLoginSuccess={() => setIsAuthenticated(true)}
-                      w={w}
-                    />
-                  </>
-                }
+    <HelmetProvider>
+      <ThemeProvider value={{ themeMode, darkTheme, lightTheme }}>
+        <Router>
+          <div className="min-h-screen bg-[black] dark:bg-white dark:text-black">
+            {" "}
+            {!isAuthenticated || !w.session ? (
+              <Routes>
+                <Route
+                  path="*"
+                  element={
+                    <>
+                      {error && (
+                        <div className="text-red-500 dark:text-red-500 text-center pt-4">
+                          {error}
+                        </div>
+                      )}
+                      <LoginWrapper
+                        onLoginSuccess={() => setIsAuthenticated(true)}
+                        w={w}
+                      />
+                    </>
+                  }
+                />
+              </Routes>
+            ) : (
+              <AuthenticatedApp 
+                w={w} 
+                setIsAuthenticated={setIsAuthenticated} 
+                messMenuOpen={messMenuOpen}
+                onMessMenuChange={handleMessMenuChange}
               />
-            </Routes>
-          ) : (
-            <AuthenticatedApp 
-              w={w} 
-              setIsAuthenticated={setIsAuthenticated} 
-              messMenuOpen={messMenuOpen}
-              onMessMenuChange={handleMessMenuChange}
-            />
-          )}
-        </div>
-      </Router>
-    </ThemeProvider>
+            )}
+          </div>
+        </Router>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }
 
