@@ -22,11 +22,16 @@ const AttendanceCard = ({
   selectedSubject,
   setSelectedSubject,
   subjectAttendanceData,
-  fetchSubjectAttendance
+  fetchSubjectAttendance,
 }) => {
   const { name, attendance, combined, lecture, tutorial, practical, classesNeeded, classesCanMiss } = subject;
-  console.log(name, attendance, combined, lecture, tutorial, practical)
-  const attendancePercentage = (attendance.total > 0) ? combined.toFixed(0) : "100";
+  
+  const parsedCombined = parseFloat(combined);
+  const rawPercentage = attendance.total > 0
+    ? (isFinite(parsedCombined) ? parsedCombined : (attendance.attended / attendance.total) * 100)
+    : 100;
+  const displayedNumber = Math.round(rawPercentage * 10) / 10; // Always 1 decimal place
+  const attendancePercentage = Number(displayedNumber);
   const displayName = name.replace(/\s*\([^)]*\)\s*$/, '');
 
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +39,7 @@ const AttendanceCard = ({
 
   const handleClick = async () => {
     setSelectedSubject(subject);
+    
     if (!subjectAttendanceData[subject.name]) {
       setIsLoading(true);
       await fetchSubjectAttendance(subject);
@@ -107,7 +113,7 @@ const AttendanceCard = ({
   return (
     <>
       <div
-        className="flex justify-between items-center py-3 cursor-pointer hover:bg-[#0B0B0D] dark:border-gray-300 dark:hover:bg-gray-200/50 rounded-lg px-4 transition-colors duration-200 ease-in-out border border-gray-800 dark:border-gray-200"
+        className="flex justify-between items-center py-3 cursor-pointer hover:bg-[#0B0B0D] dark:border-gray-300 dark:hover:bg-gray-200/50 rounded-lg px-4 transition-colors duration-200 ease-in-out border border-gray-800"
         onClick={handleClick}
       >
         <div className="flex-1 mr-4">
@@ -123,7 +129,7 @@ const AttendanceCard = ({
             <div className="text-sm max-[390px]:text-xs dark:text-black">{attendance.total}</div>
           </div>
           <div className="flex flex-col items-center">
-            <CircleProgress key={Date.now()} percentage={attendancePercentage} />
+            <CircleProgress percentage={attendancePercentage} label={`${Math.round(attendancePercentage)}`} />
             {classesNeeded > 0 ? (
               <div className="text-xs mt-1 text-gray-400 dark:text-gray-600">
                 Attend {classesNeeded}
@@ -146,7 +152,6 @@ const AttendanceCard = ({
           </SheetHeader>
           <div className="py-4 flex flex-1 overflow-y-auto">
             <div className="flex flex-col md:flex-row w-full max-w-[1100px] mx-auto gap-8 px-4">
-              {/* Left side - Calendar */}
               <div className="w-full md:w-[340px] flex flex-col">
                 <Calendar
                 mode="single"
@@ -290,7 +295,6 @@ const AttendanceCard = ({
               )}
               </div>
               
-              {/* Right side - Graph */}
               <div className="flex-1 h-[320px] md:h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -335,7 +339,7 @@ const AttendanceCard = ({
                       color: '#000',
                     }}
                     wrapperClassName="dark:[&_.recharts-tooltip-wrapper]:bg-black dark:[&_.recharts-tooltip-wrapper]:text-white dark:[&_.recharts-tooltip-wrapper]:border-gray-600"
-                    formatter={(value) => [`${value.toFixed(1)}%`]}
+                    formatter={(value) => [`${Number(value).toFixed(1)}%`]}
                   />
                   <Line
                     type="monotone"

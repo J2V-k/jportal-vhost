@@ -50,7 +50,6 @@ export default function Login({ onLoginSuccess, w }) {
         localStorage.setItem("username", loginStatus.credentials.enrollmentNumber)
         localStorage.setItem("password", loginStatus.credentials.password)
 
-        console.log("Login successful")
         setLoginStatus((prev) => ({
           ...prev,
           isLoading: false,

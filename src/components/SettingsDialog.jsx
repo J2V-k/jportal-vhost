@@ -6,14 +6,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
-  DialogFooter,
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Settings, LogOut, Trash2 } from 'lucide-react';
 
 const TABS = [
@@ -113,122 +112,122 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
           <Settings className="w-6 h-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-black dark:bg-white border-2 border-white dark:border-black text-white dark:text-black p-8 rounded-lg">
+      <DialogContent className="dark:bg-gray-50 bg-[#0B0D0D] border border-gray-800 dark:border-gray-200 text-white dark:text-black p-6 rounded-xl w-[calc(100vw-2rem)] max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-white dark:text-black">Settings</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-white dark:text-black">Settings</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-6 items-center py-2">
-            <Label className="text-sm font-medium text-white dark:text-black">Default theme</Label>
-            <div className="flex gap-3">
+        <div className="space-y-6 mt-4">
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-white dark:text-black">Default theme</Label>
+              <Tabs value={selectedTheme} onValueChange={handleThemeChange} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
+                  <TabsTrigger 
+                    value="dark" 
+                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black"
+                  >
+                    Light
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="light" 
+                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black"
+                  >
+                    Dark
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
+              <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
+                <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300">
+                  {TABS.map((t) => (
+                    <SelectItem 
+                      key={t.key} 
+                      value={t.key}
+                      className="text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 focus:bg-gray-800 dark:focus:bg-gray-200"
+                    >
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-white dark:text-black">Enable swipe navigation</Label>
+              <Switch 
+                checked={swipeEnabled}
+                onCheckedChange={handleSwipeEnabledChange}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-white dark:text-black">Default mess menu view</Label>
+              <Select value={defaultMessMenuView} onValueChange={handleMessMenuViewChange}>
+                <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300">
+                  {MESS_MENU_VIEWS.map((view) => (
+                    <SelectItem 
+                      key={view.key} 
+                      value={view.key}
+                      className="text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 focus:bg-gray-800 dark:focus:bg-gray-200"
+                    >
+                      {view.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-white dark:text-black">Target attendance %</Label>
+              <Input
+                type="number"
+                value={attendanceGoal}
+                onChange={handleTargetAttendanceChange}
+                min="0"
+                max="100"
+                className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300"
+                placeholder="75"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-white dark:text-black">Clear all cached data</Label>
               <Button
-                variant={selectedTheme === 'light' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={() => handleThemeChange('light')}
-                className={`flex-1 ${
-                  selectedTheme === 'light' 
-                    ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800' 
-                    : 'bg-transparent text-white dark:text-black border-white dark:border-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white'
-                }`}
+                onClick={handleClearCache}
+                className="bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-red-600 hover:text-white hover:border-red-600"
               >
-                Light
-              </Button>
-              <Button
-                variant={selectedTheme === 'dark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleThemeChange('dark')}
-                className={`flex-1 ${
-                  selectedTheme === 'dark' 
-                    ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800' 
-                    : 'bg-transparent text-white dark:text-black border-white dark:border-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white'
-                }`}
-              >
-                Dark
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear Cache
               </Button>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-6 items-center py-2">
-            <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
-            <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
-              <SelectTrigger className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-black dark:bg-white border-2 border-white dark:border-black">
-                {TABS.map((t) => (
-                  <SelectItem 
-                    key={t.key} 
-                    value={t.key}
-                    className="text-white dark:text-black hover:bg-black hover:text-white dark:hover:bg-black dark:hover:text-white focus:bg-black focus:text-white dark:focus:bg-black dark:focus:text-white"
-                  >
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 items-center py-2">
-            <Label className="text-sm font-medium text-white dark:text-black">Enable swipe navigation</Label>
-            <Switch 
-              checked={swipeEnabled}
-              onCheckedChange={handleSwipeEnabledChange}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 items-center py-2">
-            <Label className="text-sm font-medium text-white dark:text-black">Default mess menu view</Label>
-            <Select value={defaultMessMenuView} onValueChange={handleMessMenuViewChange}>
-              <SelectTrigger className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-black dark:bg-white border-2 border-white dark:border-black">
-                {MESS_MENU_VIEWS.map((view) => (
-                  <SelectItem 
-                    key={view.key} 
-                    value={view.key}
-                    className="text-white dark:text-black hover:bg-black hover:text-white dark:hover:bg-black dark:hover:text-white focus:bg-black focus:text-white dark:focus:bg-black dark:focus:text-white"
-                  >
-                    {view.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 items-center py-2">
-            <Label className="text-sm font-medium text-white dark:text-black">Target attendance %</Label>
-            <Input
-              type="number"
-              value={attendanceGoal}
-              onChange={handleTargetAttendanceChange}
-              min="0"
-              max="100"
-              className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black"
-              placeholder="75"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 items-center py-2">
-            <Label className="text-sm font-medium text-white dark:text-black">Clear all cached data</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearCache}
-              className="bg-transparent text-white dark:text-black border-2 border-white dark:border-black hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white hover:border-red-600 dark:hover:border-red-600"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear Cache
-            </Button>
-          </div>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-4 space-y-3">
+          <Button 
+            onClick={() => setOpen(false)} 
+            variant="outline"
+            className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black"
+          >
+            Close
+          </Button>
           <Button 
             onClick={handleLogout} 
             variant="destructive"
-            className="bg-red-600 hover:bg-red-700 text-white border-red-600 w-full"
+            className="w-full bg-red-600 hover:bg-red-700 text-white border-red-600"
           >
             <LogOut className="w-4 h-4 mr-2" /> 
             Logout
