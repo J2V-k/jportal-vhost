@@ -59,6 +59,7 @@ const Feedback = ({ w }) => {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('');
+  const [randomized, setRandomized] = useState(false);
 
   useEffect(() => {
     fetchFeedbackData();
@@ -168,6 +169,7 @@ const Feedback = ({ w }) => {
       ...prev,
       [key]: rating
     }));
+    setRandomized(false);
   };
 
   const handleBulkRatingChange = (subjectId, facultyId, rating) => {
@@ -181,6 +183,7 @@ const Feedback = ({ w }) => {
       });
       setRatings(newRatings);
     }
+    setRandomized(false); // Reset randomized state when manually changed
   };
 
   const handleGlobalRatingChange = (rating) => {
@@ -193,6 +196,7 @@ const Feedback = ({ w }) => {
       });
     });
     setRatings(newRatings);
+    setRandomized(false); // Reset randomized state when manually changed
   };
 
   const toggleSubjectExpansion = (subjectId, facultyId) => {
@@ -232,6 +236,23 @@ const Feedback = ({ w }) => {
     });
 
     return allSame ? firstRating : null;
+  };
+
+  const randomizeRatings = () => {
+    const newRatings = { ...ratings };
+    Object.values(questionsData).forEach((data) => {
+      const { subject, questions, ratings: ratingOptions } = data;
+      questions.forEach((q) => {
+        const key = `${subject.subjectid}-${subject.employeeid}-${q.questionid}`;
+        const options = (ratingOptions || []).filter(r => r.questionid === q.questionid);
+        if (options.length > 0) {
+          const choice = options[Math.floor(Math.random() * options.length)];
+          newRatings[key] = choice.rating;
+        }
+      });
+    });
+    setRatings(newRatings);
+    setRandomized(true);
   };
 
   const handleFeedbackSubmit = async () => {
@@ -390,24 +411,35 @@ const Feedback = ({ w }) => {
                         </p>
                       </div>
                     </div>
-                    <Select
-                      value={getGlobalRating() || ""}
-                      onValueChange={handleGlobalRatingChange}
-                    >
-                      <SelectTrigger className="w-full lg:w-64 bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
-                        <SelectValue placeholder="Select rating" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(questionsData)[0]?.ratings
-                          .filter(r => r.questionid === Object.values(questionsData)[0]?.questions[0]?.questionid)
-                          .sort((a, b) => a.slno - b.slno)
-                          .map((rating) => (
-                            <SelectItem key={rating.ratingid} value={rating.rating}>
-                              {rating.ratingdesc}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2 w-full lg:w-auto">
+                      <Select
+                        value={getGlobalRating() || ""}
+                        onValueChange={handleGlobalRatingChange}
+                      >
+                        <SelectTrigger className="w-full lg:w-64 bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+                          <SelectValue placeholder={randomized ? "Random rating" : "Choose rating"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(questionsData)[0]?.ratings
+                            .filter(r => r.questionid === Object.values(questionsData)[0]?.questions[0]?.questionid)
+                            .sort((a, b) => a.slno - b.slno)
+                            .map((rating) => (
+                              <SelectItem key={rating.ratingid} value={rating.rating}>
+                                {rating.ratingdesc}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={randomizeRatings}
+                        className="ml-2 text-black dark:text-white border-gray-600 dark:border-gray-300 hover:dark:bg-gray-800 hover:bg-gray-200"
+                      >
+                        Randomize Fill
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -462,7 +494,7 @@ const Feedback = ({ w }) => {
                           onValueChange={(value) => handleBulkRatingChange(subject.subjectid, subject.employeeid, value)}
                         >
                           <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
-                            <SelectValue placeholder="Select rating for all questions" />
+                            <SelectValue placeholder={randomized ? "Random rating for all questions" : "Choose rating for all questions"} />
                           </SelectTrigger>
                           <SelectContent>
                             {ratingOptions
@@ -497,7 +529,7 @@ const Feedback = ({ w }) => {
                                 onValueChange={(value) => handleRatingChange(subject.subjectid, subject.employeeid, question.questionid, value)}
                               >
                                 <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
-                                    <SelectValue placeholder="Select rating" />
+                                    <SelectValue placeholder={randomized ? "Random rating" : "Choose rating"} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {ratingOptions
@@ -525,7 +557,7 @@ const Feedback = ({ w }) => {
                   <Button 
                     onClick={handleFeedbackSubmit} 
                     disabled={loading}
-                    className="w-full bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100"
+                    className="w-full bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-800"
                   >
                     {loading ? (
                       <>
