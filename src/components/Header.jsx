@@ -47,7 +47,11 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
             </div>
           </MessMenu>
           <ThemeBtn />
-          <SettingsDialog onLogout={handleLogout} attendanceGoal={attendanceGoal} setAttendanceGoal={setAttendanceGoal} />
+          <SettingsDialog 
+            onLogout={handleLogout} 
+            attendanceGoal={attendanceGoal} 
+            setAttendanceGoal={setAttendanceGoal}
+          />
         </motion.div>
       </div>
     </motion.header>

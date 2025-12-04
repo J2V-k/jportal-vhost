@@ -25,6 +25,7 @@ import {
   ArrowUpDown,
   Calendar,
   BarChart3,
+  Archive,
 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 
@@ -72,8 +73,7 @@ const Attendance = ({
     if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
     if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
     if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
-    
-    // For older dates, show the actual date
+
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -500,9 +500,10 @@ const Attendance = ({
         <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
           <span>
             {cacheTimestamp  && isFromCache ? (
-              <>
-                 📁 Cached: {getRelativeTime(cacheTimestamp)}
-              </>
+              <span className="flex items-center gap-1">
+                <Archive size={12} />
+                Cached: {getRelativeTime(cacheTimestamp)}
+              </span>
             ) : (
               ''
             )}

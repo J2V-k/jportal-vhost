@@ -12,7 +12,7 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { Settings, LogOut, Trash2 } from 'lucide-react';
 
 const TABS = [
@@ -216,22 +216,45 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
           </div>
         </div>
 
-        <div className="mt-4 space-y-3">
-          <Button 
-            onClick={() => setOpen(false)} 
-            variant="outline"
-            className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black"
-          >
-            Close
-          </Button>
+        <div className="mt-8 space-y-0">
+          {(() => {
+            const profileData = JSON.parse(localStorage.getItem('profileData') || '{}');
+            const name = profileData?.studentname || 'User';
+            const image = profileData?.imagepath;
+
+            return (
+              <div className="relative mx-4 -mb-2 pt-4 pb-6 px-4 bg-[#0D0D0D] dark:bg-gray-100 rounded-t-2xl border-x border-t border-gray-800 dark:border-gray-300 flex items-center gap-4 z-0">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700 dark:border-gray-300 flex-shrink-0">
+                  {image ? (
+                    <img src={`data:image/jpeg;base64,${image}`} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-800 dark:bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-400 dark:text-gray-600">
+                      {name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-base font-semibold text-white dark:text-black truncate">{name}</h3>
+              </div>
+            );
+          })()}
+
           <Button 
             onClick={handleLogout} 
             variant="destructive"
-            className="w-full bg-red-600 hover:bg-red-700 text-white border-red-600"
+            className="relative z-10 w-full bg-red-600 hover:bg-red-700 text-white border-red-600 rounded-xl shadow-lg"
           >
             <LogOut className="w-4 h-4 mr-2" /> 
             Logout
           </Button>
+          <div className="pt-3">
+            <Button 
+              onClick={() => setOpen(false)} 
+              variant="outline"
+              className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black"
+            >
+              Close
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

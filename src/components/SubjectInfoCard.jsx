@@ -12,10 +12,29 @@ function Badge({ children }) {
 export function SubjectInfoCard({ subject }) {
   const getComponentIconWithName = (type) => {
     switch (type) {
-      case 'L': return <><Book className="w-4 h-4" /> Lecture</>
-      case 'T': return <><Users className="w-4 h-4" /> Tutorial</>
-      case 'P': return <><Beaker className="w-4 h-4" /> Practical</>
-      default: return null
+      case 'L':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <Book className="w-4 h-4" />
+            <span>Lecture</span>
+          </span>
+        )
+      case 'T':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <Users className="w-4 h-4" />
+            <span>Tutorial</span>
+          </span>
+        )
+      case 'P':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <Beaker className="w-4 h-4" />
+            <span>Practical</span>
+          </span>
+        )
+      default:
+        return null
     }
   }
 

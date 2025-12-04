@@ -32,7 +32,6 @@ const AcademicCalendar = ({ isDialog = false }) => {
     const startDateStr = eventStartDate.toDateString();
     const endDateStr = eventEndDate ? eventEndDate.toDateString() : null;
 
-    // Event is today if it starts today, ends today, or spans across today
     const startsToday = startDateStr === todayStr;
     const endsToday = endDateStr === todayStr;
     const spansToday = eventEndDate && today >= eventStartDate && today <= eventEndDate;
@@ -94,7 +93,6 @@ const AcademicCalendar = ({ isDialog = false }) => {
 
   const allEvents = calendarData?.timelineEvents || [];
 
-  // Get unique semesters and categories for filters
   const getUniqueSemesters = () => {
     const semesters = [...new Set(allEvents.map(event => event.semester))];
     return semesters.sort();
@@ -105,7 +103,6 @@ const AcademicCalendar = ({ isDialog = false }) => {
     return categories.sort();
   };
 
-  // Filter events based on selected filters
   const getFilteredEvents = () => {
     return allEvents.filter(event => {
       const semesterMatch = selectedSemesters.length === 0 || selectedSemesters.includes(event.semester);
@@ -116,7 +113,6 @@ const AcademicCalendar = ({ isDialog = false }) => {
 
   const filteredEvents = getFilteredEvents();
 
-  // Find the first event that occurs today in filtered events, or the next upcoming event
   const firstTodayEventIndex = filteredEvents.findIndex(event => isEventToday(event));
   const nextUpcomingEventIndex = filteredEvents.findIndex(event => isEventUpcoming(event));
   const targetEventIndex = firstTodayEventIndex !== -1 ? firstTodayEventIndex : nextUpcomingEventIndex;
@@ -177,9 +173,7 @@ const AcademicCalendar = ({ isDialog = false }) => {
       </div>
       )}
 
-      {/* Timeline */}
       <div className="max-w-6xl mx-auto px-4 pb-24">
-        {/* Filters */}
         <div className="mb-6 p-4 bg-gray-900/50 dark:bg-gray-100/50 rounded-lg border border-gray-700 dark:border-gray-300">
           <div className="flex items-center gap-4 mb-4">
             <Filter className="w-5 h-5 text-gray-400 dark:text-gray-600" />
@@ -328,7 +322,6 @@ const AcademicCalendar = ({ isDialog = false }) => {
         )}
       </div>
 
-      {/* Floating Go to Current Event Button */}
       {!isDialog && (
         <button
           onClick={scrollToCurrentEvent}

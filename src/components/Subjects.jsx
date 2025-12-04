@@ -5,7 +5,7 @@ import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Loader2, Calendar, Eye } from "lucide-react"
+import { Loader2, Calendar, Eye, ArrowLeft } from "lucide-react"
 
 export default function Subjects({
   w,
@@ -275,17 +275,22 @@ export default function Subjects({
           ) : (
             <AnimatePresence>
               <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.values(groupedSubjects).map((subject, index) => (
-                  <motion.div
-                    key={subject.code}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <SubjectInfoCard subject={subject} />
-                  </motion.div>
-                ))}
+                {(() => {
+                  let subjects = Object.values(groupedSubjects);
+                  subjects = subjects.sort((a, b) => (b.credits || 0) - (a.credits || 0));
+
+                  return subjects.map((subject, index) => (
+                    <motion.div
+                      key={subject.code}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      <SubjectInfoCard subject={subject} />
+                    </motion.div>
+                  ));
+                })()}
               </motion.div>
             </AnimatePresence>
           )}
@@ -315,7 +320,7 @@ export default function Subjects({
                 onClick={handleBackToCurrent}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B0B0D] dark:bg-gray-100 text-white dark:text-black border border-white/20 dark:border-black/20 rounded-lg hover:bg-[#1A1A1D] dark:hover:bg-gray-200 transition-colors text-sm font-medium"
               >
-                ← Back to {selectedSem?.registration_code}
+                <ArrowLeft size={14} /> Back to {selectedSem?.registration_code}
               </button>
             ) : (
               <button

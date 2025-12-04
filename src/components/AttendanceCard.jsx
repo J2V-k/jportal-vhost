@@ -30,7 +30,7 @@ const AttendanceCard = ({
   const rawPercentage = attendance.total > 0
     ? (isFinite(parsedCombined) ? parsedCombined : (attendance.attended / attendance.total) * 100)
     : 100;
-  const displayedNumber = Math.round(rawPercentage * 10) / 10; // Always 1 decimal place
+  const displayedNumber = Math.round(rawPercentage * 10) / 10;
   const attendancePercentage = Number(displayedNumber);
   const displayName = name.replace(/\s*\([^)]*\)\s*$/, '');
 

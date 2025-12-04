@@ -1,6 +1,6 @@
 import React from "react"
 import { motion } from "framer-motion"
-import { Loader2 } from "lucide-react"
+import { Loader2, Check } from "lucide-react"
 
 export default function SubjectChoices({ currentChoices, choicesLoading, semesterName }) {
   if (choicesLoading) {
@@ -95,8 +95,8 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                                 {subject.subjectdesc}
                               </h4>
                               {subject.running === "Y" && (
-                                <span className="flex-shrink-0 text-xs font-bold px-2 py-1 rounded-full bg-green-500 text-white">
-                                  ✓ Allotted
+                                <span className="flex-shrink-0 text-xs font-bold px-2 py-1 rounded-full bg-green-500 text-white flex items-center gap-1">
+                                  <Check size={10} /> Allotted
                                 </span>
                               )}
                             </div>

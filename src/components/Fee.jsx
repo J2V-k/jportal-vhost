@@ -51,6 +51,10 @@ export default function Fee({ w }) {
   };
 
   const downloadFeeDemandReport = async () => {
+    /*
+    Temporarily disabled fee demand report download implementation.
+    Original implementation kept below for reference.
+
     if (!w || !w.session) {
       alert("Please login first");
       return;
@@ -59,7 +63,7 @@ export default function Fee({ w }) {
     setDownloadingReport(true);
     try {
       const headers = await w.session.get_headers();
-      const payload = "bYqadZjD08twkFNPn4WDVP8609zntRwG9HdjwGKoLES+x85x+jkSmzpZfHSUSJu2WInymk3T60HAI2rnxlEuddmLZuJk+GlsL4uMlEovunKzZWqhF1aPNxXDBwsTrK3MjRRtmg/FV8mexQge0Od5cA==";
+      const payload = "aBfHqiPtIG0UM4CTEaq+5TT4ZeN3I6E7kIXshXIPF2BahaOq8MacUNKmo8k7AAmnnZIigAV1vR6uSHQH6lSn8qlEFzhwkdikjHm5Uv+d0nAPSfJfJDfMxnvZR6wukS/l3ER/vKREvva45Esi76ms/g==";
       const response = await axios.post(
         'https://webportal.jiit.ac.in:6011/StudentPortalAPI/feedemandreportcontroller/generatereportforpdf',
         payload,
@@ -67,7 +71,7 @@ export default function Fee({ w }) {
           headers: {
             ...headers,
             'Content-Type': 'text/plain',
-            'Accept': 'application/pdf, application/json, text/plain, */*',
+            'Accept': 'application/pdf, application/json, text/plain',
           },
           responseType: 'blob',
           timeout: 30000
@@ -101,13 +105,18 @@ export default function Fee({ w }) {
         alert(`Server error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
       } else if (error.request) {
         console.error('No response received:', error.request);
-        alert('Network error: No response from server. This might be a CORS issue.');
+        alert('The encrypted key has changed. Please ask the administrator for the updated key.');
       } else {
         alert(`Request error: ${error.message}`);
       }
     } finally {
       setDownloadingReport(false);
     }
+    */
+
+  // No-op stub while feature is disabled
+  const noop = async () => {};
+  await noop();
   };
 
   useEffect(() => {
@@ -236,7 +245,7 @@ export default function Fee({ w }) {
                   </div>
                 )}
 
-                <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
+                {/* <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
                   <button
                     onClick={downloadFeeDemandReport}
                     disabled={downloadingReport}
@@ -254,7 +263,7 @@ export default function Fee({ w }) {
                       </>
                     )}
                   </button>
-                </div>
+                </div> */}
               </div>
 
               <div className="lg:col-span-8 space-y-4">
@@ -505,7 +514,7 @@ export default function Fee({ w }) {
                 </div>
               )}
 
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <button
                   onClick={downloadFeeDemandReport}
                   disabled={downloadingReport}
@@ -523,7 +532,7 @@ export default function Fee({ w }) {
                     </>
                   )}
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         );

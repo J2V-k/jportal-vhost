@@ -11,6 +11,7 @@ import {
   Github,
   FileText,
   Home,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -40,8 +41,11 @@ export default function Profile({
       setLoading(true);
       try {
         const data = await w.get_personal_info();
-        console.log("Profile data fetched:", data);
         setProfileData(data);
+        localStorage.setItem('profileData', JSON.stringify({
+          studentname: data.generalinformation?.studentname,
+          imagepath: data["photo&signature"]?.photo
+        }));
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
       } finally {
@@ -55,14 +59,9 @@ export default function Profile({
   useEffect(() => {
     const fetchGradesData = async () => {
       try {
-        console.log("Profile: Fetching grades data for GPA calculator");
         const data = await w.get_sgpa_cgpa();
-        console.log("Profile: Grades data received:", data);
         if (data && data.semesterList) {
-          console.log("Profile: Setting semester data:", data.semesterList);
           setLocalSemesterData(data.semesterList);
-        } else {
-          console.log("Profile: No semesterList found in data");
         }
       } catch (error) {
         console.error("Failed to fetch grades data for GPA calculator:", error);
@@ -77,26 +76,15 @@ export default function Profile({
   useEffect(() => {
     const fetchHostelData = async () => {
       try {
-        console.log("Profile: Fetching hostel details");
         const data = await w.get_hostel_details();
-        console.log("Profile: Hostel data received:", data);
-        console.log("Profile: Hostel data status:", data?.status);
-        console.log("Profile: Hostel data response:", data?.response);
-        console.log(
-          "Profile: Hostel presenthosteldetail:",
-          data?.response?.presenthosteldetail
-        );
 
         if (data && data.presenthosteldetail) {
           setHostelData(data);
-          console.log("Profile: Hostel data set successfully");
-        } else {
-          console.log("Profile: Hostel data not set - condition not met");
         }
       } catch (error) {
         console.error("Failed to fetch hostel data:", error);
       }
-    };
+};
 
     if (w) {
       fetchHostelData();
@@ -171,7 +159,6 @@ export default function Profile({
           </div>
 
           <div className="w-full md:w-auto mt-2 md:mt-0">
-            {/* compact mobile summary */}
             <div className="md:hidden text-sm text-gray-400 dark:text-gray-600">
               <div className="flex flex-wrap gap-3">
                 <span>
@@ -195,7 +182,6 @@ export default function Profile({
               </div>
             </div>
 
-            {/* desktop: 2-column grid of academic fields */}
             <div className="hidden md:grid grid-cols-2 gap-3 min-w-[220px] text-sm">
               <div className="text-gray-400 dark:text-gray-600">Semester</div>
               <div className="font-semibold text-white dark:text-black">
@@ -229,8 +215,6 @@ export default function Profile({
               "education",
               ...(hostelData?.presenthosteldetail ? ["hostel"] : []),
             ];
-            console.log("Profile: Available tabs:", tabs);
-            console.log("Profile: Hostel data in render:", hostelData);
             return tabs.map((tab) => (
               <motion.button
                 key={tab}
@@ -300,7 +284,6 @@ export default function Profile({
                 />
               </div>
             )}
-            {/* academic tab removed - details now shown in header */}
             {activeTab === "contact" && (
               <div className="space-y-0.5">
                 <InfoRow
@@ -485,6 +468,15 @@ export default function Profile({
           >
             <FileText className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Fee Details</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/feedback")}
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+          >
+            <MessageSquare className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+            <span className="text-xs font-medium text-center">Faculty Feedback</span>
           </motion.button>
           <CGPATargetCalculator w={w} semesterData={localSemesterData} />
           <motion.a

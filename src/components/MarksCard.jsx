@@ -86,18 +86,18 @@ export default function MarksCard({ course, gradeInfo }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 * index, duration: 0.5 }}
             >
-              <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
-                <div className="text-xs md:text-sm text-gray-400 dark:text-gray-600 min-w-[60px] sm:min-w-[80px] md:min-w-[100px] font-medium">
+              <div className="flex items-center">
+                <div className="text-xs md:text-sm text-gray-400 dark:text-gray-600 min-w-[60px] sm:min-w-[80px] md:min-w-[100px] font-medium pr-2 sm:pr-4 md:pr-6">
                   {examName}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <ProgressBar percentage={percentage} color={getProgressColor(percentage)} />
                 </div>
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 * index, duration: 0.5 }}
-                  className="flex items-center gap-2 min-w-[80px] md:min-w-[100px]"
+                  className="flex items-center gap-2 min-w-[80px] md:min-w-[100px] justify-end pl-2 sm:pl-4 md:pl-6"
                 >
                   <span className="text-sm md:text-base font-medium text-gray-300 dark:text-gray-700">
                     {marks.OM}

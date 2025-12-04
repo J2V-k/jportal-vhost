@@ -27,7 +27,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Mobile Bottom Navigation */}
       <motion.nav
         initial={{ y: 100 }}
         animate={{ y: 0 }}
@@ -80,7 +79,6 @@ export default function Navbar() {
         </ul>
       </motion.nav>
 
-      {/* Desktop Sidebar Navigation */}
       <motion.nav
         initial={{ x: -100 }}
         animate={{ x: 0 }}

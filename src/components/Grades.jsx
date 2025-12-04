@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronRight } from "lucide-react";
+import { Download, Loader2, ChevronRight, Archive } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -278,7 +278,7 @@ export default function Grades({
 
           const username = w.username || "user";
           const cacheKey = `marks-${selectedMarksSem.registration_code}-${username}`;
-          await saveToCache(cacheKey, result, 8);
+          await saveToCache(cacheKey, result, 240);
           setMarksCacheTimestamp(Date.now());
           setIsMarksFromCache(false);
         }
@@ -365,7 +365,6 @@ export default function Grades({
         return;
       }
 
-      // Try cache first
       const username = w.username || "user";
       const cacheKey = `marks-${semester.registration_code}-${username}`;
       const cached = await getFromCache(cacheKey);
@@ -727,13 +726,19 @@ export default function Grades({
                         className="space-y-3"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {gradeCard.gradecard.map((subject) => (
-                            <GradeCard
-                              key={subject.subjectcode}
-                              subject={subject}
-                              getGradeColor={getGradeColor}
-                            />
-                          ))}
+                          {(() => {
+                            let subjects = gradeCard.gradecard || [];
+
+                            subjects = subjects.sort((a, b) => (b.coursecreditpoint || 0) - (a.coursecreditpoint || 0));
+
+                            return subjects.map((subject) => (
+                              <GradeCard
+                                key={subject.subjectcode}
+                                subject={subject}
+                                getGradeColor={getGradeColor}
+                              />
+                            ));
+                          })()}
                         </div>
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
@@ -743,7 +748,7 @@ export default function Grades({
                         >
                           <Button
                             variant="outline"
-                            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
+                            className="flex items-center gap-2 bg-[#0B0B0D] dark:bg-gray-50 hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-black border border-gray-600 dark:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
                             onClick={() => setIsDownloadDialogOpen(true)}
                             disabled={isDownloading}
                           >
@@ -803,8 +808,9 @@ export default function Grades({
 
                   {isMarksFromCache && marksCacheTimestamp && (
                     <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
-                      <span>
-                        📁 Cached: {new Date(marksCacheTimestamp).toLocaleDateString('en-US', {
+                      <span className="flex items-center gap-1">
+                        <Archive size={12} />
+                        Cached: {new Date(marksCacheTimestamp).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'
@@ -917,15 +923,23 @@ export default function Grades({
                           })()}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {marksSemesterData.courses.map((course) => (
-                            <MarksCard
-                              key={course.code}
-                              course={course}
-                              gradeInfo={
-                                gradeCards[selectedMarksSem?.registration_id]
-                              }
-                            />
-                          ))}
+                          {(() => {
+                            const courses = marksSemesterData.courses || [];
+                            const labPattern = /\bLab$/i;
+                            const nonLabs = courses.filter(c => !labPattern.test((c.name || '').trim()));
+                            const labs = courses.filter(c => labPattern.test((c.name || '').trim()));
+                            const sortedCourses = nonLabs.concat(labs);
+
+                            return sortedCourses.map((course) => (
+                              <MarksCard
+                                key={course.code}
+                                course={course}
+                                gradeInfo={
+                                  gradeCards[selectedMarksSem?.registration_id]
+                                }
+                              />
+                            ));
+                          })()}
                         </div>
                       </motion.div>
                     ) : (
@@ -947,7 +961,7 @@ export default function Grades({
                   >
                     <Button
                       variant="outline"
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
+                      className="flex items-center gap-2 bg-[#0B0B0D] dark:bg-gray-50 hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-black border border-gray-600 dark:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
                       onClick={() => setIsDownloadDialogOpen(true)}
                       disabled={isDownloading}
                     >
