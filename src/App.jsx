@@ -37,6 +37,8 @@ import {
   LoginError,
 } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 
+import Feedback from "./components/Feedback";
+
 const w = new WebPortal();
 
 function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange }) {
@@ -80,6 +82,24 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   }, []);
 
   const [profileData, setProfileData] = useState(null);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!profileData && w && w.session) {
+        try {
+          const data = await w.get_personal_info();
+          setProfileData(data);
+          localStorage.setItem('profileData', JSON.stringify({
+            studentname: data.generalinformation?.studentname,
+            imagepath: data["photo&signature"]?.photo
+          }));
+        } catch (error) {
+          console.error("Failed to fetch profile data in App:", error);
+        }
+      }
+    };
+    fetchProfileData();
+  }, [w, profileData]);
 
   const [activeGradesTab, setActiveGradesTab] = useState("overview");
   const [gradeCardSemesters, setGradeCardSemesters] = useState([]);
@@ -390,6 +410,10 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
             />
           }
         />
+        <Route
+          path="/feedback"
+          element={<Feedback w={w} />}
+        />
             </Routes>
           </div>
         </CSSTransition>
@@ -572,14 +596,14 @@ function App() {
           <p className="text-sm mb-4">Welcome to JP_Portal</p>
           <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
             <span className="text-xs text-white/60 mb-1">Quick Access</span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 items-center justify-center">
               <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
                 <span className="flex items-center justify-center px-6 py-2 bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:text-green-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
                   <UtensilsCrossed size={18} /> Mess Menu
                 </span>
               </MessMenu>
               <AcademicCalendarDialog>
-                <span className="flex items-center justify-center px-6 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
+                <span className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
                   <CalendarIcon size={18} /> Academic Calendar
                 </span>
               </AcademicCalendarDialog>
