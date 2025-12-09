@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -148,24 +148,41 @@ const MessMenu = ({ children, open, onOpenChange }) => {
   const [forceShowMenu, setForceShowMenu] = useState(false);
   const [menuData, setMenuData] = useState({});
 
+  const [menuLoaded, setMenuLoaded] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const effectiveOpen = typeof open === 'boolean' ? open : internalOpen;
+
   useEffect(() => {
+    if (!effectiveOpen || menuLoaded) return;
+    let cancelled = false;
     const fetchMenuData = async () => {
       try {
-        const response = await fetch('/mess_menu.json');
+        let response = await fetch('/api/messmenu');
+        if (cancelled) return;
+        
         const data = await response.json();
+        let parsed = null;
         if (data && data.menu) {
-          const menuData = data.menu;
-          setMenuData(menuData);
-          setMenuAvailable(isMenuCurrent(menuData));
+          parsed = data.menu;
+        } else if (data && typeof data === 'object') {
+          parsed = data;
+        }
+        if (parsed && Object.keys(parsed).length > 0) {
+          setMenuData(parsed);
+          setMenuAvailable(isMenuCurrent(parsed));
         } else {
           setMenuAvailable(false);
         }
       } catch (error) {
-        setMenuAvailable(false);
+        if (!cancelled) setMenuAvailable(false);
+      } finally {
+        if (!cancelled) setMenuLoaded(true);
       }
     };
     fetchMenuData();
-  }, []);
+    return () => { cancelled = true; };
+  }, [effectiveOpen, menuLoaded]);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -202,6 +219,11 @@ const MessMenu = ({ children, open, onOpenChange }) => {
       daysToDisplay = Object.keys(menuData).map(key => key.split(' ')[0]);
     }
 
+    if (!menuLoaded) {
+      return (
+        <div className="py-6 text-center text-gray-400 dark:text-gray-600">Loading menu…</div>
+      );
+    }
     return (
       <div className="space-y-3 sm:space-y-4 py-1 sm:py-2">
         {daysToDisplay.map((dayName, idx) => {
@@ -403,11 +425,15 @@ const MessMenu = ({ children, open, onOpenChange }) => {
   ), [menuData, showTodayLabel]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={effectiveOpen} onOpenChange={(v) => {
+      if (typeof open === 'boolean') {
+        onOpenChange && onOpenChange(v);
+      } else {
+        setInternalOpen(v);
+      }
+    }}>
       <DialogTrigger asChild>
-        <div onClick={() => onOpenChange && onOpenChange(true)}>
-          {children}
-        </div>
+        {children}
       </DialogTrigger>
       <DialogContent className="w-[85vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-y-auto bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black rounded-lg mx-auto border border-gray-700 dark:border-gray-300 shadow-lg p-3 sm:p-4">
         <DialogHeader className="border-b border-gray-700 dark:border-gray-300 pb-2">

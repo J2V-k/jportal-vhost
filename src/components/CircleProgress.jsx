@@ -1,6 +1,6 @@
 import React, { useEffect, useState, memo } from "react";
 
-const CircleProgress = memo(function CircleProgress({ percentage, label, className = "" }) {
+const CircleProgress = memo(function CircleProgress({ percentage, label, target = 75, className = "" }) {
   const strokeWidth = 2.5;
   const defaultRadius = 12;
   const radius = defaultRadius;
@@ -9,10 +9,8 @@ const CircleProgress = memo(function CircleProgress({ percentage, label, classNa
   const [offset, setOffset] = useState(circumference);
 
   useEffect(() => {
-    // Start with empty circle (0%)
     setOffset(circumference - (0 / 100) * circumference);
 
-    // Animate to actual percentage after a brief delay
     const timer = setTimeout(() => {
       setOffset(circumference - (percentage / 100) * circumference);
     }, 100);
@@ -21,9 +19,9 @@ const CircleProgress = memo(function CircleProgress({ percentage, label, classNa
   }, [percentage, circumference]);
 
   const getStrokeColor = () => {
-    if (percentage > 80) return "#71F170";
-    else if (percentage >= 70) return "#FFC008";
-    else return "#DF212B";
+    if (percentage >= target) return "#71F170";
+    if (percentage >= Math.max(0, target - 10)) return "#FFC008";
+    return "#DF212B";
   };
 
   return (

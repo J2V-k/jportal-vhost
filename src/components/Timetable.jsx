@@ -233,7 +233,6 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
       transition={{ duration: 0.5 }}
       className="min-h-[60vh] bg-[black] dark:bg-white"
     >
-      {/* Back Button */}
       <div className="p-4">
         <button
           onClick={() => navigate(-1)}
@@ -244,7 +243,6 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
         </button>
       </div>
       
-      {/* Main Content */}
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <Calendar className="w-12 h-12 text-white dark:text-black mx-auto mb-4" />

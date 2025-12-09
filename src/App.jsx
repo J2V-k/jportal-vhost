@@ -32,12 +32,11 @@ import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
 import { HelmetProvider } from 'react-helmet-async';
 
-import {
-  WebPortal,
-  LoginError,
-} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
+import { WebPortal, LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
+import { serialize_payload } from "@/lib/jiitCrypto";
 
 import Feedback from "./components/Feedback";
+import CGPATargetCalculator from "./components/CGPATargetCalculator";
 
 const w = new WebPortal();
 
@@ -391,7 +390,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         <Route
           path="/fee"
           element={
-            <Fee w={w} />
+            <Fee w={w} serialize_payload={serialize_payload} />
           }
         />
         <Route
@@ -413,6 +412,10 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         <Route
           path="/feedback"
           element={<Feedback w={w} />}
+        />
+        <Route
+          path="/gpa-calculator"
+          element={<CGPATargetCalculator w={w} semesterData={gradesSemesterData} />}
         />
             </Routes>
           </div>

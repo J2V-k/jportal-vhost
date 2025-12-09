@@ -1,4 +1,5 @@
 import path from "path";
+import fs from "fs";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -19,23 +20,80 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    {
+      name: "dev-messmenu-endpoint",
+      configureServer(server) {
+        server.middlewares.use("/api/messmenu", (req, res) => {
+          try {
+            const filePath = path.join(server.config.root, "data", "mess_menu.json");
+            const data = fs.readFileSync(filePath, "utf-8");
+            res.setHeader("Content-Type", "application/json");
+            res.statusCode = 200;
+            res.end(data);
+          } catch (err) {
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: "Failed to load mess menu" }));
+          }
+        });
+      }
+    },
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
       devOptions: {
         enabled: true,
       },
+      minify: false,
+      includeAssets: ['pwa-icons/*.svg'],
       workbox: {
-        maximumFileSizeToCacheInBytes: 50 * 1024 ** 2, // 50MB
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,whl,json}"],
+        maximumFileSizeToCacheInBytes: 100 * 1024 * 1024,
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,whl,json,wasm,data}"],
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: null,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/v0\.23\.4\/full\/pyodide\.js$/,
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/v0\.23\.4\/full\//,
             handler: "CacheFirst",
             options: {
-              cacheName: "pyodide-cache",
+              cacheName: "pyodide-core-cache",
               expiration: {
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
+          {
+            urlPattern: /\/artifact\/.*\.whl$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "python-packages-cache",
+              expiration: {
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
+          {
+            urlPattern: /\/studentsexamview\/printstudent-exammarks\/.*/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "marks-pdf-cache",
+              expiration: {
+                maxEntries: 25,
+                maxAgeSeconds: 60 * 60 * 24 * 3,
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:wasm|data)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "wasm-cache",
+              expiration: {
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
@@ -46,7 +104,7 @@ export default defineConfig({
               cacheName: "images-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
           },
@@ -60,6 +118,10 @@ export default defineConfig({
         ],
         additionalManifestEntries: [
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js", revision: null },
+          { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.js", revision: null },
+          { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.wasm", revision: null },
+          { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.data", revision: null },
+          { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/repodata.json", revision: null },
           { url: "/artifact/jiit_marks-0.2.0-py3-none-any.whl", revision: null },
           { url: "/artifact/PyMuPDF-1.24.12-cp311-abi3-emscripten_3_1_32_wasm32.whl", revision: null },
         ],
@@ -73,6 +135,9 @@ export default defineConfig({
         background_color: "#000000",
         theme_color: "#000000",
         orientation: "portrait",
+        launch_handler: {
+          client_mode: "navigate-existing"
+        },
         icons: [
           {
             src: "pwa-icons/wheel.svg",

@@ -20,7 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronRight, Archive } from "lucide-react";
+import { Download, Loader2, ChevronRight, Archive, Calculator } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -28,10 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Helmet } from 'react-helmet-async';
-import {
-  generate_local_name,
-  API,
-} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.16/dist/jsjiit.esm.js";
+import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import {
   getGradesFromCache,
   saveGradesToCache,
@@ -40,7 +38,6 @@ import {
 } from "@/components/scripts/cache";
 import GradeCard from "./GradeCard";
 import MarksCard from "./MarksCard";
-import CGPATargetCalculator from "./CGPATargetCalculator";
 
 const gradePointMap = {
   "A+": 10,
@@ -88,12 +85,15 @@ export default function Grades({
   marksLoading,
   setMarksLoading,
 }) {
+  const navigate = useNavigate();
   const { themeMode } = useTheme();
   const [isDownloading, setIsDownloading] = useState(false);
   const [mounted, setMounted] = useState(true);
   const [marksCacheTimestamp, setMarksCacheTimestamp] = useState(null);
   const [isMarksRefreshing, setIsMarksRefreshing] = useState(false);
   const [isMarksFromCache, setIsMarksFromCache] = useState(false);
+  const marksFetchInFlight = React.useRef(new Set());
+  const lastRefreshRef = React.useRef({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -218,9 +218,12 @@ export default function Grades({
         setIsMarksFromCache(true);
         setMarksLoading(false);
         
-        setIsMarksRefreshing(true);
-        await fetchFreshMarksData();
-        setIsMarksRefreshing(false);
+        const cacheTs = cached.timestamp || 0;
+        if (Date.now() - cacheTs > 10 * 60 * 1000) {
+          setIsMarksRefreshing(true);
+          await fetchFreshMarksData();
+          setIsMarksRefreshing(false);
+        }
         return;
       }
 
@@ -229,40 +232,43 @@ export default function Grades({
 
     const fetchFreshMarksData = async () => {
       try {
+        const regId = selectedMarksSem.registration_id;
+        if (marksFetchInFlight.current.has(regId)) {
+          return;
+        }
+        const last = lastRefreshRef.current[regId];
+        if (last && Date.now() - last < 10 * 60 * 1000) {
+          return;
+        }
+        marksFetchInFlight.current.add(regId);
         const ENDPOINT = `/studentsexamview/printstudent-exammarks/${w.session.instituteid}/${selectedMarksSem.registration_id}/${selectedMarksSem.registration_code}`;
-        const localname = await generate_local_name();
-        const headers = await w.session.get_headers(localname);
+        const headers = await w.session.get_headers();
 
-        const pyodide = await loadPyodide();
 
-        pyodide.globals.set("ENDPOINT", ENDPOINT);
-        pyodide.globals.set("fetchOptions", { method: "GET", headers });
-        pyodide.globals.set("API", API);
+        const { getPyodideWithPackages } = await import("@/lib/pyodide");
+        const tEnsureStart = performance.now();
+        const pyodide = await getPyodideWithPackages();
+        console.log(`pyodide:ensure: ${performance.now() - tEnsureStart} ms`);
 
+        const tFetchStart = performance.now();
+        const fetchRes = await fetch(API + ENDPOINT, { method: "GET", headers });
+        if (!fetchRes.ok) throw new Error("Failed to fetch marks PDF");
+        const arrayBuffer = await fetchRes.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        pyodide.globals.set("data", pyodide.toPy(uint8));
+        console.log(`marks:fetch-pdf: ${performance.now() - tFetchStart} ms`);
+
+        const tParseStart = performance.now();
         const res = await pyodide.runPythonAsync(`
-          import pyodide_js
-          import asyncio
-          import pyodide.http
-
-          marks = {}
-
-          async def process_pdf():
-              global marks
-              await pyodide_js.loadPackage("/artifact/PyMuPDF-1.24.12-cp311-abi3-emscripten_3_1_32_wasm32.whl")
-              await pyodide_js.loadPackage("/artifact/jiit_marks-0.2.0-py3-none-any.whl")
-
-              import pymupdf
-              from jiit_marks import parse_report
-
-              r = await pyodide.http.pyfetch(API+ENDPOINT, **(fetchOptions.to_py()))
-              data = await r.bytes()
-
-              doc = pymupdf.Document(stream=data)
-              marks = parse_report(doc)
-              return marks
-
-          await process_pdf()
+      import pymupdf
+      from jiit_marks import parse_report
+      doc = pymupdf.Document(stream=bytes(data))
+      marks = parse_report(doc)
+      marks
         `);
+        console.log(`marks:parse: ${performance.now() - tParseStart} ms`);
+
+        try { pyodide.globals.delete("data"); } catch(e) {}
 
         if (mounted) {
           const result = res.toJs({
@@ -281,6 +287,7 @@ export default function Grades({
           await saveToCache(cacheKey, result, 240);
           setMarksCacheTimestamp(Date.now());
           setIsMarksFromCache(false);
+          lastRefreshRef.current[regId] = Date.now();
         }
       } catch (error) {
         console.error("Failed to load marks:", error);
@@ -288,6 +295,7 @@ export default function Grades({
         if (mounted) {
           setMarksLoading(false);
         }
+        try { marksFetchInFlight.current.delete(selectedMarksSem.registration_id); } catch {}
       }
     };
 
@@ -648,10 +656,15 @@ export default function Grades({
                     transition={{ delay: 0.4 }}
                   >
                     <div className="grid grid-cols-3 gap-4">
-                      <CGPATargetCalculator 
-                        w={w}
-                        semesterData={semesterData}
-                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate("/gpa-calculator")}
+                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+                      >
+                        <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+                        <span className="text-xs font-medium text-center">GPA Calculator</span>
+                      </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

@@ -112,7 +112,7 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
           <Settings className="w-6 h-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="dark:bg-gray-50 bg-[#0B0D0D] border border-gray-800 dark:border-gray-200 text-white dark:text-black p-6 rounded-xl w-[calc(100vw-2rem)] max-w-md mx-auto">
+      <DialogContent className="dark:bg-gray-50 bg-[#0B0D0D] border border-gray-800 dark:border-gray-200 text-white dark:text-black p-6 rounded-lg w-[calc(100vw-2rem)] max-w-md mx-auto shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-white dark:text-black">Settings</DialogTitle>
         </DialogHeader>
@@ -223,7 +223,7 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             const image = profileData?.imagepath;
 
             return (
-              <div className="relative mx-4 -mb-2 pt-4 pb-6 px-4 bg-[#0D0D0D] dark:bg-gray-100 rounded-t-2xl border-x border-t border-gray-800 dark:border-gray-300 flex items-center gap-4 z-0">
+              <div className="relative mx-4 -mb-2 pt-4 pb-6 px-4 bg-[#0D0D0D] dark:bg-gray-100 rounded-t-lg border-x border-t border-gray-800 dark:border-gray-300 flex items-center gap-4 z-0 shadow-sm">
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700 dark:border-gray-300 flex-shrink-0">
                   {image ? (
                     <img src={`data:image/jpeg;base64,${image}`} alt="Profile" className="w-full h-full object-cover" />
@@ -238,19 +238,21 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             );
           })()}
 
-          <Button 
-            onClick={handleLogout} 
-            variant="destructive"
-            className="relative z-10 w-full bg-red-600 hover:bg-red-700 text-white border-red-600 rounded-xl shadow-lg"
-          >
-            <LogOut className="w-4 h-4 mr-2" /> 
-            Logout
-          </Button>
-          <div className="pt-3">
+          <div className="border-t border-gray-700 dark:border-gray-300 mx-4"></div>
+
+          <div className="px-4 space-y-3">
+            <Button 
+              onClick={handleLogout} 
+              variant="destructive"
+              className="relative z-10 w-full bg-red-600 hover:bg-red-700 text-white border-red-600 rounded-lg shadow-lg transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4 mr-2" /> 
+              Logout
+            </Button>
             <Button 
               onClick={() => setOpen(false)} 
               variant="outline"
-              className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black"
+              className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black rounded-lg transition-all duration-200"
             >
               Close
             </Button>

@@ -7,7 +7,6 @@ import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Helmet } from 'react-helmet-async';
 
-// API URL from jsjiit source
 const API = "https://webportal.jiit.ac.in:6011/StudentPortalAPI";
 
 // Encryption utilities from jsjiit
@@ -54,8 +53,8 @@ const Feedback = ({ w }) => {
   const [eventData, setEventData] = useState(null);
   const [gridData, setGridData] = useState([]);
   const [questionsData, setQuestionsData] = useState({});
-  const [ratings, setRatings] = useState({}); // {subjectid-facultyid-questionid: rating}
-  const [expandedSubjects, setExpandedSubjects] = useState({}); // {subjectid-facultyid: boolean}
+  const [ratings, setRatings] = useState({});
+  const [expandedSubjects, setExpandedSubjects] = useState({});
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('');
@@ -73,7 +72,7 @@ const Feedback = ({ w }) => {
     }
 
     try {
-      // Fetch feedback event
+      
       const SEMESTER_ENDPOINT = "/feedbackformcontroller/getFeedbackEvent";
       const payload = {
         instituteid: w.session.instituteid
@@ -81,12 +80,14 @@ const Feedback = ({ w }) => {
       const resp = await w.__hit("POST", API + SEMESTER_ENDPOINT, { json: payload, authenticated: true });
       let semesters = resp["response"]["eventList"];
       if (!semesters || semesters.length === 0) {
-        throw new Error('No feedback events found');
+        setMessage('No feedback available now. Please come back later.');
+        setFetching(false);
+        return;
       }
       let latest_semester = semesters[semesters.length - 1];
       setEventData(latest_semester);
 
-      // Fetch grid data
+      
       const GRID_ENDPOINT = "/feedbackformcontroller/getGriddataForFeedback";
       const grid_payload = await serialize_payload({
         instituteid: w.session.instituteid,
@@ -100,7 +101,7 @@ const Feedback = ({ w }) => {
       }
       setGridData(grid_data);
 
-      // Fetch questions for each subject/faculty
+      
       const GET_QUESTIONS_ENDPOINT = "/feedbackformcontroller/getIemQuestion";
       const questionsMap = {};
 
@@ -141,7 +142,7 @@ const Feedback = ({ w }) => {
 
       setQuestionsData(questionsMap);
 
-      // Set default ratings to "Excellent"
+      
       const defaultRatings = {};
       Object.entries(questionsMap).forEach(([key, data]) => {
         const { subject, questions, ratings: ratingOptions } = data;
@@ -227,7 +228,7 @@ const Feedback = ({ w }) => {
     const firstQuestion = firstSubject.questions[0];
     const firstRating = ratings[`${firstSubject.subject.subjectid}-${firstSubject.subject.employeeid}-${firstQuestion.questionid}`];
 
-    // Check if all questions across all subjects have the same rating
+    
     const allSame = Object.entries(questionsData).every(([key, data]) => {
       const { subject, questions } = data;
       return questions.every(question => 
@@ -364,8 +365,22 @@ const Feedback = ({ w }) => {
               <Loader2 className="w-8 h-8 animate-spin" />
               <span className="ml-2">Loading feedback form...</span>
             </div>
+          ) : message && !eventData && Object.keys(questionsData).length === 0 ? (
+            <div className="text-center py-12">
+              <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-8 max-w-md mx-auto">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
+                <h2 className="text-xl font-semibold text-white dark:text-black mb-2">Feedback Unavailable</h2>
+                <p className="text-gray-400 dark:text-gray-600 mb-4">{message}</p>
+                <Button 
+                  onClick={() => navigate(-1)}
+                  className="mt-6 bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-800"
+                >
+                  Go Back
+                </Button>
+              </div>
+            </div>
           ) : feedbackSubmitted ? (
-            // Already submitted view
+            
             <div className="text-center py-12">
               <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-8 max-w-md mx-auto">
                 <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
@@ -396,7 +411,7 @@ const Feedback = ({ w }) => {
                 </div>
               )}
 
-              {/* Global Rating Section */}
+              
               {Object.keys(questionsData).length > 0 && (
                 <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-4">
                   <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
@@ -470,7 +485,7 @@ const Feedback = ({ w }) => {
                         </div>
                       </div>
 
-                      {/* Quick Rating Section */}
+                      
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm font-medium text-white dark:text-black">
@@ -509,7 +524,7 @@ const Feedback = ({ w }) => {
                         </Select>
                       </div>
 
-                      {/* Individual Questions - Expandable */}
+                      
                       {expandedSubjects[`${subject.subjectid}-${subject.employeeid}`] && (
                         <div className="space-y-4 border-t border-gray-700 dark:border-gray-300 pt-4">
                           <Label className="text-sm font-medium text-white dark:text-black">
@@ -575,7 +590,7 @@ const Feedback = ({ w }) => {
         </div>
       </div>
 
-      {/* Status Dialog */}
+      
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 text-white dark:text-black">
           <DialogHeader>

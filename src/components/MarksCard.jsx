@@ -40,6 +40,15 @@ export default function MarksCard({ course, gradeInfo }) {
             <h3 className="font-bold text-sm sm:text-base md:text-lg dark:text-black mb-1">{course.name}</h3>
             <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-600">
               {course.code}
+              {!matchingGrade && (
+                <>
+                  {" "}
+                  <span className="mx-1">•</span>
+                  <span className="text-gray-300 dark:text-gray-700">
+                    {totalMarks.obtained}/{totalMarks.full}
+                  </span>
+                </>
+              )}
             </span>
           </div>
 
@@ -63,8 +72,8 @@ export default function MarksCard({ course, gradeInfo }) {
               </div>
               <div className="h-4 w-[1px] bg-gray-700 dark:bg-gray-300"></div>
               <div className="flex items-center gap-2">
-                <span className="text-base md:text-xl font-bold text-gray-300 dark:text-gray-700">{((totalMarks.obtained / totalMarks.full) * 100).toFixed(1)}%</span>
-                <span className="text-xs md:text-sm text-gray-400 dark:text-gray-600">{totalMarks.obtained}/{totalMarks.full}</span>
+                <span className="text-base md:text-xl font-bold text-gray-300 dark:text-gray-700">{totalMarks.obtained}/{totalMarks.full}</span>
+                <span className="text-xs md:text-sm text-gray-400 dark:text-gray-600">{((totalMarks.obtained / totalMarks.full) * 100).toFixed(1)}%</span>
               </div>
             </div>
           )}

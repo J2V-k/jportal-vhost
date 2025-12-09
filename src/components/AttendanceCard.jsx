@@ -24,7 +24,7 @@ const AttendanceCard = ({
   subjectAttendanceData,
   fetchSubjectAttendance,
 }) => {
-  const { name, attendance, combined, lecture, tutorial, practical, classesNeeded, classesCanMiss } = subject;
+  const { name, attendance, combined, lecture, tutorial, practical, classesNeeded, classesCanMiss, target } = subject;
   
   const parsedCombined = parseFloat(combined);
   const rawPercentage = attendance.total > 0
@@ -129,7 +129,7 @@ const AttendanceCard = ({
             <div className="text-sm max-[390px]:text-xs dark:text-black">{attendance.total}</div>
           </div>
           <div className="flex flex-col items-center">
-            <CircleProgress percentage={attendancePercentage} label={`${Math.round(attendancePercentage)}`} />
+            <CircleProgress percentage={attendancePercentage} label={`${Math.round(attendancePercentage)}`} target={typeof target === 'number' ? target : 75} />
             {classesNeeded > 0 ? (
               <div className="text-xs mt-1 text-gray-400 dark:text-gray-600">
                 Attend {classesNeeded}

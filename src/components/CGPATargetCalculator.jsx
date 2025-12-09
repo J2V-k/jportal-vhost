@@ -1,24 +1,16 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Calculator, Plus, Trash2, BookOpen, GraduationCap, Loader2, RefreshCw } from "lucide-react"
+import { Calculator, Plus, Trash2, BookOpen, GraduationCap, Loader2 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog"
-import { motion } from "framer-motion"
 
 export default function CGPATargetCalculator({ 
   w,
-  semesterData: sd = []
+  semesterData: sd = [],
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("sgpa");
   
   const [subjectSemesters, setSubjectSemesters] = useState([]);
@@ -44,12 +36,14 @@ export default function CGPATargetCalculator({
     ...initialSemesters,
     { g: "", c: lastCredits ? lastCredits.toString() : "" },
   ];
-  const [cgpaSemesters, setCgpaSemesters] = useState([{ g: "", c: "" }]);
+  const [cgpaSemesters, setCgpaSemesters] = useState(() => initialSemesters);
   const maxSemesters = 10;
 
   const [sgpaSubjects, setSgpaSubjects] = useState([]);
+  const [targetCgpa, setTargetCgpa] = useState("");
 
   useEffect(() => {
+    if (Array.isArray(sd) && sd.length > 0) return;
     const cached = localStorage.getItem('cgpaCalculatorSemesters');
     if (cached) {
       try {
@@ -61,7 +55,7 @@ export default function CGPATargetCalculator({
         console.error('Failed to parse cached CGPA semesters:', error);
       }
     }
-  }, []);
+  }, [sd]);
 
   useEffect(() => {
     localStorage.setItem('cgpaCalculatorSemesters', JSON.stringify(cgpaSemesters));
@@ -90,10 +84,10 @@ export default function CGPATargetCalculator({
   }, [selectedSemester, w]);
 
   useEffect(() => {
-    if (isOpen && activeTab === "sgpa" && w && subjectSemesters.length === 0) {
+    if (activeTab === "sgpa" && w && subjectSemesters.length === 0) {
       fetchSubjectSemesters();
     }
-  }, [isOpen, activeTab, w, subjectSemesters.length]);
+  }, [activeTab, w, subjectSemesters.length]);
 
   const fetchSubjectSemesters = async () => {
     setIsLoadingSemesters(true);
@@ -266,263 +260,325 @@ export default function CGPATargetCalculator({
       }
     });
     if (totalCredits === 0) return "-";
-    return (totalPoints / totalCredits).toFixed(2);
+    const cgpa = totalPoints / totalCredits;
+    const bounded = Math.min(10, Math.max(0, cgpa));
+    return bounded.toFixed(2);
   };
 
+  const calculateRequiredSGPA = () => {
+    const t = parseFloat(targetCgpa);
+    if (isNaN(t)) return "-";
+    let prevGradePoints = 0;
+    let prevCredits = 0;
+    if (sd && Array.isArray(sd)) {
+      sd.forEach(sem => {
+        const sgpa = parseFloat(sem.sgpa);
+        const credits = parseFloat(sem.totalcoursecredit);
+        if (!isNaN(sgpa) && !isNaN(credits)) {
+          prevGradePoints += sgpa * credits;
+          prevCredits += credits;
+        }
+      });
+    }
+    const nextIndex = Array.isArray(sd) ? sd.length : 0;
+    const nextCredits = parseFloat(cgpaSemesters[nextIndex]?.c);
+    if (isNaN(nextCredits) || nextCredits <= 0) return "-";
+    const required = (t * (prevCredits + nextCredits) - prevGradePoints) / nextCredits;
+    if (!isFinite(required)) return "-";
+    return required.toFixed(2);
+  };
+
+  
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
-        >
-          <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
-          <span className="text-xs font-medium text-center">GPA Calculator</span>
-        </motion.button>
-      </DialogTrigger>
-      <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl md:max-w-3xl lg:max-w-5xl max-h-[90vh] p-0 bg-black dark:bg-white text-white dark:text-black rounded-lg overflow-hidden z-50">
-        <DialogHeader className="sticky top-0 z-10 bg-gradient-to-r from-black to-black dark:from-white dark:to-white p-4 md:p-5 border-b border-gray-700 dark:border-gray-300 shadow-lg">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-white dark:text-black">
-              <div className="p-2 bg-white dark:bg-black rounded-lg">
-                <Calculator className="w-5 h-5 md:w-6 md:h-6 text-black dark:text-white" />
-              </div>
-              GPA Calculator
-            </DialogTitle>
-            <DialogClose asChild>
-              <Button variant="outline" className="h-9 md:h-10 px-4 md:px-6 text-sm md:text-base font-semibold bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all rounded-lg">
-                Close Calculator
-              </Button>
-            </DialogClose>
-          </div>
-        </DialogHeader>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mx-4 md:mx-6 mt-2 md:mt-2 bg-gradient-to-r from-black to-black dark:from-white dark:to-white h-11 md:h-13 rounded-xl border border-gray-600 dark:border-gray-400">
-            <TabsTrigger 
-              value="sgpa" 
-              className="flex items-center gap-2 text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-white data-[state=active]:to-white data-[state=active]:text-black dark:data-[state=active]:from-black dark:data-[state=active]:to-black dark:data-[state=active]:text-white text-gray-300 dark:text-gray-600 hover:text-white dark:hover:text-black transition-all rounded-lg m-1"
-            >
-              <BookOpen className="w-4 h-4" />
-              SGPA Calculator
-            </TabsTrigger>
-            <TabsTrigger 
-              value="cgpa"
-              className="flex items-center gap-2 text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-white data-[state=active]:to-white data-[state=active]:text-black dark:data-[state=active]:from-black dark:data-[state=active]:to-black dark:data-[state=active]:text-white text-gray-300 dark:text-gray-600 hover:text-white dark:hover:text-black transition-all rounded-lg m-1"
-            >
-              <GraduationCap className="w-4 h-4" />
-              CGPA Calculator
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="sgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 space-y-4 md:space-y-5 py-2">
-            <div className="space-y-3 md:space-y-4">
-              <Select onValueChange={handleSemesterChange} value={selectedSemester?.registration_id || ""}>
-                <SelectTrigger className="w-full md:max-w-sm h-11 md:h-12 bg-gradient-to-r from-black to-black dark:from-white dark:to-white text-white dark:text-black border-2 border-gray-600 dark:border-gray-400 hover:border-gray-400 dark:hover:border-gray-600 text-sm rounded-lg transition-all shadow-lg">
-                  <SelectValue placeholder={isLoadingSemesters ? "Loading semesters..." : "Choose your semester"} />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0B0B0D] dark:bg-white border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                  {subjectSemesters.map((semester) => (
-                    <SelectItem 
-                      key={semester.registration_id} 
-                      value={semester.registration_id}
-                      className="text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white focus:bg-white focus:text-black dark:focus:bg-black dark:focus:text-white"
-                    >
-                      {semester.registration_code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {isLoadingSemesters && (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-400 dark:text-gray-600">Loading semesters...</span>
+        <div className="w-full max-w-5xl mx-auto bg-black dark:bg-white text-white dark:text-black rounded-lg overflow-hidden">
+          <div className="sticky top-0 z-10 bg-gradient-to-r from-black to-black dark:from-white dark:to-white p-4 md:p-5 border-b border-gray-700 dark:border-gray-300 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-lg md:text-xl font-bold text-white dark:text-black">
+                <div className="p-2 bg-white dark:bg-black rounded-lg">
+                  <Calculator className="w-5 h-5 md:w-6 md:h-6 text-black dark:text-white" />
                 </div>
-              )}
+                GPA Calculator
+              </div>
+              <Button onClick={() => navigate(-1)} variant="outline" className="h-9 md:h-10 px-4 md:px-6 text-sm md:text-base font-semibold bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all rounded-lg">
+                Go Back
+              </Button>
             </div>
+          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-2 mx-4 md:mx-6 mt-2 md:mt-2 bg-gradient-to-r from-black to-black dark:from-white dark:to-white h-11 md:h-13 rounded-xl border border-gray-600 dark:border-gray-400">
+              <TabsTrigger 
+                value="sgpa" 
+                className="flex items-center gap-2 text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-white data-[state=active]:to-white data-[state=active]:text-black dark:data-[state=active]:from-black dark:data-[state=active]:to-black dark:data-[state=active]:text-white text-gray-300 dark:text-gray-600 hover:text-white dark:hover:text-black transition-all rounded-lg m-1"
+              >
+                <BookOpen className="w-4 h-4" />
+                SGPA Calculator
+              </TabsTrigger>
+              <TabsTrigger 
+                value="cgpa"
+                className="flex items-center gap-2 text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-white data-[state=active]:to-white data-[state=active]:text-black dark:data-[state=active]:from-black dark:data-[state=active]:to-black dark:data-[state=active]:text-white text-gray-300 dark:text-gray-600 hover:text-white dark:hover:text-black transition-all rounded-lg m-1"
+              >
+                <GraduationCap className="w-4 h-4" />
+                CGPA Calculator
+              </TabsTrigger>
+            </TabsList>
 
-            {selectedSemester && (
-              <>
-                {isLoadingSubjects ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                    <span className="ml-2 text-sm text-gray-400 dark:text-gray-600">Loading subjects...</span>
-                  </div>
-                ) : sgpaSubjects.length > 0 ? (
-                  <>
-                    <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
-                      {sgpaSubjects.map((subject, index) => (
-                        <div key={index} className="bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-700 dark:border-gray-300 hover:border-gray-600 dark:hover:border-gray-400 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm md:text-base font-medium text-white dark:text-black mb-2">
-                                {subject.name}
-                              </div>
-                              <div className="flex items-center gap-3 text-xs md:text-sm">
-                                <span className="px-2 py-1 bg-gray-800 dark:bg-gray-200 text-gray-300 dark:text-gray-700 rounded text-xs font-medium">{subject.code}</span>
-                                <span className="text-gray-400 dark:text-gray-600">{subject.credits} credits</span>
-                              </div>
-                            </div>
-                            <div className="flex-shrink-0 w-20 md:w-24">
-                              <Select 
-                                value={subject.grade} 
-                                onValueChange={(grade) => handleGradeChange(index, grade)}
-                              >
-                                  <SelectTrigger className="w-full h-9 md:h-10 bg-[#000000] dark:bg-white text-white dark:text-black border-gray-600 dark:border-gray-400 text-sm font-medium">
-                                  <SelectValue placeholder="Grade" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#0B0B0D] dark:bg-white border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                                  {gradeOptions.map(grade => (
-                                    <SelectItem 
-                                      key={grade} 
-                                      value={grade}
-                                      className="text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white focus:bg-white focus:text-black dark:focus:bg-black dark:focus:text-white"
-                                    >
-                                      {grade}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-6 space-y-3">
-                    
-
-        
-                      <div className="p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between max-w-md mx-auto">
-                        <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Calculated SGPA</span>
-                        <span className={`text-2xl md:text-3xl font-bold ${
-                          calculateSGPA() !== "-" && parseFloat(calculateSGPA()) < 6 
-                            ? "text-red-500 dark:text-red-600" 
-                            : "text-white dark:text-black"
-                        }`}>
-                          {calculateSGPA()}
-                        </span>
-                      </div>
-                      <div className="p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between max-w-md mx-auto">
-                        <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Projected CGPA</span>
-                        <span className={`text-2xl md:text-3xl font-bold ${
-                          calculateProjectedCGPA() !== "-" && parseFloat(calculateProjectedCGPA()) < 6 
-                            ? "text-red-500 dark:text-red-600" 
-                            : "text-white dark:text-black"
-                        }`}>
-                          {calculateProjectedCGPA()}
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400 dark:text-gray-600">
-                      No subjects found for this semester
-                    </p>
+            <TabsContent value="sgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 space-y-4 md:space-y-5 py-2">
+              <div className="space-y-3 md:space-y-4">
+                <Select onValueChange={handleSemesterChange} value={selectedSemester?.registration_id || ""}>
+                  <SelectTrigger className="w-full md:max-w-sm h-11 md:h-12 bg-gradient-to-r from-black to-black dark:from-white dark:to-white text-white dark:text-black border-2 border-gray-600 dark:border-gray-400 hover:border-gray-400 dark:hover:border-gray-600 text-sm rounded-lg transition-all shadow-lg">
+                    <SelectValue placeholder={isLoadingSemesters ? "Loading semesters..." : "Choose your semester"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0B0B0D] dark:bg-white border-gray-700 dark:border-gray-300 text-white dark:text-black">
+                    {subjectSemesters.map((semester) => (
+                      <SelectItem 
+                        key={semester.registration_id} 
+                        value={semester.registration_id}
+                        className="text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white focus:bg-white focus:text-black dark:focus:bg-black dark:focus:text-white"
+                      >
+                        {semester.registration_code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isLoadingSemesters && (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    <span className="ml-2 text-sm text-gray-400 dark:text-gray-600">Loading semesters...</span>
                   </div>
                 )}
-              </>
-            )}
-          </TabsContent>
-
-          <TabsContent value="cgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 space-y-4 md:space-y-6">
-            <div className="flex flex-col gap-4 md:gap-6">
-              <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
-                {cgpaSemesters.map((sem, i) => (
-                  <div key={i} className={`bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-3 md:p-4 border transition-colors ${
-                    i < (sd?.length || 0) 
-                      ? "border-blue-700 dark:border-blue-300 bg-blue-900/10 dark:bg-blue-50/10" 
-                      : "border-gray-700 dark:border-gray-300 hover:border-gray-600 dark:hover:border-gray-400"
-                  }`}>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0">
-                        <label className="block text-sm md:text-base font-medium text-white dark:text-black">
-                          Sem {i + 1} {i < (sd?.length || 0) ? "(Previous)" : ""}
-                        </label>
-                      </div>
-                      <div className="flex-1 grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs md:text-sm text-gray-400 dark:text-gray-600 mb-1">SGPA</label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="10"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={sem.g}
-                            onChange={e => handleCgpaChange(i, "g", e.target.value)}
-                            className={`h-8 md:h-9 text-xs md:text-sm ${
-                              i < (sd?.length || 0)
-                                ? "bg-blue-900/30 dark:bg-blue-50/30 border-blue-600 dark:border-blue-400 text-blue-100 dark:text-blue-900"
-                                : "bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black"
-                            }`}
-                            inputMode="decimal"
-                            readOnly={i < (sd?.length || 0)}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs md:text-sm text-gray-400 dark:text-gray-600 mb-1">Credits</label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="40"
-                            step="0.01"
-                            placeholder="0"
-                            value={sem.c}
-                            onChange={e => handleCgpaChange(i, "c", e.target.value)}
-                            className={`h-8 md:h-9 text-xs md:text-sm ${
-                              i < (sd?.length || 0)
-                                ? "bg-blue-900/30 dark:bg-blue-50/30 border-blue-600 dark:border-blue-400 text-blue-100 dark:text-blue-900"
-                                : "bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black"
-                            }`}
-                            inputMode="decimal"
-                            readOnly={i < (sd?.length || 0)}
-                          />
-                        </div>
-                      </div>
-                      {i === cgpaSemesters.length - 1 && cgpaSemesters.length > 1 && i >= (sd?.length || 0) && (
-                        <div className="flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-gray-400 hover:text-red-500"
-                            onClick={() => removeSemester(i)}
-                            aria-label="Remove semester"
-                            type="button"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      )}
+              </div>
+              {selectedSemester && (
+                <>
+                  {isLoadingSubjects ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                      <span className="ml-2 text-sm text-gray-400 dark:text-gray-600">Loading subjects...</span>
                     </div>
+                  ) : sgpaSubjects.length > 0 ? (
+                    <>
+                      <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
+                        {sgpaSubjects.map((subject, index) => (
+                          <div key={index} className="bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-700 dark:border-gray-300 hover:border-gray-600 dark:hover:border-gray-400 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm md:text-base font-medium text-white dark:text-black mb-2">
+                                  {subject.name}
+                                </div>
+                                <div className="flex items-center gap-3 text-xs md:text-sm">
+                                  <span className="px-2 py-1 bg-gray-800 dark:bg-gray-200 text-gray-300 dark:text-gray-700 rounded text-xs font-medium">{subject.code}</span>
+                                  <span className="text-gray-400 dark:text-gray-600">{subject.credits} credits</span>
+                                </div>
+                              </div>
+                              <div className="flex-shrink-0 w-20 md:w-24">
+                                <Select 
+                                  value={subject.grade} 
+                                  onValueChange={(grade) => handleGradeChange(index, grade)}
+                                >
+                                    <SelectTrigger className="w-full h-9 md:h-10 bg-[#000000] dark:bg-white text-white dark:text-black border-gray-600 dark:border-gray-400 text-sm font-medium">
+                                    <SelectValue placeholder="Grade" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-[#0B0B0D] dark:bg-white border-gray-700 dark:border-gray-300 text-white dark:text-black">
+                                    {gradeOptions.map(grade => (
+                                      <SelectItem 
+                                        key={grade} 
+                                        value={grade}
+                                        className="text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover=text-white focus:bg-white focus:text-black dark:focus:bg-black dark:focus=text-white"
+                                      >
+                                        {grade}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <div className="p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between w-full">
+                          <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Calculated SGPA</span>
+                          <span className={`text-2xl md:text-3xl font-bold ${
+                            calculateSGPA() !== "-" && parseFloat(calculateSGPA()) < 6 
+                              ? "text-red-500 dark:text-red-600" 
+                              : "text-white dark:text-black"
+                          }`}>
+                            {calculateSGPA()}
+                          </span>
+                        </div>
+                        <div className="p-4 md:p-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between w-full">
+                          <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Projected CGPA</span>
+                          <span className={`text-2xl md:text-3xl font-bold ${
+                            calculateProjectedCGPA() !== "-" && parseFloat(calculateProjectedCGPA()) < 6 
+                              ? "text-red-500 dark:text-red-600" 
+                              : "text-white dark:text-black"
+                          }`}>
+                            {calculateProjectedCGPA()}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 dark:text-gray-600">
+                        No subjects found for this semester
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </TabsContent>
+
+            <TabsContent value="cgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 space-y-4 md:space-y-6">
+              <div className="flex flex-col gap-4 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 md:p-4 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
+                    <label className="w-40 text-sm md:text-base text-gray-400 dark:text-gray-600">Target CGPA (next)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.01"
+                      placeholder="e.g. 8.50"
+                      value={targetCgpa}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^\d.]/g, "");
+                        if (raw === "") { setTargetCgpa(""); return; }
+                        let n = parseFloat(raw);
+                        if (isNaN(n)) { setTargetCgpa(""); return; }
+                        if (n > 10) n = 10;
+                        if (n < 0) n = 0;
+                        setTargetCgpa(n.toString());
+                      }}
+                      className="h-9 md:h-10 text-sm md:text-base bg-[#0B0B0D] dark:bg-white border-gray-700 dark:border-gray-300 text-white dark:text-black"
+                      inputMode="decimal"
+                    />
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center justify-between p-3 md:p-4 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
+                    <span className="text-sm md:text-base text-gray-400 dark:text-gray-600">Required SGPA (next)</span>
+                    {(() => {
+                      const req = calculateRequiredSGPA();
+                      const n = parseFloat(req);
+                      const impossible = !isNaN(n) && (n > 10 || n < 0);
+                      if (req === "-" || isNaN(n)) {
+                        return <span className="text-white dark:text-black text-xl md:text-2xl font-bold">-</span>;
+                      }
+                      if (impossible) {
+                        return <span className="text-red-500 dark:text-red-600 text-sm md:text-base font-semibold">Impossible</span>;
+                      }
+                      const bounded = Math.min(10, Math.max(0, n));
+                      return (
+                        <span className="text-white dark:text-black text-xl md:text-2xl font-bold">
+                          {bounded.toFixed(2)}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <div className="relative my-1 md:my-2">
+                  <div className="h-px w-full bg-gray-700 dark:bg-gray-300"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2">
+                    <span className="px-2 text-xs md:text-sm text-gray-400 dark:text-gray-600 bg-black dark:bg-white">OR</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm md:text-base font-semibold text-white dark:text-black">Long-term Planner</h3>
+                </div>
+
+                <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
+                  {cgpaSemesters.map((sem, i) => (
+                    <div key={i} className={`bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-3 md:p-4 border transition-colors ${
+                      i < (sd?.length || 0) 
+                        ? "border-blue-700 dark:border-blue-300 bg-blue-900/10 dark:bg-blue-50/10" 
+                        : "border-gray-700 dark:border-gray-300 hover:border-gray-600 dark:hover:border-gray-400"
+                    }`}>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          <label className="block text-sm md:text-base font-medium text-white dark:text-black">
+                            Sem {i + 1} {i < (sd?.length || 0) ? "(Previous)" : ""}
+                          </label>
+                        </div>
+                        <div className="flex-1 grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs md:text-sm text-gray-400 dark:text-gray-600 mb-1">SGPA</label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="10"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={sem.g}
+                              onChange={e => handleCgpaChange(i, "g", e.target.value)}
+                              className={`h-8 md:h-9 text-xs md:text-sm ${
+                                i < (sd?.length || 0)
+                                  ? "bg-blue-900/30 dark:bg-blue-50/30 border-blue-600 dark:border-blue-400 text-blue-100 dark:text-blue-900"
+                                  : "bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black"
+                              }`}
+                              inputMode="decimal"
+                              readOnly={i < (sd?.length || 0)}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs md:text-sm text-gray-400 dark:text-gray-600 mb-1">Credits</label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="40"
+                              step="0.01"
+                              placeholder="0"
+                              value={sem.c}
+                              onChange={e => handleCgpaChange(i, "c", e.target.value)}
+                              className={`h-8 md:h-9 text-xs md:text-sm ${
+                                i < (sd?.length || 0)
+                                  ? "bg-blue-900/30 dark:bg-blue-50/30 border-blue-600 dark:border-blue-400 text-blue-100 dark:text-blue-900"
+                                  : "bg-[#000000] dark:bg-white border-gray-600 dark:border-gray-400 text-white dark:text-black"
+                              }`}
+                              inputMode="decimal"
+                              readOnly={i < (sd?.length || 0)}
+                            />
+                          </div>
+                        </div>
+                        {i === cgpaSemesters.length - 1 && cgpaSemesters.length > 1 && i >= (sd?.length || 0) && (
+                          <div className="flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-gray-400 hover:text-red-500"
+                              onClick={() => removeSemester(i)}
+                              aria-label="Remove semester"
+                              type="button"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mt-6">
+                  <div className="flex justify-center md:justify-start w-full md:w-auto">
+                    <Button
+                      variant="outline"
+                      className="flex items-center justify-center gap-2 bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 px-6 md:px-8 h-10 md:h-11 text-sm md:text-base font-semibold rounded-lg transition-all w-full md:w-auto"
+                      onClick={addSemester}
+                      disabled={cgpaSemesters.length >= maxSemesters}
+                      type="button"
+                    >
+                      <Plus className="w-4 h-4 md:w-5 md:h-5" /> Add Semester
+                    </Button>
+                  </div>
               
-              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mt-6">
-                <div className="flex justify-center md:justify-start w-full md:w-auto">
-                  <Button
-                    variant="outline"
-                    className="flex items-center justify-center gap-2 bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 px-6 md:px-8 h-10 md:h-11 text-sm md:text-base font-semibold rounded-lg transition-all w-full md:w-auto"
-                    onClick={addSemester}
-                    disabled={cgpaSemesters.length >= maxSemesters}
-                    type="button"
-                  >
-                    <Plus className="w-4 h-4 md:w-5 md:h-5" /> Add Semester
-                  </Button>
-                </div>
-                
-                <div className="flex-1 h-10 md:h-11 px-4 md:px-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between w-full">
-                  <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Calculated CGPA</span>
-                  <span className="text-xl md:text-2xl font-bold text-white dark:text-black">{calculateCGPA()}</span>
+                  <div className="flex-1 h-10 md:h-11 px-4 md:px-5 rounded-lg bg-[#000000] dark:bg-gray-50 border border-gray-700 dark:border-gray-300 flex items-center justify-between w-full">
+                    <span className="text-sm md:text-base text-gray-400 dark:text-gray-600 font-medium">Calculated CGPA</span>
+                    <span className="text-xl md:text-2xl font-bold text-white dark:text-black">{calculateCGPA()}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-}
+            </TabsContent>
+          </Tabs>
+        </div>
+      );
+  }

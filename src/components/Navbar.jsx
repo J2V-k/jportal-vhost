@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom"
 import { ClipboardList } from "lucide-react"
 import { motion } from "framer-motion"
-import { Calendar, User, Book, FileText, ChartSpline } from "lucide-react"
+import { Calendar, User, Book, FileText, ChartSpline, MessageSquare, Calculator } from "lucide-react"
 import InstallPWA from "./InstallPWA"
 
 const navItems = [
@@ -15,12 +15,19 @@ const navItems = [
 const desktopNavItems = [
   { name: "Attendance", path: "/attendance", icon: ClipboardList },
   { name: "Grades", path: "/grades", icon: ChartSpline },
+  { name: "GPA Calculator", path: "/gpa-calculator", icon: Calculator },
   { name: "Exams", path: "/exams", icon: FileText },
   { name: "Subjects", path: "/subjects", icon: Book },
   { name: "Fee", path: "/fee", icon: FileText },
   { name: "Academic Calendar", path: "/academic-calendar", icon: Calendar },
   { name: "Profile", path: "/profile", icon: User },
 ]
+
+const currentMonth = new Date().getMonth()
+const showFeedbackButton = currentMonth === 4 || currentMonth === 11
+const desktopNavItemsWithFeedback = showFeedbackButton 
+  ? [...desktopNavItems, { name: "Faculty Feedback", path: "/feedback", icon: MessageSquare }]
+  : desktopNavItems
 
 export default function Navbar() {
   const location = useLocation()
@@ -90,7 +97,7 @@ export default function Navbar() {
         </div>
         
         <ul className="flex-1 px-3 py-4 space-y-2">
-          {desktopNavItems.map((item) => {
+          {desktopNavItemsWithFeedback.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
             return (
