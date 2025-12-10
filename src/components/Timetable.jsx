@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Loader2, ArrowLeft } from "lucide-react";
+import { Calendar, Loader2, ArrowLeft, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -216,8 +216,9 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
+              <RefreshCw className="w-4 h-4" />
               Retry
             </button>
           </div>

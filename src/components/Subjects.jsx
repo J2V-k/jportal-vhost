@@ -5,7 +5,7 @@ import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Loader2, Calendar, Eye, ArrowLeft } from "lucide-react"
+import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks } from "lucide-react"
 
 export default function Subjects({
   w,
@@ -223,14 +223,16 @@ export default function Subjects({
         <TabsList className="grid grid-cols-2 bg-[#0B0B0D] dark:bg-gray-100 gap-3 mt-4">
           <TabsTrigger
             value="registered"
-            className="cursor-pointer text-gray-400 dark:text-gray-600 bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:text-black dark:data-[state=active]:text-white transition-colors"
+            className="cursor-pointer text-gray-400 dark:text-gray-600 bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:text-black dark:data-[state=active]:text-white transition-colors flex items-center gap-2"
           >
+            <BookOpen className="w-4 h-4" />
             Registered
           </TabsTrigger>
           <TabsTrigger
             value="choices"
-            className="cursor-pointer text-gray-400 dark:text-gray-600 bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:text-black dark:data-[state=active]:text-white transition-colors"
+            className="cursor-pointer text-gray-400 dark:text-gray-600 bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:text-black dark:data-[state=active]:text-white transition-colors flex items-center gap-2"
           >
+            <ListChecks className="w-4 h-4" />
             Choices
           </TabsTrigger>
         </TabsList>

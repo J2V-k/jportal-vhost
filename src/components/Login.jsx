@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js"
-import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff } from "lucide-react"
+import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff, Smartphone } from "lucide-react"
 import MessMenu from "./MessMenu"
-import AcademicCalendarDialog from "./AcademicCalendarDialog"
 import ThemeBtn from "./ui/ThemeBtn"
 
 const formSchema = z.object({
@@ -132,8 +131,9 @@ export default function Login({ onLoginSuccess, w }) {
             <div className="w-full max-w-md mb-4">
               <button
                 onClick={handleInstallClick}
-                className="w-full bg-[#0B0D0D] border border-white/20 text-white py-2 rounded-lg font-semibold hover:bg-[#1A1A1D] transition-colors"
+                className="w-full bg-[#0B0D0D] border border-white/20 text-white py-2 rounded-lg font-semibold hover:bg-[#1A1A1D] transition-colors flex items-center justify-center gap-2"
               >
+                <Smartphone className="w-4 h-4" />
                 Install as an App
               </button>
             </div>
@@ -227,11 +227,9 @@ export default function Login({ onLoginSuccess, w }) {
                     <UtensilsCrossed size={18} /> Mess Menu
                   </button>
                 </MessMenu>
-                <AcademicCalendarDialog>
-                  <button className="flex items-center justify-center px-4 py-2 bg-blue-600/20 dark:bg-blue-100 border border-blue-500/30 dark:border-blue-300 text-blue-400 dark:text-blue-700 hover:bg-blue-700/40 dark:hover:bg-blue-50 hover:text-blue-200 dark:hover:text-blue-600 transition-colors rounded-lg text-sm font-medium gap-2">
-                    <Calendar size={18} /> Academic Calendar
-                  </button>
-                </AcademicCalendarDialog>
+                <a href="#/academic-calendar" className="flex items-center justify-center px-4 py-2 bg-blue-600/20 dark:bg-blue-100 border border-blue-500/30 dark:border-blue-300 text-blue-400 dark:text-blue-700 hover:bg-blue-700/40 dark:hover:bg-blue-50 hover:text-blue-200 dark:hover:text-blue-600 transition-colors rounded-lg text-sm font-medium gap-2">
+                  <Calendar size={18} /> Academic Calendar
+                </a>
               </div>
             </div>
           </div>

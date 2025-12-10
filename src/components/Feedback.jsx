@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, CheckCircle, AlertCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, MessageSquare, CheckCircle, AlertCircle, Loader2, ChevronDown, ChevronUp, Shuffle, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
@@ -184,7 +184,7 @@ const Feedback = ({ w }) => {
       });
       setRatings(newRatings);
     }
-    setRandomized(false); // Reset randomized state when manually changed
+    setRandomized(false);
   };
 
   const handleGlobalRatingChange = (rating) => {
@@ -197,7 +197,7 @@ const Feedback = ({ w }) => {
       });
     });
     setRatings(newRatings);
-    setRandomized(false); // Reset randomized state when manually changed
+    setRandomized(false);
   };
 
   const toggleSubjectExpansion = (subjectId, facultyId) => {
@@ -370,13 +370,16 @@ const Feedback = ({ w }) => {
               <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-8 max-w-md mx-auto">
                 <AlertCircle className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
                 <h2 className="text-xl font-semibold text-white dark:text-black mb-2">Feedback Unavailable</h2>
-                <p className="text-gray-400 dark:text-gray-600 mb-4">{message}</p>
-                <Button 
-                  onClick={() => navigate(-1)}
-                  className="mt-6 bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-800"
-                >
-                  Go Back
-                </Button>
+                <p className="text-gray-400 dark:text-gray-600 mb-6">{message}</p>
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={() => navigate(-1)}
+                    className="bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Go Back
+                  </Button>
+                </div>
               </div>
             </div>
           ) : feedbackSubmitted ? (
@@ -392,8 +395,9 @@ const Feedback = ({ w }) => {
                 </p>
                 <Button 
                   onClick={() => navigate(-1)}
-                  className="mt-6 bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100"
+                  className="mt-6 bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 flex items-center gap-2"
                 >
+                  <ArrowLeft className="w-4 h-4" />
                   Go Back
                 </Button>
               </div>
@@ -450,8 +454,9 @@ const Feedback = ({ w }) => {
                         variant="outline"
                         size="sm"
                         onClick={randomizeRatings}
-                        className="ml-2 text-black dark:text-white border-gray-600 dark:border-gray-300 hover:dark:bg-gray-800 hover:bg-gray-200"
+                        className="ml-2 text-black dark:text-white border-gray-600 dark:border-gray-300 hover:dark:bg-gray-800 hover:bg-gray-200 flex items-center gap-2"
                       >
+                        <Shuffle className="w-4 h-4" />
                         Randomize Fill
                       </Button>
                     </div>
@@ -624,16 +629,18 @@ const Feedback = ({ w }) => {
               {dialogType === 'already_submitted' ? (
                 <Button 
                   onClick={() => navigate(-1)}
-                  className="bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100"
+                  className="bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 flex items-center gap-2"
                 >
+                  <ArrowLeft className="w-4 h-4" />
                   Go Back
                 </Button>
               ) : (
                 <Button 
                   onClick={() => setDialogOpen(false)}
                   variant="outline"
-                  className="bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black"
+                  className="bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black flex items-center gap-2"
                 >
+                  <X className="w-4 h-4" />
                   Close
                 </Button>
               )}

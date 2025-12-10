@@ -13,7 +13,7 @@ import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
-import { Settings, LogOut, Trash2 } from 'lucide-react';
+import { Settings, LogOut, Trash2, Sun, Moon, X, Smartphone } from 'lucide-react';
 
 const TABS = [
   { key: '/attendance', label: 'Attendance' },
@@ -114,7 +114,10 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
       </DialogTrigger>
       <DialogContent className="dark:bg-gray-50 bg-[#0B0D0D] border border-gray-800 dark:border-gray-200 text-white dark:text-black p-6 rounded-lg w-[calc(100vw-2rem)] max-w-md mx-auto shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-white dark:text-black">Settings</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-white dark:text-black flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Settings
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
@@ -126,14 +129,16 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
                 <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
                   <TabsTrigger 
                     value="dark" 
-                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black"
+                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
                   >
+                    <Sun className="w-3 h-3" />
                     Light
                   </TabsTrigger>
                   <TabsTrigger 
                     value="light" 
-                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black"
+                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
                   >
+                    <Moon className="w-3 h-3" />
                     Dark
                   </TabsTrigger>
                 </TabsList>
@@ -189,7 +194,9 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             </div>
 
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">Target attendance %</Label>
+              <Label className="text-sm font-medium text-white dark:text-black">
+                Target attendance %
+              </Label>
               <Input
                 type="number"
                 value={attendanceGoal}
@@ -252,8 +259,9 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             <Button 
               onClick={() => setOpen(false)} 
               variant="outline"
-              className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black rounded-lg transition-all duration-200"
+              className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
             >
+              <X className="w-4 h-4" />
               Close
             </Button>
           </div>

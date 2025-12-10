@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { motion } from "framer-motion";
-import { Coffee, UtensilsCrossed, Moon, Calendar } from "lucide-react";
+import { Sunrise, Sun, Sunset, Calendar, ChefHat, History } from "lucide-react";
 
 const dayMapping = [
   "Sunday",
@@ -123,7 +123,7 @@ const isMenuCurrent = (menuData) => {
 const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
   <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
     <div className="bg-[#0B0B0D] dark:bg-[#F9FAFB] p-6 rounded-lg border border-gray-700 dark:border-gray-300 shadow-lg">
-      <UtensilsCrossed size={50} className="text-white dark:text-black mx-auto mb-4 opacity-25" />
+      <ChefHat size={50} className="text-white dark:text-black mx-auto mb-4 opacity-25" />
       <h3 className="text-xl sm:text-2xl font-semibold text-white dark:text-black mb-2">
         Menu Currently Unavailable
       </h3>
@@ -132,8 +132,9 @@ const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
       </p>
       <button
         onClick={onViewOldMenu}
-        className="px-4 py-2 bg-[#1A1A1D] dark:bg-[#EDF2F7] text-white dark:text-black rounded-md hover:bg-[#2D2D30] dark:hover:bg-[#E2E8F0] transition-colors"
+        className="px-4 py-2 bg-[#1A1A1D] dark:bg-[#EDF2F7] text-white dark:text-black rounded-md hover:bg-[#2D2D30] dark:hover:bg-[#E2E8F0] transition-colors flex items-center gap-2"
       >
+        <History className="w-4 h-4" />
         View Old Menu Anyway
       </button>
     </div>
@@ -260,7 +261,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
               <div className="grid grid-cols-1 gap-3 sm:gap-4">
                 <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <Coffee size={16} className="text-white dark:text-black" />
+                    <Sunrise size={16} className="text-white dark:text-black" />
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Breakfast
                     </h4>
@@ -279,7 +280,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
 
                 <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <UtensilsCrossed size={16} className="text-white dark:text-black" />
+                    <Sun size={16} className="text-white dark:text-black" />
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Lunch
                     </h4>
@@ -298,7 +299,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
 
                 <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <Moon size={16} className="text-white dark:text-black" />
+                    <Sunset size={16} className="text-white dark:text-black" />
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Dinner
                     </h4>
@@ -332,19 +333,19 @@ const MessMenu = ({ children, open, onOpenChange }) => {
             </TableHead>
             <TableHead className="font-bold text-white dark:text-black">
               <div className="flex items-center gap-2">
-                <Coffee size={16} className="text-white dark:text-black" />
+                <Sunrise size={16} className="text-white dark:text-black" />
                 <span>Breakfast</span>
               </div>
             </TableHead>
             <TableHead className="font-bold text-white dark:text-black">
               <div className="flex items-center gap-2">
-                <UtensilsCrossed size={16} className="text-white dark:text-black" />
+                <Sun size={16} className="text-white dark:text-black" />
                 <span>Lunch</span>
               </div>
             </TableHead>
             <TableHead className="font-bold text-white dark:text-black">
               <div className="flex items-center gap-2">
-                <Moon size={16} className="text-white dark:text-black" />
+                <Sunset size={16} className="text-white dark:text-black" />
                 <span>Dinner</span>
               </div>
             </TableHead>
@@ -438,7 +439,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
       <DialogContent className="w-[85vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-y-auto bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black rounded-lg mx-auto border border-gray-700 dark:border-gray-300 shadow-lg p-3 sm:p-4">
         <DialogHeader className="border-b border-gray-700 dark:border-gray-300 pb-2">
           <DialogTitle className="text-white dark:text-black flex items-center gap-2 text-base sm:text-lg">
-            <UtensilsCrossed size={18} className="text-white dark:text-black" />
+            <ChefHat size={18} className="text-white dark:text-black" />
             Mess Menu
             {!menuAvailable && forceShowMenu && (
               <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Outdated</span>
@@ -486,7 +487,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                   tabIndex={0}
                 >
                   <span className="text-xs sm:text-sm font-medium">Daily</span>
-                  <UtensilsCrossed
+                  <Calendar
                     size={16}
                     className={
                       view === "daily"

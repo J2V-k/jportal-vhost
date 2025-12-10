@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, Receipt, Hash, BookOpen, GitBranch, Calendar, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -157,9 +157,9 @@ export default function Fee({ w, serialize_payload }) {
   return (
     <>
       <Helmet>
-        <title>Fee Details - JP_Portal | JIIT Student Portal</title>
+        <title>Fee Details - JP Portal | JIIT Student Portal</title>
         <meta name="description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:title" content="Fee Details - JP_Portal | Unofficial JIIT Student Portal" />
+        <meta property="og:title" content="Fee Details - JP Portal | Unofficial JIIT Student Portal" />
         <meta property="og:description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
         <meta property="og:url" content="https://jportal2-0.vercel.app/fee" />
         <link rel="canonical" href="https://jportal2-0.vercel.app/fee" />
@@ -191,29 +191,47 @@ export default function Fee({ w, serialize_payload }) {
                   <div className="bg-[#0B0B0D] dark:bg-white rounded-lg p-4 border border-gray-600 dark:border-gray-300 shadow-lg">
                     <h4 className="text-lg font-semibold text-gray-200 dark:text-gray-800 mb-3">{feeData.studentInfo[0].name}</h4>
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400 dark:text-gray-600">Enrollment:</span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Hash className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                          <span className="text-gray-400 dark:text-gray-600">Enrollment:</span>
+                        </div>
                         <span className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].enrollmentno}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400 dark:text-gray-600">Program:</span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                          <span className="text-gray-400 dark:text-gray-600">Program:</span>
+                        </div>
                         <span className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].programdesc}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400 dark:text-gray-600">Branch:</span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <GitBranch className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                          <span className="text-gray-400 dark:text-gray-600">Branch:</span>
+                        </div>
                         <span className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].branchdesc}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400 dark:text-gray-600">Year:</span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                          <span className="text-gray-400 dark:text-gray-600">Year:</span>
+                        </div>
                         <span className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].academicyear}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400 dark:text-gray-600">Semester:</span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                          <span className="text-gray-400 dark:text-gray-600">Semester:</span>
+                        </div>
                         <span className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].stynumber}</span>
                       </div>
                       <div className="pt-2 border-t border-gray-600 dark:border-gray-300">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-400 dark:text-gray-600">Quota:</span>
+                          <div className="flex items-center gap-2">
+                            <Tag className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                            <span className="text-gray-400 dark:text-gray-600">Quota:</span>
+                          </div>
                           <span className="text-gray-200 dark:text-gray-800 font-semibold bg-gray-700 dark:bg-gray-200 px-2 py-1 rounded-full text-xs">{feeData.studentInfo[0].quotacode}</span>
                         </div>
                       </div>
@@ -256,7 +274,7 @@ export default function Fee({ w, serialize_payload }) {
                       </>
                     ) : (
                       <>
-                        <FileText className="w-5 h-5" />
+                        <Receipt className="w-5 h-5" />
                         <span>Download Fee Demand Report</span>
                       </>
                     )}
@@ -369,27 +387,45 @@ export default function Fee({ w, serialize_payload }) {
                   <h4 className="text-base font-semibold text-gray-200 dark:text-gray-800 mb-3">{feeData.studentInfo[0].name}</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-400 dark:text-gray-600 text-xs">Enrollment</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Hash className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+                        <span className="text-gray-400 dark:text-gray-600 text-xs">Enrollment</span>
+                      </div>
                       <p className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].enrollmentno}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400 dark:text-gray-600 text-xs">Program</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <BookOpen className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+                        <span className="text-gray-400 dark:text-gray-600 text-xs">Program</span>
+                      </div>
                       <p className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].programdesc}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400 dark:text-gray-600 text-xs">Branch</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <GitBranch className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+                        <span className="text-gray-400 dark:text-gray-600 text-xs">Branch</span>
+                      </div>
                       <p className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].branchdesc}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400 dark:text-gray-600 text-xs">Year</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+                        <span className="text-gray-400 dark:text-gray-600 text-xs">Year</span>
+                      </div>
                       <p className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].academicyear}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400 dark:text-gray-600 text-xs">Semester</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <BookOpen className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+                        <span className="text-gray-400 dark:text-gray-600 text-xs">Semester</span>
+                      </div>
                       <p className="text-gray-200 dark:text-gray-800 font-medium">{feeData.studentInfo[0].stynumber}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400 dark:text-gray-600 text-xs">Quota</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Tag className="w-3 h-3 text-gray-400 dark:text-gray-600" />
+                        <span className="text-gray-400 dark:text-gray-600 text-xs">Quota</span>
+                      </div>
                       <p className="text-gray-200 dark:text-gray-800 font-semibold bg-gray-700 dark:bg-gray-200 px-2 py-1 rounded-full text-xs inline-block mt-1">{feeData.studentInfo[0].quotacode}</p>
                     </div>
                   </div>
@@ -525,7 +561,7 @@ export default function Fee({ w, serialize_payload }) {
                     </>
                   ) : (
                     <>
-                      <FileText className="w-5 h-5" />
+                      <Receipt className="w-5 h-5" />
                       <span>Download Fee Demand Report</span>
                     </>
                   )}

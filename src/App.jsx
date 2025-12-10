@@ -21,7 +21,6 @@ import Profile from "./components/Profile";
 import Timetable from "./components/Timetable";
 import Fee from "./components/Fee";
 import AcademicCalendar from "./components/AcademicCalendar";
-import AcademicCalendarDialog from "./components/AcademicCalendarDialog";
 import { Calendar as CalendarIcon } from "lucide-react";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -415,7 +414,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         />
         <Route
           path="/gpa-calculator"
-          element={<CGPATargetCalculator w={w} semesterData={gradesSemesterData} />}
+          element={<CGPATargetCalculator w={w} />}
         />
             </Routes>
           </div>
@@ -596,8 +595,8 @@ function App() {
         <div className="flex flex-col items-center">
           <Loader2 className="w-8 h-8 animate-spin mb-2" />
           <p className="text-lg font-semibold mb-1">Signing in...</p>
-          <p className="text-sm mb-4">Welcome to JP_Portal</p>
-          <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
+          <p className="text-sm mb-4">Welcome to JP Portal</p>
+              <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
             <span className="text-xs text-white/60 mb-1">Quick Access</span>
             <div className="flex flex-wrap gap-2 items-center justify-center">
               <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
@@ -605,11 +604,24 @@ function App() {
                   <UtensilsCrossed size={18} /> Mess Menu
                 </span>
               </MessMenu>
-              <AcademicCalendarDialog>
-                <span className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
-                  <CalendarIcon size={18} /> Academic Calendar
-                </span>
-              </AcademicCalendarDialog>
+              <a
+                href="#/academic-calendar"
+                onClick={(e) => {
+                  try {
+                    e.preventDefault();
+                    const target = '#/academic-calendar';
+                    if (window.location.hash !== target) {
+                      window.location.hash = target;
+                      window.dispatchEvent(new Event('hashchange'));
+                    }
+                  } catch (err) {
+                    window.location.href = '#/academic-calendar';
+                  }
+                }}
+                className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 transition-colors rounded-lg text-sm font-medium gap-2"
+              >
+                <CalendarIcon size={18} /> Academic Calendar
+              </a>
               <InstallPWA />
             </div>
           </div>
@@ -626,6 +638,7 @@ function App() {
             {" "}
             {!isAuthenticated || !w.session ? (
               <Routes>
+                <Route path="/academic-calendar" element={<AcademicCalendar />} />
                 <Route
                   path="*"
                   element={

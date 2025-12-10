@@ -26,6 +26,7 @@ import {
   Calendar,
   BarChart3,
   Archive,
+  CalendarDays,
 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 
@@ -530,14 +531,16 @@ const Attendance = ({
           <TabsList className="grid grid-cols-2 bg-[#0B0D0D] dark:bg-white relative z-30">
             <TabsTrigger
               value="overview"
-              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
+              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white flex items-center gap-2"
             >
+              <BarChart3 className="w-4 h-4" />
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="daily"
-              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white"
+              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white flex items-center gap-2"
             >
+              <CalendarDays className="w-4 h-4" />
               Day‑to‑Day
             </TabsTrigger>
           </TabsList>

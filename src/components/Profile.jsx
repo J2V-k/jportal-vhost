@@ -7,12 +7,28 @@ import {
   GraduationCap,
   Loader2,
   Calendar,
-  ArrowRight,
   Github,
-  FileText,
   Home,
   MessageSquare,
   Calculator,
+  Droplets,
+  Globe,
+  Tag,
+  Hash,
+  CreditCard,
+  DollarSign,
+  Building,
+  Briefcase,
+  AtSign,
+  Map,
+  Bed,
+  Key,
+  Shield,
+  IdCard,
+  BookOpen,
+  Users,
+  Heart,
+  Smartphone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -146,7 +162,7 @@ export default function Profile({
                 </span>
                 <span className="hidden md:inline">•</span>
                 <span className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
+                  <IdCard className="w-4 h-4" />
                   {info.registrationno}
                 </span>
                 <span className="hidden md:inline">•</span>
@@ -161,19 +177,22 @@ export default function Profile({
           <div className="w-full md:w-auto mt-2 md:mt-0">
             <div className="md:hidden text-sm text-gray-400 dark:text-gray-600">
               <div className="flex flex-wrap gap-3">
-                <span>
+                <span className="flex items-center gap-1">
+                  <BookOpen className="w-4 h-4" />
                   Sem:{" "}
                   <span className="font-semibold text-white dark:text-black">
                     {info.semester}
                   </span>
                 </span>
-                <span>
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
                   Sec:{" "}
                   <span className="font-semibold text-white dark:text-black">
                     {info.sectioncode}
                   </span>
                 </span>
-                <span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
                   Batch:{" "}
                   <span className="font-semibold text-white dark:text-black">
                     {info.batch}
@@ -183,19 +202,29 @@ export default function Profile({
             </div>
 
             <div className="hidden md:grid grid-cols-2 gap-3 min-w-[220px] text-sm">
-              <div className="text-gray-400 dark:text-gray-600">Semester</div>
+              <div className="flex items-center gap-2 text-gray-400 dark:text-gray-600">
+                <BookOpen className="w-4 h-4" />
+                Semester
+              </div>
               <div className="font-semibold text-white dark:text-black">
                 {info.semester}
               </div>
-              <div className="text-gray-400 dark:text-gray-600">Section</div>
+              <div className="flex items-center gap-2 text-gray-400 dark:text-gray-600">
+                <Users className="w-4 h-4" />
+                Section
+              </div>
               <div className="font-semibold text-white dark:text-black">
                 {info.sectioncode}
               </div>
-              <div className="text-gray-400 dark:text-gray-600">Batch</div>
+              <div className="flex items-center gap-2 text-gray-400 dark:text-gray-600">
+                <Calendar className="w-4 h-4" />
+                Batch
+              </div>
               <div className="font-semibold text-white dark:text-black">
                 {info.batch}
               </div>
-              <div className="text-gray-400 dark:text-gray-600">
+              <div className="flex items-center gap-2 text-gray-400 dark:text-gray-600">
+                <GraduationCap className="w-4 h-4" />
                 Academic Year
               </div>
               <div className="font-semibold text-white dark:text-black">
@@ -210,24 +239,25 @@ export default function Profile({
         <div className="flex overflow-x-auto border-b border-gray-700 dark:border-gray-200">
           {(() => {
             const tabs = [
-              "personal",
-              "contact",
-              "education",
-              ...(hostelData?.presenthosteldetail ? ["hostel"] : []),
+              { name: "personal", icon: User },
+              { name: "contact", icon: Phone },
+              { name: "education", icon: GraduationCap },
+              ...(hostelData?.presenthosteldetail ? [{ name: "hostel", icon: Home }] : []),
             ];
             return tabs.map((tab) => (
               <motion.button
-                key={tab}
+                key={tab.name}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium ${
-                  activeTab === tab
+                className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium flex items-center justify-center gap-2 ${
+                  activeTab === tab.name
                     ? "text-white border-b-2 border-white dark:text-black dark:border-black"
                     : "text-gray-400 hover:text-gray-200 dark:text-gray-600 dark:hover:text-gray-800"
                 }`}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setActiveTab(tab.name)}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}</span>
               </motion.button>
             ));
           })()}
@@ -243,113 +273,35 @@ export default function Profile({
           >
             {activeTab === "personal" && (
               <div className="space-y-0.5">
-                <InfoRow
-                  icon={User}
-                  label="Date of Birth"
-                  value={info.dateofbirth}
-                />
-                <InfoRow icon={User} label="Gender" value={info.gender} />
-                <InfoRow
-                  icon={User}
-                  label="Blood Group"
-                  value={info.bloodgroup}
-                />
-                <InfoRow
-                  icon={User}
-                  label="Nationality"
-                  value={info.nationality}
-                />
-                <InfoRow icon={User} label="Category" value={info.category} />
-                <InfoRow icon={User} label="APAAR ID" value={info.apaarid} />
-                <InfoRow
-                  icon={User}
-                  label="Admission Year"
-                  value={info.admissionyear}
-                />
-                <InfoRow
-                  icon={User}
-                  label="Institute Code"
-                  value={info.institutecode}
-                />
-                <InfoRow
-                  icon={User}
-                  label="Bank Account No"
-                  value={info.bankaccountno}
-                />
-                <InfoRow icon={User} label="Bank Name" value={info.bankname} />
-                <InfoRow
-                  icon={User}
-                  label="Father's Designation"
-                  value={info.designation}
-                />
+                <InfoRow icon={Calendar} label="Date of Birth" value={info.dateofbirth} />
+                <InfoRow icon={Users} label="Gender" value={info.gender} />
+                <InfoRow icon={Droplets} label="Blood Group" value={info.bloodgroup} />
+                <InfoRow icon={Globe} label="Nationality" value={info.nationality} />
+                <InfoRow icon={Tag} label="Category" value={info.category} />
+                <InfoRow icon={Hash} label="APAAR ID" value={info.apaarid} />
+                <InfoRow icon={GraduationCap} label="Admission Year" value={info.admissionyear} />
+                <InfoRow icon={Home} label="Institute Code" value={info.institutecode} />
+                <InfoRow icon={CreditCard} label="Bank Account No" value={info.bankaccountno} />
+                <InfoRow icon={Building} label="Bank Name" value={info.bankname} />
+                <InfoRow icon={Briefcase} label="Father's Designation" value={info.designation} />
               </div>
             )}
             {activeTab === "contact" && (
               <div className="space-y-0.5">
-                <InfoRow
-                  icon={Mail}
-                  label="College Email"
-                  value={info.studentemailid}
-                />
-                <InfoRow
-                  icon={Mail}
-                  label="Personal Email"
-                  value={info.studentpersonalemailid}
-                />
-                <InfoRow
-                  icon={Phone}
-                  label="Mobile"
-                  value={info.studentcellno}
-                />
-                <InfoRow
-                  icon={Phone}
-                  label="Telephone"
-                  value={info.studenttelephoneno || "N/A"}
-                />
-                <InfoRow
-                  icon={User}
-                  label="Father's Name"
-                  value={info.fathersname}
-                />
-                <InfoRow
-                  icon={User}
-                  label="Mother's Name"
-                  value={info.mothername}
-                />
-                <InfoRow
-                  icon={Mail}
-                  label="Parent Email"
-                  value={info.parentemailid}
-                />
-                <InfoRow
-                  icon={Phone}
-                  label="Parent Mobile"
-                  value={info.parentcellno}
-                />
-                <InfoRow
-                  icon={Phone}
-                  label="Parent Telephone"
-                  value={info.parenttelephoneno}
-                />
-                <InfoRow
-                  icon={MapPin}
-                  label="Address"
-                  value={[info.paddress1, info.paddress2, info.paddress3]
-                    .filter(Boolean)
-                    .join(", ")}
-                />
-                <InfoRow icon={MapPin} label="City" value={info.pcityname} />
-                <InfoRow
-                  icon={MapPin}
-                  label="District"
-                  value={info.pdistrict}
-                />
+                <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
+                <InfoRow icon={AtSign} label="Personal Email" value={info.studentpersonalemailid} />
+                <InfoRow icon={Smartphone} label="Mobile" value={info.studentcellno} />
+                <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
+                <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
+                <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
+                <InfoRow icon={Mail} label="Parent Email" value={info.parentemailid} />
+                <InfoRow icon={Smartphone} label="Parent Mobile" value={info.parentcellno} />
+                <InfoRow icon={Phone} label="Parent Telephone" value={info.parenttelephoneno} />
+                <InfoRow icon={MapPin} label="Address" value={[info.paddress1, info.paddress2, info.paddress3].filter(Boolean).join(", ")} />
+                <InfoRow icon={Map} label="City" value={info.pcityname} />
+                <InfoRow icon={MapPin} label="District" value={info.pdistrict} />
                 <InfoRow icon={MapPin} label="State" value={info.pstatename} />
-                <InfoRow
-                  icon={MapPin}
-                  label="Postal Code"
-                  value={info.ppostalcode}
-                />
+                <InfoRow icon={Hash} label="Postal Code" value={info.ppostalcode} />
               </div>
             )}
             {activeTab === "education" && (
@@ -393,7 +345,7 @@ export default function Profile({
                   </h3>
                 </div>
                 <InfoRow
-                  icon={MapPin}
+                  icon={Home}
                   label="Hostel Name"
                   value={hostelData.presenthosteldetail.hosteldescription}
                 />
@@ -403,22 +355,22 @@ export default function Profile({
                   value={hostelData.presenthosteldetail.hostelcode}
                 />
                 <InfoRow
-                  icon={MapPin}
+                  icon={Key}
                   label="Room Number"
                   value={hostelData.presenthosteldetail.allotedroomno}
                 />
                 <InfoRow
-                  icon={MapPin}
+                  icon={Building}
                   label="Floor"
                   value={hostelData.presenthosteldetail.floor}
                 />
                 <InfoRow
-                  icon={MapPin}
+                  icon={Bed}
                   label="Bed Number"
                   value={hostelData.presenthosteldetail.beddesc}
                 />
                 <InfoRow
-                  icon={MapPin}
+                  icon={Home}
                   label="Room Type"
                   value={hostelData.presenthosteldetail.roomtype}
                 />
@@ -433,7 +385,7 @@ export default function Profile({
                   value={hostelData.presenthosteldetail.allotedtilldate}
                 />
                 <InfoRow
-                  icon={MapPin}
+                  icon={Shield}
                   label="Hostel Type"
                   value={hostelData.presenthosteldetail.hosteltypedesc}
                 />
@@ -453,7 +405,7 @@ export default function Profile({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/academic-calendar")}
-            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
             <Calendar className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">
@@ -464,16 +416,16 @@ export default function Profile({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/fee")}
-            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
-            <FileText className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+            <DollarSign className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Fee Details</span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/feedback")}
-            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
             <MessageSquare className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Faculty Feedback</span>
@@ -482,7 +434,7 @@ export default function Profile({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/gpa-calculator")}
-            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
           >
             <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">GPA Calculator</span>
@@ -493,7 +445,7 @@ export default function Profile({
             href="https://github.com/J2V-k/jportal-vhost"
             target="_blank"
             rel="noopener noreferrer"
-            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300 group"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300 group"
           >
             <Github className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600 group-hover:text-blue-400 dark:group-hover:text-blue-500 transition-colors duration-200" />
             <span className="text-xs font-medium text-center mb-1">

@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronRight, Archive, Calculator } from "lucide-react";
+import { Download, Loader2, ChevronRight, Archive, Calculator, BarChart3, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Helmet } from 'react-helmet-async';
-import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
+import { generate_local_name, API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import {
   getGradesFromCache,
   saveGradesToCache,
@@ -468,11 +468,15 @@ export default function Grades({
       >
         <div className="md:hidden">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
-            {["overview","marks", "semester"].map((tab, index) => (
+            {[
+              { name: "overview", icon: BarChart3 },
+              { name: "marks", icon: Download },
+              { name: "semester", icon: GraduationCap }
+            ].map((tab, index) => (
               <TabsTrigger
-                key={tab}
-                value={tab}
-                className="bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black text-gray-300 dark:text-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white rounded-md transition-all duration-200"
+                key={tab.name}
+                value={tab.name}
+                className="bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black text-gray-300 dark:text-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white rounded-md transition-all duration-200 flex items-center justify-center gap-1"
               >
                 <motion.div
                   initial={{ y: 10, opacity: 0 }}
@@ -480,7 +484,8 @@ export default function Grades({
                   exit={{ y: -10, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  <tab.icon className="w-4 h-4 hidden md:inline" />
+                  <span>{tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}</span>
                 </motion.div>
               </TabsTrigger>
             ))}
@@ -492,32 +497,35 @@ export default function Grades({
             <div className="flex bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`px-4 py-1.5 rounded-md transition-all duration-200 ${
+                className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
                   activeTab === "overview"
                     ? "bg-white dark:bg-black text-black dark:text-white"
                     : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
                 }`}
               >
+                <BarChart3 className="w-4 h-4" />
                 Overview
               </button>
               <button
                 onClick={() => setActiveTab("marks")}
-                className={`px-4 py-1.5 rounded-md transition-all duration-200 ${
+                className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
                   activeTab === "marks"
                     ? "bg-white dark:bg-black text-black dark:text-white"
                     : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
                 }`}
               >
+                <Download className="w-4 h-4" />
                 Marks
               </button>
               <button
                 onClick={() => setActiveTab("semester")}
-                className={`px-4 py-1.5 rounded-md transition-all duration-200 ${
+                className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
                   activeTab === "semester"
                     ? "bg-white dark:bg-black text-black dark:text-white"
                     : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
                 }`}
               >
+                <GraduationCap className="w-4 h-4" />
                 Semester
               </button>
             </div>
@@ -660,7 +668,7 @@ export default function Grades({
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => navigate("/gpa-calculator")}
-                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
                       >
                         <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
                         <span className="text-xs font-medium text-center">GPA Calculator</span>
@@ -670,7 +678,7 @@ export default function Grades({
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setIsDownloadDialogOpen(true)}
                         disabled={isDownloading}
-                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
                       >
                         <Download className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
                         <span className="text-xs font-medium text-center">Download Marks</span>

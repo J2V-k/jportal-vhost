@@ -31,7 +31,7 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
           transition={{ delay: 0.2, duration: 0.5 }}
           className="text-white text-2xl font-bold lg:text-3xl font-sans dark:text-black"
         >
-         <p className="md:hidden"> JP_Portal</p>
+         <p className="md:hidden"> JP Portal</p>
         </motion.h1>
         <motion.div
           initial={{ opacity: 0, x: 20 }}

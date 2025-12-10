@@ -1,24 +1,24 @@
 import { NavLink, useLocation } from "react-router-dom"
-import { ClipboardList } from "lucide-react"
+import { CheckSquare } from "lucide-react"
 import { motion } from "framer-motion"
-import { Calendar, User, Book, FileText, ChartSpline, MessageSquare, Calculator } from "lucide-react"
+import { Calendar, User, Book, FileCheck, BarChart3, MessageSquare, Calculator, DollarSign } from "lucide-react"
 import InstallPWA from "./InstallPWA"
 
 const navItems = [
-  { name: "Attendance", path: "/attendance", icon: ClipboardList },
-  { name: "Grades", path: "/grades", icon: ChartSpline },
-  { name: "Exams", path: "/exams", icon: FileText },
+  { name: "Attendance", path: "/attendance", icon: CheckSquare },
+  { name: "Grades", path: "/grades", icon: BarChart3 },
+  { name: "Exams", path: "/exams", icon: FileCheck },
   { name: "Subjects", path: "/subjects", icon: Book },
   { name: "Profile", path: "/profile", icon: User },
 ]
 
 const desktopNavItems = [
-  { name: "Attendance", path: "/attendance", icon: ClipboardList },
-  { name: "Grades", path: "/grades", icon: ChartSpline },
+  { name: "Attendance", path: "/attendance", icon: CheckSquare },
+  { name: "Grades", path: "/grades", icon: BarChart3 },
   { name: "GPA Calculator", path: "/gpa-calculator", icon: Calculator },
-  { name: "Exams", path: "/exams", icon: FileText },
+  { name: "Exams", path: "/exams", icon: FileCheck },
   { name: "Subjects", path: "/subjects", icon: Book },
-  { name: "Fee", path: "/fee", icon: FileText },
+  { name: "Fee", path: "/fee", icon: DollarSign },
   { name: "Academic Calendar", path: "/academic-calendar", icon: Calendar },
   { name: "Profile", path: "/profile", icon: User },
 ]
@@ -107,7 +107,7 @@ export default function Navbar() {
                   className={`flex items-center p-3 rounded-lg transition-colors ${
                     isActive
                       ? "bg-white dark:bg-black text-black dark:text-white"
-                      : "text-gray-400 hover:text-gray-200 dark:text-gray-500 dark:hover:text-gray-800 hover:bg-gray-900 dark:hover:bg-gray-200"
+                      : "text-gray-400 hover:text-gray-200 dark:text-gray-500 dark:hover:text-gray-800 hover:bg-[#0A0A0C] dark:hover:bg-gray-200"
                   }`}
                 >
                   <Icon className="w-5 h-5 mr-3" />
