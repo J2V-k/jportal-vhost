@@ -6,13 +6,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Settings, LogOut, Trash2, Sun, Moon, X, Smartphone } from 'lucide-react';
 
 const TABS = [
@@ -48,6 +49,11 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
   useEffect(() => {
     setSelectedTheme(themeMode);
   }, [themeMode]);
+
+  useEffect(() => {
+    if (open) {
+    }
+  }, [open]);
 
 
 
@@ -96,6 +102,25 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
     }
   }
 
+  function handleClearExpiredCache() {
+    clearExpiredCache();
+    setCacheStats(getCacheStats());
+  }
+
+  function handleClearAllCache() {
+    if (window.confirm('Are you sure you want to clear all cached data? This will remove all offline data.')) {
+      clearAllCache();
+      setCacheStats(getCacheStats());
+    }
+  }
+
+  function handleClearSpecificCache(dataType) {
+    if (window.confirm(`Are you sure you want to clear ${dataType} cache?`)) {
+      clearSpecificCache(dataType);
+      setCacheStats(getCacheStats());
+    }
+  }
+
   function handleLogout() {
     setOpen(false);
     if (typeof onLogout === 'function') onLogout();
@@ -118,36 +143,44 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             <Settings className="w-5 h-5" />
             Settings
           </DialogTitle>
+          <DialogDescription className="text-sm text-gray-400 dark:text-gray-600">Manage preferences such as theme, default tabs, and cache settings.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">Default theme</Label>
-              <Tabs value={selectedTheme} onValueChange={handleThemeChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
-                  <TabsTrigger 
-                    value="dark" 
-                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
-                  >
-                    <Sun className="w-3 h-3" />
-                    Light
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="light" 
-                    className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
-                  >
-                    <Moon className="w-3 h-3" />
-                    Dark
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
+              <TabsTrigger value="general" className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black">
+                General
+              </TabsTrigger>
+               
+            </TabsList>
 
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
-              <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
+            <TabsContent value="general" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4 items-center">
+                <Label className="text-sm font-medium text-white dark:text-black">Default theme</Label>
+                <Tabs value={selectedTheme} onValueChange={handleThemeChange} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
+                    <TabsTrigger 
+                      value="dark" 
+                      className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
+                    >
+                      <Sun className="w-3 h-3" />
+                      Light
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="light" 
+                      className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
+                    >
+                      <Moon className="w-3 h-3" />
+                      Dark
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 items-center">
+                <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
+                <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
                 <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
                   <SelectValue />
                 </SelectTrigger>
@@ -211,16 +244,18 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             <div className="grid grid-cols-2 gap-4 items-center">
               <Label className="text-sm font-medium text-white dark:text-black">Clear all cached data</Label>
               <Button
-                variant="outline"
-                size="sm"
+                variant="destructive"
                 onClick={handleClearCache}
-                className="bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-red-600 hover:text-white hover:border-red-600"
+                className="w-full flex items-center justify-center gap-2"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Cache
+                <Trash2 className="w-4 h-4" />
+                Clear All Cache
               </Button>
             </div>
-          </div>
+            </TabsContent>
+
+            
+          </Tabs>
         </div>
 
         <div className="mt-8 space-y-0">

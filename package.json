@@ -1,7 +1,7 @@
 {
   "name": "jportal",
   "private": true,
-  "version": "0.2.251230",
+  "version": "0.2.260000",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -95,6 +95,16 @@ const transformNewApiData = (apiData) => {
   return menuData;
 };
 
+const mealTimeLabel = (dayName, meal) => {
+  if (meal === 'Breakfast') {
+    if (dayName === 'Sunday') return 'Till 9:30 AM';
+    return 'Till 9:00 AM';
+  }
+  if (meal === 'Lunch') return '12:00 - 14:00';
+  if (meal === 'Dinner') return 'From 19:30';
+  return '';
+};
+
 const isMenuCurrent = (menuData) => {
   if (!menuData || Object.keys(menuData).length === 0) {
     return false;
@@ -265,6 +275,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                     <Sunrise size={16} className="text-white dark:text-black" />
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Breakfast
+                      <span className="text-xs text-gray-400 dark:text-gray-600 ml-2">{mealTimeLabel(dayName, 'Breakfast')}</span>
                     </h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -284,6 +295,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                     <Sun size={16} className="text-white dark:text-black" />
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Lunch
+                      <span className="text-xs text-gray-400 dark:text-gray-600 ml-2">{mealTimeLabel(dayName, 'Lunch')}</span>
                     </h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -303,6 +315,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                     <Sunset size={16} className="text-white dark:text-black" />
                     <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
                       Dinner
+                      <span className="text-xs text-gray-400 dark:text-gray-600 ml-2">{mealTimeLabel(dayName, 'Dinner')}</span>
                     </h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -336,18 +349,21 @@ const MessMenu = ({ children, open, onOpenChange }) => {
               <div className="flex items-center gap-2">
                 <Sunrise size={16} className="text-white dark:text-black" />
                 <span>Breakfast</span>
+                  <div className="text-xs text-gray-400 ml-2">Till 9 AM (9:30 Sun)</div>
               </div>
             </TableHead>
             <TableHead className="font-bold text-white dark:text-black">
               <div className="flex items-center gap-2">
                 <Sun size={16} className="text-white dark:text-black" />
                 <span>Lunch</span>
+                  <div className="text-xs text-gray-400 ml-2">12:00 - 14:00</div>
               </div>
             </TableHead>
             <TableHead className="font-bold text-white dark:text-black">
               <div className="flex items-center gap-2">
                 <Sunset size={16} className="text-white dark:text-black" />
                 <span>Dinner</span>
+                  <div className="text-xs text-gray-400 ml-2">From 19:30</div>
               </div>
             </TableHead>
           </TableRow>

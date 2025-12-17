@@ -59,9 +59,10 @@ export default function Profile({
         const data = await w.get_personal_info();
         setProfileData(data);
         localStorage.setItem('profileData', JSON.stringify({
-          studentname: data.generalinformation?.studentname,
-          imagepath: data["photo&signature"]?.photo
+          studentname: data?.generalinformation?.studentname,
+          imagepath: data?.["photo&signature"]?.photo
         }));
+        try { localStorage.setItem('pd', JSON.stringify(data)); } catch (e) {}
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
       } finally {
@@ -100,7 +101,7 @@ export default function Profile({
       } catch (error) {
         console.error("Failed to fetch hostel data:", error);
       }
-};
+    };
 
     if (w) {
       fetchHostelData();
@@ -401,6 +402,7 @@ export default function Profile({
         transition={{ delay: 0.4 }}
       >
         <div className="grid grid-cols-3 gap-3 md:gap-2">
+          
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -412,6 +414,7 @@ export default function Profile({
               Academic Calendar
             </span>
           </motion.button>
+          {!((w && (w.constructor && w.constructor.name === 'ArtificialWebPortal'))) && (
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -421,6 +424,8 @@ export default function Profile({
             <DollarSign className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Fee Details</span>
           </motion.button>
+          )}
+          {!((w && (w.constructor && w.constructor.name === 'ArtificialWebPortal'))) && (
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -430,6 +435,7 @@ export default function Profile({
             <MessageSquare className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">Faculty Feedback</span>
           </motion.button>
+          )}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

@@ -3,6 +3,7 @@ import { CheckSquare } from "lucide-react"
 import { motion } from "framer-motion"
 import { Calendar, User, Book, FileCheck, BarChart3, MessageSquare, Calculator, DollarSign } from "lucide-react"
 import InstallPWA from "./InstallPWA"
+import { ArtificialWebPortal } from "./scripts/artificialW"
 
 const navItems = [
   { name: "Attendance", path: "/attendance", icon: CheckSquare },
@@ -29,8 +30,11 @@ const desktopNavItemsWithFeedback = showFeedbackButton
   ? [...desktopNavItems, { name: "Faculty Feedback", path: "/feedback", icon: MessageSquare }]
   : desktopNavItems
 
-export default function Navbar() {
+export default function Navbar({ w }) {
   const location = useLocation()
+  const isOffline = w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal'))
+  const mobileNavItemsFiltered = isOffline ? navItems.filter(item => item.name !== 'Fee' && item.name !== 'Faculty Feedback' && item.name !== 'Grades' && item.name !== 'Exams') : navItems
+  const desktopNavItemsFiltered = isOffline ? desktopNavItemsWithFeedback.filter(item => item.name !== 'Fee' && item.name !== 'Faculty Feedback' && item.name !== 'Grades' && item.name !== 'Exams') : desktopNavItemsWithFeedback
 
   return (
     <>
@@ -42,7 +46,7 @@ export default function Navbar() {
       >
         <ul className="flex items-center justify-between max-w-screen-lg mx-auto">
           <InstallPWA />
-          {navItems.map((item) => {
+          {mobileNavItemsFiltered.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
             return (
@@ -97,7 +101,7 @@ export default function Navbar() {
         </div>
         
         <ul className="flex-1 px-3 py-4 space-y-2">
-          {desktopNavItemsWithFeedback.map((item) => {
+          {desktopNavItemsFiltered.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
             return (

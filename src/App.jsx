@@ -34,6 +34,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { WebPortal, LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import { serialize_payload } from "@/lib/jiitCrypto";
 
+import { ArtificialWebPortal } from "./components/scripts/artificialW";
+
 import Feedback from "./components/Feedback";
 import CGPATargetCalculator from "./components/CGPATargetCalculator";
 
@@ -83,13 +85,13 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!profileData && w && w.session) {
+      if (!profileData) {
         try {
           const data = await w.get_personal_info();
           setProfileData(data);
           localStorage.setItem('profileData', JSON.stringify({
-            studentname: data.generalinformation?.studentname,
-            imagepath: data["photo&signature"]?.photo
+            studentname: data?.generalinformation?.studentname,
+            imagepath: data?.["photo&signature"]?.photo
           }));
         } catch (error) {
           console.error("Failed to fetch profile data in App:", error);
@@ -200,7 +202,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   return (
     <div className="relative">
-      <Navbar messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
+      <Navbar w={w} messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
       <div 
         className="h-screen flex flex-col"
         onTouchStart={onTouchStart}
@@ -215,6 +217,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
               onMessMenuChange={onMessMenuChange}
               attendanceGoal={attendanceGoal}
               setAttendanceGoal={setAttendanceGoal}
+              w={w}
             />
           </div>
         <div className="flex-1 overflow-y-auto md:ml-64">
@@ -429,8 +432,9 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 function LoginWrapper({ onLoginSuccess, w }) {
   const navigate = useNavigate();
 
-  const handleLoginSuccess = () => {
-    onLoginSuccess();
+  const handleLoginSuccess = (webPortal = null) => {
+    const portal = webPortal || w;
+    onLoginSuccess(portal);
     setTimeout(() => {
       let targetTab = localStorage.getItem('defaultTab') || '/attendance';
       
@@ -484,6 +488,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentWebPortal, setCurrentWebPortal] = useState(w);
   const [themeMode, setThemeMode] = useState(() => {
     return localStorage.getItem('defaultTheme') || 'light';
   });
@@ -559,27 +564,46 @@ function App() {
           await w.student_login(username, password);
           if (w.session) {
             setIsAuthenticated(true);
+            setCurrentWebPortal(w);
           }
         }
       } catch (error) {
-        if (
-          error instanceof LoginError &&
-          error.message.includes(
-            "JIIT Web Portal server is temporarily unavailable"
-          )
-        ) {
-          setError(
-            "JIIT Web Portal server is temporarily unavailable. Please try again later."
-          );
-        } else if (
-          error instanceof LoginError &&
-          error.message.includes("Failed to fetch")
-        ) {
-          setError("JIIT Web Portal server is temporarily unavailable.");
+        console.error("Login failed:", error);
+        const keys = Object.keys(localStorage);
+        const hasCachedData = keys.some(key => 
+          key.startsWith('attendance-') || 
+          key.startsWith('grades-') || 
+          key.startsWith('subject-') ||
+          key === 'latestSemester' ||
+          key === 'semestersData' ||
+          key === 'gradeCardSemesters' ||
+          key === 'mess-menu' ||
+          key === 'profileData'
+        );
+        
+        if (hasCachedData) {
+          setIsAuthenticated(true);
+          setCurrentWebPortal(new ArtificialWebPortal());
+          setError(null);
         } else {
-          console.error("Auto-login failed:", error);
-          setError("Auto-login failed. Please login again.");
-          setIsAuthenticated(false);
+          if (
+            error instanceof LoginError &&
+            error.message.includes(
+              "JIIT Web Portal server is temporarily unavailable"
+            )
+          ) {
+            setError(
+              "JIIT Web Portal server is temporarily unavailable. Please try again later."
+            );
+          } else if (
+            error instanceof LoginError &&
+            error.message.includes("Failed to fetch")
+          ) {
+            setError("JIIT Web Portal server is temporarily unavailable.");
+          } else {
+            setError("Login failed. Please check your credentials and try again.");
+            setIsAuthenticated(false);
+          }
         }
       } finally {
         setIsLoading(false);
@@ -594,8 +618,12 @@ function App() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-blue-900 dark:text-white">
         <div className="flex flex-col items-center">
           <Loader2 className="w-8 h-8 animate-spin mb-2" />
-          <p className="text-lg font-semibold mb-1">Signing in...</p>
-          <p className="text-sm mb-4">Welcome to JP Portal</p>
+          <p className="text-lg font-semibold mb-1">
+            Signing in...
+          </p>
+          <p className="text-sm mb-4">
+            Welcome to JP Portal
+          </p>
               <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
             <span className="text-xs text-white/60 mb-1">Quick Access</span>
             <div className="flex flex-wrap gap-2 items-center justify-center">
@@ -635,10 +663,9 @@ function App() {
       <ThemeProvider value={{ themeMode, darkTheme, lightTheme }}>
         <Router>
           <div className="min-h-screen bg-[black] dark:bg-white dark:text-black">
-            {" "}
-            {!isAuthenticated || !w.session ? (
-              <Routes>
-                <Route path="/academic-calendar" element={<AcademicCalendar />} />
+            <Routes>
+              <Route path="/academic-calendar" element={<AcademicCalendar />} />
+              {!isAuthenticated || (isAuthenticated && currentWebPortal === w && !w.session) ? (
                 <Route
                   path="*"
                   element={
@@ -649,21 +676,29 @@ function App() {
                         </div>
                       )}
                       <LoginWrapper
-                        onLoginSuccess={() => setIsAuthenticated(true)}
+                        onLoginSuccess={(webPortal) => {
+                          setIsAuthenticated(true);
+                          setCurrentWebPortal(webPortal);
+                        }}
                         w={w}
                       />
                     </>
                   }
                 />
-              </Routes>
-            ) : (
-              <AuthenticatedApp 
-                w={w} 
-                setIsAuthenticated={setIsAuthenticated} 
-                messMenuOpen={messMenuOpen}
-                onMessMenuChange={handleMessMenuChange}
-              />
-            )}
+              ) : (
+                <Route
+                  path="*"
+                  element={
+                    <AuthenticatedApp 
+                      w={currentWebPortal} 
+                      setIsAuthenticated={setIsAuthenticated} 
+                      messMenuOpen={messMenuOpen}
+                      onMessMenuChange={handleMessMenuChange}
+                    />
+                  }
+                />
+              )}
+            </Routes>
           </div>
         </Router>
       </ThemeProvider>

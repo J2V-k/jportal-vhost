@@ -1,8 +1,30 @@
 import React from "react"
 import { motion } from "framer-motion"
-import { Loader2, Check } from "lucide-react"
+import { Loader2, Check, Clock, AlertCircle } from "lucide-react"
 
 export default function SubjectChoices({ currentChoices, choicesLoading, semesterName }) {
+  const getSubjectStatus = (subject) => {
+    if (subject.electivetype === "N" || (subject.electivetype === "Y" && subject.finalizedcount > 0)) {
+      return subject.running === "Y" ? "allotted" : "not-allotted";
+    } else if (subject.electivetype === "Y" && subject.finalizedcount === 0) {
+      return subject.running === "Y" ? "tentative" : "pending";
+    }
+    return "pending";
+  };
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "allotted":
+        return { text: "Allotted", color: "bg-green-500", icon: Check, textColor: "text-white" };
+      case "tentative":
+        return { text: "Tentative", color: "bg-yellow-500", icon: Clock, textColor: "text-white" };
+      case "pending":
+        return { text: "Pending", color: "bg-gray-500", icon: AlertCircle, textColor: "text-white" };
+      default:
+        return { text: "Not Allotted", color: "bg-gray-600", icon: AlertCircle, textColor: "text-gray-200" };
+    }
+  };
+
   if (choicesLoading) {
     return (
       <motion.div
@@ -19,6 +41,11 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
   }
 
   if (currentChoices?.subjectpreferencegrid?.length > 0) {
+    const isFinalized = currentChoices.subjectpreferencegrid.some(s => s.finalizedcount > 0);
+    const totalCredits = currentChoices.subjectpreferencegrid
+      .filter(s => s.running === "Y")
+      .reduce((sum, s) => sum + (s.credits || 0), 0);
+
     return (
       <div className="space-y-8">
         {semesterName && (
@@ -26,8 +53,16 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
             <h2 className="text-xl font-bold text-white dark:text-black mb-2">
               {semesterName} Subject Choices
             </h2>
+            <div className="flex items-center justify-center gap-4 text-sm text-gray-400 dark:text-gray-600 mb-2">
+              <span>Total Credits: {totalCredits}</span>
+              <span>•</span>
+              <span className={`flex items-center gap-1 ${isFinalized ? 'text-green-400' : 'text-yellow-400'}`}>
+                {isFinalized ? <Check size={14} /> : <Clock size={14} />}
+                {isFinalized ? 'Finalized' : 'Not Finalized'}
+              </span>
+            </div>
             <p className="text-sm text-gray-400 dark:text-gray-600">
-              Preview available electives and your current preferences
+              {isFinalized ? 'Your subject choices have been finalized' : 'Subject choices are tentative and may change'}
             </p>
           </div>
         )}
@@ -68,12 +103,20 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                   .sort((a, b) => a.preference - b.preference)
                   .map((subject) => {
                     const showNumbering = basket.code !== "CORE" && basket.code !== "CORE-AUDIT"
+                    const status = getSubjectStatus(subject);
+                    const statusDisplay = getStatusDisplay(status);
+                    const StatusIcon = statusDisplay.icon;
+
                     return (
                       <div
                         key={subject.subjectid}
                         className={`group p-4 rounded-lg border transition-all duration-200 hover:scale-[1.02] ${
-                          subject.running === "Y"
+                          status === "allotted"
                             ? "border-green-500/50 bg-green-500/10 hover:bg-green-500/15"
+                            : status === "tentative"
+                            ? "border-yellow-500/50 bg-yellow-500/10 hover:bg-yellow-500/15"
+                            : status === "pending"
+                            ? "border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/15"
                             : "border-white/10 dark:border-black/10 bg-[#1A1A1D] dark:bg-gray-100 hover:bg-[#202025] dark:hover:bg-gray-50"
                         }`}
                       >
@@ -81,8 +124,12 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                           {showNumbering && (
                             <div
                               className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                                subject.running === "Y"
+                                status === "allotted"
                                   ? "bg-green-500 text-white"
+                                  : status === "tentative"
+                                  ? "bg-yellow-500 text-white"
+                                  : status === "pending"
+                                  ? "bg-orange-500 text-white"
                                   : "bg-gray-600 dark:bg-gray-300 text-gray-200 dark:text-gray-700 group-hover:bg-gray-500 dark:group-hover:bg-gray-400"
                               }`}
                             >
@@ -94,11 +141,9 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                               <h4 className="font-semibold text-white dark:text-black text-sm leading-tight">
                                 {subject.subjectdesc}
                               </h4>
-                              {subject.running === "Y" && (
-                                <span className="flex-shrink-0 text-xs font-bold px-2 py-1 rounded-full bg-green-500 text-white flex items-center gap-1">
-                                  <Check size={10} /> Allotted
-                                </span>
-                              )}
+                              <span className={`flex-shrink-0 text-xs font-bold px-2 py-1 rounded-full ${statusDisplay.color} ${statusDisplay.textColor} flex items-center gap-1`}>
+                                <StatusIcon size={10} /> {statusDisplay.text}
+                              </span>
                             </div>
                             <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 mb-2">
                               <span className="font-mono bg-white/10 dark:bg-black/10 px-2 py-1 rounded">
@@ -107,14 +152,21 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                               <span className="font-medium">
                                 {subject.credits} Credits
                               </span>
-                            </div>
-                            {subject.electivetype === "Y" && (
-                              <div className="flex items-center gap-2">
-                                <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-300 dark:text-blue-700 text-xs font-medium">
-                                  {subject.subjecttypedesc}
+                              {subject.auditsubject === "Y" && (
+                                <span className="px-2 py-1 rounded bg-purple-500/20 text-purple-300 dark:text-purple-700 text-xs font-medium">
+                                  Audit
                                 </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {subject.electivetype === "Y" && (
+                                  <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-300 dark:text-blue-700 text-xs font-medium">
+                                    {subject.subjecttypedesc}
+                                  </span>
+                                )}
                               </div>
-                            )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -156,20 +208,32 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                   .sort((a, b) => a.preference - b.preference)
                   .map((subject) => {
                     const showNumbering = basket.code !== "CORE" && basket.code !== "CORE-AUDIT"
+                    const status = getSubjectStatus(subject);
+                    const statusDisplay = getStatusDisplay(status);
+                    const StatusIcon = statusDisplay.icon;
+
                     return (
                       <div
                         key={subject.subjectid}
                         className={`flex items-start gap-3 p-3 rounded-lg border ${
-                          subject.running === "Y"
-                            ? "border-accent bg-accent/5"
+                          status === "allotted"
+                            ? "border-green-500/50 bg-green-500/10"
+                            : status === "tentative"
+                            ? "border-yellow-500/50 bg-yellow-500/10"
+                            : status === "pending"
+                            ? "border-orange-500/50 bg-orange-500/10"
                             : "border-white/10 dark:border-black/10 bg-[#1A1A1D] dark:bg-gray-100"
                         }`}
                       >
                         {showNumbering && (
                           <div
                             className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                              subject.running === "Y"
-                                ? "bg-accent text-accent-foreground"
+                              status === "allotted"
+                                ? "bg-green-500 text-white"
+                                : status === "tentative"
+                                ? "bg-yellow-500 text-white"
+                                : status === "pending"
+                                ? "bg-orange-500 text-white"
                                 : "bg-muted text-muted-foreground"
                             }`}
                           >
@@ -177,28 +241,38 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex-1 min-w-0">
                               <h4 className="font-semibold text-white dark:text-black">
                                 {subject.subjectdesc}
                               </h4>
-                              <p className="text-sm text-gray-300 dark:text-gray-600 mt-1">
-                                {subject.subjectcode} • {subject.credits} Credits
-                              </p>
+                              <div className="flex items-center gap-2 text-sm text-gray-300 dark:text-gray-600 mt-1">
+                                <span className="font-mono">{subject.subjectcode}</span>
+                                <span>•</span>
+                                <span>{subject.credits} Credits</span>
+                                {subject.auditsubject === "Y" && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 dark:text-purple-700 text-xs font-medium">
+                                      Audit
+                                    </span>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            {subject.running === "Y" && (
-                              <span className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full bg-accent text-accent-foreground">
-                                Allotted
-                              </span>
-                            )}
+                            <span className={`flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${statusDisplay.color} ${statusDisplay.textColor} flex items-center gap-1`}>
+                              <StatusIcon size={10} /> {statusDisplay.text}
+                            </span>
                           </div>
-                          {subject.electivetype === "Y" && (
-                            <div className="mt-2 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                              <span className="px-2 py-0.5 rounded bg-gray-700 dark:bg-gray-200 text-gray-300 dark:text-gray-700">
-                                {subject.subjecttypedesc}
-                              </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {subject.electivetype === "Y" && (
+                                <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-300 dark:text-blue-700 text-xs font-medium">
+                                  {subject.subjecttypedesc}
+                                </span>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     )

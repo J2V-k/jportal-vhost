@@ -51,7 +51,8 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,whl,json,wasm,data}"],
         skipWaiting: true,
         clientsClaim: true,
-        navigateFallback: null,
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /\/artifact\//, /\.json$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/v0\.23\.4\/full\//,
@@ -127,8 +128,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "JP_Portal",
-        short_name: "JP_Portal",
+        name: "JP Portal",
+        short_name: "JP Portal",
         description: "A web portal for students to view attendance and grades.",
         start_url: "/",
         display: "standalone",

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Link, useLocation, useSearchParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks } from "lucide-react"
+import { getRegisteredSubjectsFromCache, saveRegisteredSubjectsToCache, getSubjectChoicesFromCache, saveSubjectChoicesToCache } from '@/components/scripts/cache'
 
 export default function Subjects({
   w,
@@ -16,6 +17,8 @@ export default function Subjects({
   selectedSem,
   setSelectedSem,
 }) {
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(!semestersData)
   const [subjectsLoading, setSubjectsLoading] = useState(!subjectData)
   const [activeTab, setActiveTab] = useState("registered")
@@ -38,10 +41,10 @@ export default function Subjects({
       setChoicesLoading(true)
       try {
         const registeredSems = await w.get_registered_semesters()
-        
+        const semestersList = Array.isArray(registeredSems) ? registeredSems : (registeredSems ? registeredSems : [])
         setSemestersData({
-          semesters: registeredSems,
-          latest_semester: registeredSems[0],
+          semesters: semestersList,
+          latest_semester: semestersList[0] || null,
         })
 
         await findFirstSemesterWithSubjects(registeredSems)
@@ -57,23 +60,36 @@ export default function Subjects({
     const findFirstSemesterWithSubjects = async (semesters) => {
       for (const semester of semesters) {
         try {
+          const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+
+          if (!subjectData?.[semester.registration_id]) {
+            try {
+              const cachedRegSubjects = await getRegisteredSubjectsFromCache(username, semester);
+              if (cachedRegSubjects) {
+                setSubjectData((prev) => ({ ...prev, [semester.registration_id]: cachedRegSubjects }));
+              }
+            } catch (e) {
+            }
+          }
+
           if (subjectData?.[semester.registration_id]) {
-            const existingData = subjectData[semester.registration_id]
+            const existingData = subjectData[semester.registration_id];
             if (existingData?.subjects && existingData.subjects.length > 0) {
-              setSelectedSem(semester)
-              return
+              setSelectedSem(semester);
+              return;
             }
-          } else {
-            const data = await w.get_registered_subjects_and_faculties(semester)
-            setSubjectData((prev) => ({
-              ...prev,
-              [semester.registration_id]: data,
-            }))
-            
-            if (data?.subjects && data.subjects.length > 0) {
-              setSelectedSem(semester)
-              return
-            }
+          }
+
+          const data = await w.get_registered_subjects_and_faculties(semester);
+          setSubjectData((prev) => ({
+            ...prev,
+            [semester.registration_id]: data,
+          }));
+          try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) { }
+
+          if (data?.subjects && data.subjects.length > 0) {
+            setSelectedSem(semester);
+            return;
           }
         } catch (err) {
           setSubjectData((prev) => ({
@@ -82,8 +98,9 @@ export default function Subjects({
           }));
         }
       }
-      if (semesters.length > 0) {
-        setSelectedSem(semesters[0])
+
+      if (semesters && semesters.length > 0) {
+        setSelectedSem(semesters[0]);
       }
     }
 
@@ -92,14 +109,25 @@ export default function Subjects({
 
   useEffect(() => {
     const fetchChoicesForSelectedSemester = async () => {
+      const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
       if (selectedSem && !subjectChoices?.[selectedSem.registration_id]) {
         setChoicesLoading(true)
         try {
+          const cachedChoices = await getSubjectChoicesFromCache(username, selectedSem);
+          if (cachedChoices) {
+            setSubjectChoices((prev) => ({
+              ...prev,
+              [selectedSem.registration_id]: cachedChoices,
+            }))
+            setChoicesLoading(false)
+            return
+          }
           const choicesData = await w.get_subject_choices(selectedSem)
           setSubjectChoices((prev) => ({
             ...prev,
             [selectedSem.registration_id]: choicesData,
           }))
+          try { await saveSubjectChoicesToCache(choicesData, username, selectedSem); } catch(e) {}
         } catch (err) {
           console.error("Error fetching subject choices:", err)
         } finally {
@@ -111,11 +139,37 @@ export default function Subjects({
     fetchChoicesForSelectedSemester()
   }, [selectedSem, subjectChoices, w])
 
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['registered', 'choices'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (activeTab) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('tab', activeTab);
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [activeTab, searchParams, setSearchParams]);
+
   const handleSemesterChange = async (value) => {
     setSubjectsLoading(true)
     try {
       const semester = semestersData?.semesters?.find((sem) => sem.registration_id === value)
       setSelectedSem(semester)
+
+      const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+      const cached = await getRegisteredSubjectsFromCache(username, semester);
+      if (cached) {
+        setSubjectData((prev) => ({
+          ...prev,
+          [semester.registration_id]: cached,
+        }))
+        setSubjectsLoading(false)
+        return
+      }
 
       if (subjectData?.[semester.registration_id]) {
         setSubjectsLoading(false)
@@ -125,6 +179,7 @@ export default function Subjects({
           ...prev,
           [semester.registration_id]: data,
         }))
+        try { await saveRegisteredSubjectsToCache(data, username, semester); } catch(e) {}
       }
     } catch (err) {
       setSubjectData((prev) => ({
@@ -153,11 +208,19 @@ export default function Subjects({
 
     setNextSemChoicesLoading(true)
     try {
+      const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+      const cachedChoices = await getSubjectChoicesFromCache(username, nextSem);
+      if (cachedChoices) {
+        setNextSemChoices({ semester: nextSem, choices: cachedChoices });
+        setNextSemChoicesLoading(false);
+        return;
+      }
       const choicesData = await w.get_subject_choices(nextSem)
       setNextSemChoices({
         semester: nextSem,
         choices: choicesData
       })
+      try { await saveSubjectChoicesToCache(choicesData, username, nextSem); } catch(e) {}
     } catch (err) {
       console.error("Error fetching next semester choices:", err)
       setNextSemChoices(null)
