@@ -32,41 +32,24 @@ export default function CGPATargetCalculator({ w }) {
     let mounted = true;
     const fetchSemesters = async () => {
       try {
-        if (!w) {
-          
-          const cached = localStorage.getItem('cgpaCalculatorSemesters');
-          if (cached) {
-            try {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed) && parsed.length > 0) setCgpaSemesters(parsed);
-            } catch (e) {}
+        try {
+          const data = await w.get_sgpa_cgpa();
+          if (!mounted) return;
+          if (data && Array.isArray(data.semesterList) && data.semesterList.length > 0) {
+            setFetchedSemesters(data.semesterList);
+            const updatedSemesters = data.semesterList.map((s) => ({
+              g: s.sgpa ? s.sgpa.toString() : "",
+              c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
+            }));
+            const lastCredits = data.semesterList[data.semesterList.length - 1]?.totalcoursecredit || "";
+            updatedSemesters.push({ g: "", c: lastCredits ? lastCredits.toString() : "" });
+            setCgpaSemesters(updatedSemesters);
+            return;
           }
-          return;
+        } catch (err) {
+          console.warn('Failed to fetch sgpa/cgpa from portal for CGPA calculator, will try cache:', err);
         }
 
-        const data = await w.get_sgpa_cgpa();
-        if (!mounted) return;
-        if (data && Array.isArray(data.semesterList) && data.semesterList.length > 0) {
-          setFetchedSemesters(data.semesterList);
-          const updatedSemesters = data.semesterList.map((s) => ({
-            g: s.sgpa ? s.sgpa.toString() : "",
-            c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
-          }));
-          const lastCredits = data.semesterList[data.semesterList.length - 1]?.totalcoursecredit || "";
-          updatedSemesters.push({ g: "", c: lastCredits ? lastCredits.toString() : "" });
-          setCgpaSemesters(updatedSemesters);
-        } else {
-          // fallback to cache
-          const cached = localStorage.getItem('cgpaCalculatorSemesters');
-          if (cached) {
-            try {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed) && parsed.length > 0) setCgpaSemesters(parsed);
-            } catch (e) {}
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch semester data for CGPA calculator:', error);
         const cached = localStorage.getItem('cgpaCalculatorSemesters');
         if (cached) {
           try {
@@ -74,6 +57,8 @@ export default function CGPATargetCalculator({ w }) {
             if (Array.isArray(parsed) && parsed.length > 0) setCgpaSemesters(parsed);
           } catch (e) {}
         }
+      } catch (error) {
+        console.error('Failed to fetch semester data for CGPA calculator:', error);
       }
     };
 
@@ -85,7 +70,54 @@ export default function CGPATargetCalculator({ w }) {
     localStorage.setItem('cgpaCalculatorSemesters', JSON.stringify(cgpaSemesters));
   }, [cgpaSemesters]);
 
-  
+  useEffect(() => {
+    if (!selectedSemester) {
+      const cachedSgpaSubjects = localStorage.getItem('cgpaCalculatorSgpaSubjects');
+      if (cachedSgpaSubjects) {
+        try {
+          const parsed = JSON.parse(cachedSgpaSubjects);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSgpaSubjects(parsed);
+          }
+        } catch (e) {
+          console.error('Failed to parse cached SGPA subjects:', e);
+        }
+      }
+    }
+  }, [selectedSemester]);
+
+  useEffect(() => {
+    if (sgpaSubjects.length > 0) {
+      localStorage.setItem('cgpaCalculatorSgpaSubjects', JSON.stringify(sgpaSubjects));
+    }
+  }, [sgpaSubjects]);
+
+  useEffect(() => {
+    const cachedTargetCgpa = localStorage.getItem('cgpaCalculatorTargetCgpa');
+    if (cachedTargetCgpa) {
+      setTargetCgpa(cachedTargetCgpa);
+    }
+
+    const cachedSelectedSemester = localStorage.getItem('cgpaCalculatorSelectedSemester');
+    if (cachedSelectedSemester) {
+      try {
+        const parsed = JSON.parse(cachedSelectedSemester);
+        setSelectedSemester(parsed);
+      } catch (e) {
+        console.error('Failed to parse cached selected semester:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cgpaCalculatorTargetCgpa', targetCgpa);
+  }, [targetCgpa]);
+
+  useEffect(() => {
+    if (selectedSemester) {
+      localStorage.setItem('cgpaCalculatorSelectedSemester', JSON.stringify(selectedSemester));
+    }
+  }, [selectedSemester]);
 
   useEffect(() => {
     if (selectedSemester && w && !subjectData[selectedSemester.registration_id]) {
@@ -102,18 +134,32 @@ export default function CGPATargetCalculator({ w }) {
   const fetchSubjectSemesters = async () => {
     setIsLoadingSemesters(true);
     try {
-      const semesters = await w.get_registered_semesters();
-      setSubjectSemesters(semesters);
-      
-      if (semesters.length > 0) {
-        const currentYear = new Date().getFullYear().toString();
-        const currentYearSemester = semesters.find(sem =>
-          sem.registration_code && sem.registration_code.includes(currentYear)
-        );
-        setSelectedSemester(currentYearSemester || semesters[0]);
+      try {
+        const semesters = await w.get_registered_semesters();
+        if (semesters && semesters.length > 0) {
+          setSubjectSemesters(semesters);
+          const currentYear = new Date().getFullYear().toString();
+          const currentYearSemester = semesters.find(sem =>
+            sem.registration_code && sem.registration_code.includes(currentYear)
+          );
+          setSelectedSemester(currentYearSemester || semesters[0]);
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch registered semesters from portal, will try cache:', err);
+      }
+
+      try {
+        const cached = localStorage.getItem('subjectSemestersData');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setSubjectSemesters(parsed || []);
+        }
+      } catch (err) {
+        console.error('Failed to load cached subject semesters:', err);
       }
     } catch (error) {
-      console.error('Failed to fetch semesters:', error);
+      console.error('Failed to fetch subject semesters:', error);
     } finally {
       setIsLoadingSemesters(false);
     }
@@ -146,11 +192,29 @@ export default function CGPATargetCalculator({ w }) {
             });
           }
 
-          const withMarks = processedSubjects.map((s) => ({
+          const cachedSgpaSubjects = localStorage.getItem('cgpaCalculatorSgpaSubjects');
+          const gradeMap = {};
+          if (cachedSgpaSubjects) {
+            try {
+              const parsed = JSON.parse(cachedSgpaSubjects);
+              if (Array.isArray(parsed)) {
+                parsed.forEach(subject => {
+                  if (subject.code) {
+                    gradeMap[subject.code] = subject.grade;
+                  }
+                });
+              }
+            } catch (e) {
+              console.error('Failed to parse cached grades:', e);
+            }
+          }
+
+          const withMarksAndGrades = processedSubjects.map((s) => ({
             ...s,
-            marks: marksMap[s.code] || null
+            marks: marksMap[s.code] || null,
+            grade: gradeMap[s.code] || s.grade // Use cached grade if available, otherwise default
           }));
-          setSgpaSubjects(withMarks);
+          setSgpaSubjects(withMarksAndGrades);
         } catch (e) {
           console.error('Failed to attach marks cache:', e);
           setSgpaSubjects(processedSubjects);

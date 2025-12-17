@@ -1,5 +1,3 @@
-// Local reimplementation of jsjiit's serialize_payload used by the API
-
 function generate_date_seq(date = null) {
   if (date === null) {
     date = new Date();

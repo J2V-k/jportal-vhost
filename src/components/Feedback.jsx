@@ -4,12 +4,11 @@ import { ArrowLeft, MessageSquare, CheckCircle, AlertCircle, Loader2, ChevronDow
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Helmet } from 'react-helmet-async';
 
 const API = "https://webportal.jiit.ac.in:6011/StudentPortalAPI";
 
-// Encryption utilities from jsjiit
 function generate_date_seq(date = null) {
   if (date === null) {
     date = new Date();
@@ -344,7 +343,9 @@ const Feedback = ({ w }) => {
   return (
     <>
       <Helmet>
-        <title>Feedback - JP_Portal</title>
+        <title>Feedback - JP Portal</title>
+        <meta name="description" content="Submit feedback and suggestions for JP Portal, the unofficial student portal for Jaypee Institute of Information Technology (JIIT)." />
+        <meta name="keywords" content="feedback, suggestions, JIIT feedback, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
       </Helmet>
       <div className="min-h-screen bg-black dark:bg-white text-white dark:text-black p-4 pb-24 md:p-8 md:pb-8 lg:px-12 xl:px-16">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -607,6 +608,7 @@ const Feedback = ({ w }) => {
               {dialogType === 'already_submitted' && 'Feedback Already Submitted'}
               {dialogType === 'error' && 'Submission Failed'}
             </DialogTitle>
+            <DialogDescription className="text-sm text-gray-400 dark:text-gray-600">{dialogType === 'success' ? 'Your feedback has been submitted.' : dialogType === 'already_submitted' ? 'You have already submitted feedback.' : 'An error occurred while submitting feedback.'}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {dialogType !== 'already_submitted' && (

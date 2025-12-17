@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ArtificialWebPortal } from "./scripts/artificialW";
 import { motion, AnimatePresence } from "framer-motion";
 import useTheme from "@/context/ThemeContext";
 import {
@@ -27,6 +28,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Helmet } from 'react-helmet-async';
 import { generate_local_name, API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
@@ -85,6 +87,17 @@ export default function Grades({
   marksLoading,
   setMarksLoading,
 }) {
+  const isOffline = w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal'))
+  if (isOffline) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6 max-w-md mx-auto text-center">
+          <h2 className="text-xl font-semibold text-white dark:text-black">Grades Unavailable</h2>
+          <p className="text-gray-400 dark:text-gray-600 mt-2">Grades are not available while offline. Connect to the internet to view grade reports.</p>
+        </div>
+      </div>
+    );
+  }
   const navigate = useNavigate();
   const { themeMode } = useTheme();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -447,9 +460,10 @@ export default function Grades({
   return (
     <>
       <Helmet>
-        <title>Grades & Marks - JP_Portal | JIIT Student Portal</title>
+        <title>Grades & Marks - JP Portal | JIIT Student Portal</title>
         <meta name="description" content="View your academic grades, SGPA, CGPA, semester-wise marks, and grade progression charts at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:title" content="Grades & Marks - JP_Portal | JIIT Student Portal" />
+        <meta name="keywords" content="grades, marks, SGPA, CGPA, semester marks, JIIT grades, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
+        <meta property="og:title" content="Grades & Marks - JP Portal | JIIT Student Portal" />
         <meta property="og:description" content="View your academic grades, SGPA, CGPA, semester-wise marks, and grade progression charts at Jaypee Institute of Information Technology (JIIT)." />
         <meta property="og:url" content="https://jportal2-0.vercel.app/grades" />
         <link rel="canonical" href="https://jportal2-0.vercel.app/grades" />
@@ -1009,10 +1023,8 @@ export default function Grades({
           >
             <DialogContent className="bg-[#0B0B0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
               <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">
-                  {" "}
-                  Download Marks{" "}
-                </DialogTitle>
+                <DialogTitle className="text-xl font-semibold">Download Marks</DialogTitle>
+                <DialogDescription className="text-sm text-gray-400">Select the semester to download marks from the available list.</DialogDescription>
               </DialogHeader>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

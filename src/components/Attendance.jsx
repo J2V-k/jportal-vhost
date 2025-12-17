@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   getAttendanceFromCache,
   saveAttendanceToCache,
   getSubjectDataFromCache,
   saveSubjectDataToCache,
+  getSemesterFromCache,
+  getSemestersFromCache,
+  saveSemestersToCache,
 } from "@/components/scripts/cache";
 import AttendanceCard from "./AttendanceCard";
 import {
@@ -57,6 +61,8 @@ const Attendance = ({
   subjectCacheStatus,
   setSubjectCacheStatus,
 }) => {
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFromCache, setIsFromCache] = useState(false);
@@ -98,15 +104,41 @@ const Attendance = ({
       setIsAttendanceMetaLoading(true);
       setIsAttendanceDataLoading(true);
       try {
+        const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+        const cachedSemList = await getSemestersFromCache(username);
+        if (cachedSemList) {
+          const header = semestersData?.latest_header || null;
+          setSemestersData({
+            semesters: cachedSemList,
+            latest_header: header,
+            latest_semester: cachedSemList[0] || null,
+          });
+          setIsAttendanceMetaLoading(false);
+          setIsAttendanceDataLoading(false);
+        }
+      } catch (e) {
+      }
+      try {
         const meta = await w.get_attendance_meta();
-        const header = meta.latest_header();
-        const latestSem = meta.latest_semester();
+        if (!meta) {
+          setSemestersData({ semesters: [], latest_header: null, latest_semester: null });
+          setIsAttendanceMetaLoading(false);
+          setIsAttendanceDataLoading(false);
+          return;
+        }
+        const header = (meta.latest_header && meta.latest_header()) || null;
+        const latestSem = (meta.latest_semester && meta.latest_semester()) || null;
 
         setSemestersData({
           semesters: meta.semesters,
           latest_header: header,
           latest_semester: latestSem,
         });
+        try {
+          const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+          await saveSemestersToCache(meta.semesters, username);
+        } catch (e) {
+        }
 
         const currentYear = new Date().getFullYear().toString();
         const currentYearSemester = meta.semesters.find(sem =>
@@ -114,7 +146,7 @@ const Attendance = ({
         );
         const semesterToLoad = currentYearSemester || latestSem;
 
-        const username = w.username || "user";
+        const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
         const cached = await getAttendanceFromCache(username, semesterToLoad);
         if (cached) {
           setAttendanceData((prev) => ({
@@ -128,7 +160,15 @@ const Attendance = ({
           setIsAttendanceDataLoading(false);
           setIsRefreshing(true);
           try {
-            const data = await w.get_attendance(header, semesterToLoad);
+                const data = await w.get_attendance(header, semesterToLoad);
+                if (!data) {
+                  setAttendanceData((prev) => ({
+                    ...prev,
+                    [semesterToLoad.registration_id]: { error: 'No cached attendance available' },
+                  }));
+                  setIsRefreshing(false);
+                  return;
+                }
             setAttendanceData((prev) => ({
               ...prev,
               [semesterToLoad.registration_id]: data,
@@ -192,7 +232,7 @@ const Attendance = ({
     }
 
     setIsAttendanceDataLoading(true);
-    const username = w.username || "user";
+    const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
     const cached = await getAttendanceFromCache(username, semester);
     if (cached) {
       setAttendanceData((prev) => ({
@@ -203,10 +243,12 @@ const Attendance = ({
       setIsFromCache(true);
       setIsAttendanceDataLoading(false);
       setIsRefreshing(true);
-      try {
-        const meta = await w.get_attendance_meta();
-        const header = meta.latest_header();
-        const data = await w.get_attendance(header, semester);
+        try {
+          const meta = await w.get_attendance_meta();
+          if (!meta) throw new Error('No attendance metadata available');
+          const header = (meta.latest_header && meta.latest_header()) || null;
+          const data = await w.get_attendance(header, semester);
+          if (!data) throw new Error('No cached attendance available');
         setAttendanceData((prev) => ({
           ...prev,
           [value]: data,
@@ -338,7 +380,7 @@ const Attendance = ({
 
   const fetchSubjectAttendance = async (subject) => {
     try {
-      const username = w.username || "user";
+      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
       const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
       
       if (cached) {
@@ -380,6 +422,9 @@ const Attendance = ({
         subjectcomponentids
       );
 
+      if (!data || !data.studentAttdsummarylist) {
+        return;
+      }
       const freshData = data.studentAttdsummarylist;
       
       setSubjectAttendanceData((prev) => ({
@@ -412,6 +457,21 @@ const Attendance = ({
     loadAllSubjects();
   }, [activeTab]);
 
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['overview', 'daily'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams, setActiveTab]);
+
+  useEffect(() => {
+    if (activeTab) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('tab', activeTab);
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [activeTab, searchParams, setSearchParams]);
+
   const getClassesFor = (subjectName, date) => {
     const all = subjectAttendanceData[subjectName];
     if (!all) return [];
@@ -426,9 +486,10 @@ const Attendance = ({
   return (
     <>
       <Helmet>
-        <title>Attendance - JP_Portal | JIIT Student Portal</title>
+        <title>Attendance - JP Portal | JIIT Student Portal</title>
         <meta name="description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:title" content="Attendance - JP_Portal | JIIT Student Portal" />
+        <meta name="keywords" content="attendance records, subject-wise attendance, daily attendance, JIIT attendance, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
+        <meta property="og:title" content="Attendance - JP Portal | JIIT Student Portal" />
         <meta property="og:description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
         <meta property="og:url" content="https://jportal2-0.vercel.app/attendance" />
         <link rel="canonical" href="https://jportal2-0.vercel.app/attendance" />
@@ -561,6 +622,7 @@ const Attendance = ({
                     setSelectedSubject={setSelectedSubject}
                     subjectAttendanceData={subjectAttendanceData}
                     fetchSubjectAttendance={fetchSubjectAttendance}
+                    attendanceGoal={attendanceGoal}
                   />
                 ))}
               </div>

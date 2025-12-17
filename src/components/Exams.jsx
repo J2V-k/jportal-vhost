@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Calendar, Clock, MapPin, Armchair, Timer } from "lucide-react";
+import { ArtificialWebPortal } from "./scripts/artificialW";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,17 @@ export default function Exams({
   selectedExamEvent,
   setSelectedExamEvent,
 }) {
+  const isOffline = w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal'))
+  if (isOffline) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6 max-w-md mx-auto text-center">
+          <h2 className="text-xl font-semibold text-white dark:text-black">Exam Schedule Unavailable</h2>
+          <p className="text-gray-400 dark:text-gray-600 mt-2">Exam schedule is not available while offline. Connect to the internet to view exam schedules.</p>
+        </div>
+      </div>
+    );
+  }
   const [examEvents, setExamEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 

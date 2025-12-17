@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -445,6 +446,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
               <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Outdated</span>
             )}
           </DialogTitle>
+          <DialogDescription className="text-xs text-gray-300 dark:text-gray-600">View the daily/weekly menu and related details for the mess.</DialogDescription>
         </DialogHeader>
 
         {shouldShowMenu ? (

@@ -9,6 +9,7 @@ import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsji
 import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff, Smartphone } from "lucide-react"
 import MessMenu from "./MessMenu"
 import ThemeBtn from "./ui/ThemeBtn"
+import { ArtificialWebPortal } from "./scripts/artificialW"
 
 const formSchema = z.object({
   enrollmentNumber: z.string({
@@ -24,6 +25,7 @@ export default function Login({ onLoginSuccess, w }) {
     isLoading: false,
     error: null,
     credentials: null,
+    canFallbackOffline: false,
   })
   const [isFeatureOpen, setIsFeatureOpen] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState(null)
@@ -43,29 +45,50 @@ export default function Login({ onLoginSuccess, w }) {
 
     const performLogin = async () => {
       try {
-        await w.student_login(loginStatus.credentials.enrollmentNumber, loginStatus.credentials.password)
+        const attemptedUsername = loginStatus.credentials.enrollmentNumber
+        const attemptedPassword = loginStatus.credentials.password
 
-        localStorage.setItem("username", loginStatus.credentials.enrollmentNumber)
-        localStorage.setItem("password", loginStatus.credentials.password)
+        await w.student_login(attemptedUsername, attemptedPassword)
+
+        localStorage.setItem("username", attemptedUsername)
+        localStorage.setItem("password", attemptedPassword)
 
         setLoginStatus((prev) => ({
           ...prev,
           isLoading: false,
           credentials: null,
         }))
-        onLoginSuccess()
+        onLoginSuccess(w)
       } catch (error) {
         console.error("Login failed:", error)
+        const attemptedUsername = loginStatus.credentials?.enrollmentNumber || ''
+        const isAuthError = error instanceof LoginError
+
+        const profileData = localStorage.getItem('profileData');
+        const attendanceData = Object.keys(localStorage).some(key => key.startsWith('attendance-'));
+        const gradesData = Object.keys(localStorage).some(key => key.startsWith('grades-'));
+        const hasCache = !!(profileData || attendanceData || gradesData)
+
         setLoginStatus((prev) => ({
           ...prev,
           isLoading: false,
-          error: error instanceof LoginError ? error.message : "Login failed. Please check your credentials.",
+          error: isAuthError ? error.message : "Login failed. Falling back to offline mode if cached data exists.",
           credentials: null,
+          canFallbackOffline: (!isAuthError && hasCache),
         }))
+
+        if (!isAuthError && hasCache) {
+          try {
+            if (attemptedUsername) localStorage.setItem('username', attemptedUsername)
+            const artificialW = new ArtificialWebPortal();
+            onLoginSuccess(artificialW);
+          } catch (e) {
+          }
+        }
       }
     }
 
-    setLoginStatus((prev) => ({ ...prev, isLoading: true }))
+    setLoginStatus((prev) => ({ ...prev, isLoading: true, canFallbackOffline: false, error: null }))
     performLogin()
   }, [loginStatus.credentials, onLoginSuccess, w])
 
@@ -110,7 +133,24 @@ export default function Login({ onLoginSuccess, w }) {
       ...prev,
       credentials: values,
       error: null,
+      canFallbackOffline: false,
     }))
+  }
+
+  const handleOfflineMode = () => {
+    const profileData = localStorage.getItem('profileData');
+    const attendanceData = Object.keys(localStorage).some(key => key.startsWith('attendance-'));
+    const gradesData = Object.keys(localStorage).some(key => key.startsWith('grades-'));
+
+    if (!profileData && !attendanceData && !gradesData) {
+      setLoginStatus((prev) => ({
+        ...prev,
+        error: "No cached data available. Please login online first to use offline mode.",
+      }));
+      return;
+    }
+    const artificialW = new ArtificialWebPortal();
+    onLoginSuccess(artificialW);
   }
 
   return (
@@ -222,12 +262,27 @@ export default function Login({ onLoginSuccess, w }) {
                 </div>
               </div>
               <div className="flex justify-center gap-2">
+                {loginStatus.canFallbackOffline && (
+                  <button
+                    onClick={handleOfflineMode}
+                    className="flex items-center justify-center px-6 py-2 bg-orange-600/20 dark:bg-orange-100 border border-orange-500/30 dark:border-orange-300 text-orange-400 dark:text-orange-700 hover:bg-orange-700/40 dark:hover:bg-orange-50 hover:text-orange-200 dark:hover:text-orange-600 transition-colors rounded-lg text-sm font-medium gap-2"
+                  >
+                    <Smartphone size={18} /> Offline Mode
+                  </button>
+                )}
                 <MessMenu>
                   <button className="flex items-center justify-center px-6 py-2 bg-green-600/20 dark:bg-green-100 border border-green-500/30 dark:border-green-300 text-green-400 dark:text-green-700 hover:bg-green-700/40 dark:hover:bg-green-50 hover:text-green-200 dark:hover:text-green-600 transition-colors rounded-lg text-sm font-medium gap-2">
                     <UtensilsCrossed size={18} /> Mess Menu
                   </button>
                 </MessMenu>
-                <a href="#/academic-calendar" className="flex items-center justify-center px-4 py-2 bg-blue-600/20 dark:bg-blue-100 border border-blue-500/30 dark:border-blue-300 text-blue-400 dark:text-blue-700 hover:bg-blue-700/40 dark:hover:bg-blue-50 hover:text-blue-200 dark:hover:text-blue-600 transition-colors rounded-lg text-sm font-medium gap-2">
+                <a 
+                  href="#/academic-calendar" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '#/academic-calendar';
+                  }}
+                  className="flex items-center justify-center px-4 py-2 bg-blue-600/20 dark:bg-blue-100 border border-blue-500/30 dark:border-blue-300 text-blue-400 dark:text-blue-700 hover:bg-blue-700/40 dark:hover:bg-blue-50 hover:text-blue-200 dark:hover:text-blue-600 transition-colors rounded-lg text-sm font-medium gap-2"
+                >
                   <Calendar size={18} /> Academic Calendar
                 </a>
               </div>

@@ -1,18 +1,16 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThemeBtn from "./ui/ThemeBtn";
 import MessMenu from './MessMenu';
 import { Utensils } from 'lucide-react';
 import SettingsDialog from './SettingsDialog';
+import { ArtificialWebPortal } from './scripts/artificialW';
 
-const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal }) => {
+const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal, w }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('username');
     localStorage.removeItem('password');
-    localStorage.removeItem('attendanceData');
     setIsAuthenticated(false);
     navigate('/login');
   };
@@ -47,6 +45,11 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
             </div>
           </MessMenu>
           <ThemeBtn />
+          {(w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal'))) && (
+            <div className="flex items-center px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+              <span className="text-xs text-yellow-300 font-medium">Offline</span>
+            </div>
+          )}
           <SettingsDialog 
             onLogout={handleLogout} 
             attendanceGoal={attendanceGoal} 

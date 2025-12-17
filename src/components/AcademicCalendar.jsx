@@ -11,7 +11,6 @@ const AcademicCalendar = () => {
   const navigate = useNavigate();
   const todayEventRef = useRef(null);
   const isMobile = window.innerWidth < 768;
-  // Removed isDialog variable as it is no longer needed.
 
   useEffect(() => {
     const fetchCalendarData = async () => {
@@ -150,9 +149,10 @@ const AcademicCalendar = () => {
   return (
     <>
       <Helmet>
-        <title>Academic Calendar - JP_Portal | JIIT Student Portal</title>
+        <title>Academic Calendar - JP Portal | JIIT Student Portal</title>
         <meta name="description" content="View the academic calendar for Jaypee Institute of Information Technology (JIIT) with important dates, exam schedules, holidays, and semester events." />
-        <meta property="og:title" content="Academic Calendar - JP_Portal | JIIT Student Portal" />
+        <meta name="keywords" content="academic calendar, exam schedule, holidays, semester events, JIIT calendar, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
+        <meta property="og:title" content="Academic Calendar - JP Portal | JIIT Student Portal" />
         <meta property="og:description" content="View the academic calendar for Jaypee Institute of Information Technology (JIIT) with important dates, exam schedules, holidays, and semester events." />
         <meta property="og:url" content="https://jportal2-0.vercel.app/academic-calendar" />
         <link rel="canonical" href="https://jportal2-0.vercel.app/academic-calendar" />

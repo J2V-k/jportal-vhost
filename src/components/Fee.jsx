@@ -121,17 +121,21 @@ export default function Fee({ w, serialize_payload }) {
     setLoading(true);
     (async () => {
       try {
+        
         if (!w || typeof w.get_fee_summary !== "function") {
-          throw new Error("Fee API not available on portal instance");
+          setError(new Error('Fee information is unavailable in offline mode.'));
+          setData(null);
+          setFines([]);
+          return;
         }
         const [feeResult, finesResult] = await Promise.all([
           w.get_fee_summary(),
-          w.get_fines_msc_charges().catch((err) => {
+          (typeof w.get_fines_msc_charges === 'function') ? w.get_fines_msc_charges().catch((err) => {
             if (err.message?.includes("NO APPROVED REQUEST FOUND")) {
               return [];
             }
             throw err;
-          }),
+          }) : Promise.resolve([]),
         ]);
         setData(feeResult);
         setFines(Array.isArray(finesResult) ? finesResult : []);
@@ -159,6 +163,7 @@ export default function Fee({ w, serialize_payload }) {
       <Helmet>
         <title>Fee Details - JP Portal | JIIT Student Portal</title>
         <meta name="description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
+        <meta name="keywords" content="fee details, payment history, outstanding dues, JIIT fees, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
         <meta property="og:title" content="Fee Details - JP Portal | Unofficial JIIT Student Portal" />
         <meta property="og:description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
         <meta property="og:url" content="https://jportal2-0.vercel.app/fee" />
