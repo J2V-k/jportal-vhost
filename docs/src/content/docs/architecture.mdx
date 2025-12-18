@@ -1,0 +1,35 @@
+---
+title: Architecture
+description: High-level design and key modules.
+head: []
+---
+
+# Architecture
+
+Entry points
+- UI bootstrap: `src/main.jsx` mounts `<App />`.
+- Router & layout: `src/App.jsx` manages routes, authentication, offline fallback, and transitions.
+
+Routing
+- Uses `HashRouter` to support static hosting. Primary routes: Attendance, Grades, Exams, Subjects, Profile, Fee, Academic Calendar, Timetable, Feedback, CGPA Calculator.
+
+State & Theme
+- Local component state with shared theme via `ThemeContext` ([src/context/ThemeContext.jsx](../../../../src/context/ThemeContext.jsx)).
+- Theme preference is stored in `localStorage` (`defaultTheme`).
+
+Data Layer
+- Online: `WebPortal` from the `jsjiit` CDN ESM module.
+- Offline: `ArtificialWebPortal` ([artificialW.js](../../../../src/components/scripts/artificialW.js)) serves cached data.
+- Cache helpers: [cache.js](../../../../src/components/scripts/cache.js) implement keying, TTL, and upgrades.
+
+PWA & Caching
+- Configured in [vite.config.js](../../../../vite.config.js) via `vite-plugin-pwa`.
+- Workbox runtime caching for Pyodide assets, wheels, images, and static resources.
+
+Pyodide Integration
+- Loader provided by [src/lib/pyodide.js](../../../../src/lib/pyodide.js). 
+Wheels in `public/artifact` are precached to enable marks-related features offline.
+
+Security
+- Fee payload serialization (AES-CBC) in [src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js).
+- Credentials live in `localStorage` for auto-login and can be removed if not desired.

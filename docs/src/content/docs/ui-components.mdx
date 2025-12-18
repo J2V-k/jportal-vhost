@@ -1,0 +1,24 @@
+---
+title: UI Components
+description: UI primitives and common patterns.
+head: []
+---
+
+# UI Components
+
+Libraries
+- shadcn UI primitives for dialogs, inputs, selects, tabs, etc. (see `src/components/ui/*`).
+- Tailwind CSS for styling and `tailwindcss-animate` for transitions.
+- Framer Motion for subtle entrance and transition animations.
+
+Notable Components
+- Header: [src/components/Header.jsx](../../../../src/components/Header.jsx)
+- Navbar: [src/components/Navbar.jsx](../../../../src/components/Navbar.jsx)
+- Login: [src/components/Login.jsx](../../../../src/components/Login.jsx)
+- Mess Menu: [src/components/MessMenu.jsx](../../../../src/components/MessMenu.jsx)
+- Academic Calendar: [src/components/AcademicCalendar.jsx](../../../../src/components/AcademicCalendar.jsx)
+
+Patterns
+- Use `cn()` from [src/lib/utils.js](../../../../src/lib/utils.js) to compose class names.
+- Keep components focused, and lift shared state when necessary.
+- Prefer composition over prop drilling where possible.

@@ -1,0 +1,33 @@
+---
+title: PWA & Offline
+description: How caching and offline mode work.
+head: []
+---
+
+# PWA & Offline
+
+Service Worker
+- Configured via `vite-plugin-pwa` in [vite.config.js](../../../../vite.config.js).
+- Precache includes Pyodide CDN assets and wheel artifacts in `public/artifact`.
+- Runtime caching strategies:
+  - CacheFirst for Pyodide and wheels
+  - StaleWhileRevalidate for JS/CSS and marks PDFs
+  - Images cached with size and TTL caps
+
+Local Cache Scheme
+- Implemented in [cache.js](../../../../src/components/scripts/cache.js) with TTL-aware records:
+  - `attendance-<username>-<sem>`
+  - `grades-<username>-<sem>`
+  - `registered-subjects-<username>-<sem>`
+  - `subject-<code>-<username>-<sem>`
+  - `subject-choices-<username>-<sem>`
+  - `semesters-<username>` and helpers like `profileData`
+
+Offline WebPortal
+- When online login fails but data exists, the app switches to `ArtificialWebPortal`, serving from cache only.
+- Restricted routes/features are hidden when in offline mode.
+
+Testing Offline
+1. Load the app online and navigate through features to warm caches.
+2. Switch DevTools to offline and reload.
+3. Verify the header shows an Offline badge and permitted routes.

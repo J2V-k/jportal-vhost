@@ -1,0 +1,30 @@
+---
+title: Setup
+description: Local development and build steps.
+head: []
+---
+
+# Setup
+
+Requirements
+- Node.js 18+ and npm 9+
+
+Install & run
+```bash
+npm install
+npm run dev
+```
+
+Build & preview
+```bash
+npm run build
+npm run preview
+```
+
+Dev data
+- Academic Calendar: edit `public/AC.json`.
+- Mess Menu: create `data/mess_menu.json` for the dev server to expose at `/api/messmenu`.
+
+Recommendations
+- Use a modern browser (PWA features are best-tested on Chromium-based browsers and Android).
+- If testing offline mode, first load data online to populate cache, then toggle network offline.
