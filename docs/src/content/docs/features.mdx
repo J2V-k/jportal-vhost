@@ -1,0 +1,36 @@
+---
+title: Features
+description: Feature guides for main views.
+head: []
+---
+
+# Features
+
+Attendance
+- Overview and per-subject tabs with goal tracking.
+- Daily view and caching with keys like `attendance-<username>-<sem>`.
+
+Grades
+- Semester summaries and grade card data.
+- Marks download pipeline leverages Pyodide artifacts for PDF handling.
+
+Exams
+- Exam schedule and events. App can auto-focus this tab during exam windows if `examStartDate`/`examEndDate` are set in `localStorage`.
+
+Subjects
+- Registered subjects and faculties for a selected semester.
+
+Profile
+- Basic personal data and hostel details where available.
+
+Academic Calendar
+- Filterable list of events backed by `public/AC.json`.
+
+Mess Menu
+- Dialog component that fetches `/api/messmenu` (dev plugin expects `data/mess_menu.json`). Displays daily and weekly views.
+
+Fee
+- Uses `serialize_payload()` ([src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js)) to encrypt payloads before submission.
+
+CGPA Target Calculator
+- Utility tool for planning target scores.

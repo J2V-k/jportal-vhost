@@ -1,0 +1,25 @@
+---
+title: Code Map
+description: Project structure overview by folders.
+head: []
+---
+
+# Code Map
+
+Top-level
+- `vite.config.js`: Build, dev middleware for Mess Menu, and PWA configuration.
+- `tailwind.config.js`: Theme tokens and plugin config.
+- `public/`: Static assets, `AC.json` (calendar), `artifact/` (wheels).
+
+Source
+- `src/main.jsx`: Mounts the app.
+- `src/App.jsx`: Router, authentication, layout, offline fallback logic.
+- `src/context/ThemeContext.jsx`: Theme provider and hook.
+- `src/lib/`: Utilities (`utils`, `pyodide`, `jiitCrypto`).
+- `src/components/`: Feature and UI components.
+  - `ui/`: shadcn-based UI primitives and helpers.
+  - `scripts/`: `artificialW.js` (offline `WebPortal` shim), `cache.js` (localStorage cache helpers).
+
+Routes (from `src/App.jsx`)
+- `/attendance`, `/grades`, `/exams`, `/subjects`, `/profile`
+- `/fee`, `/academic-calendar`, `/timetable`, `/feedback`, `/gpa-calculator`

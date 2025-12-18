@@ -1,0 +1,22 @@
+---
+title: Troubleshooting
+description: Common issues and fixes.
+head: []
+---
+
+# Troubleshooting
+
+No Mess Menu data in dev
+- Create `data/mess_menu.json` at the repo root. Restart the dev server if needed.
+
+Offline mode not engaging
+- Ensure you’ve loaded data online first so caches exist (attendance/grades/profile). Then toggle offline and reload.
+
+PWA install prompt not showing
+- The install prompt appears on Android Chrome and similar. Desktop browsers may not show the same UX. Also ensure you’re not already in standalone mode.
+
+Pyodide assets fail to load offline
+- Load the app online at least once to precache CDN assets and local wheel artifacts (`public/artifact`).
+
+Routing breaks on refresh
+- The app uses `HashRouter`. Make sure URLs include `#/...` when bookmarking or linking.
