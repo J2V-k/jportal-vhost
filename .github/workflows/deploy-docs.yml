@@ -2,12 +2,12 @@ name: Deploy Docs to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, docs ]
     paths:
       - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, docs ]
     paths:
       - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
