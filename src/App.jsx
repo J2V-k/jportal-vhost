@@ -24,7 +24,6 @@ import AcademicCalendar from "./components/AcademicCalendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
-import { Analytics } from "@vercel/analytics/react";
 import { Loader2 } from "lucide-react";
 import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
@@ -41,7 +40,7 @@ import CGPATargetCalculator from "./components/CGPATargetCalculator";
 
 const w = new WebPortal();
 
-function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange }) {
+function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal }) {
   const navigate = useNavigate();
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -58,28 +57,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   const [gradesSemesterData, setGradesSemesterData] = useState(null);
 
   const [selectedAttendanceSem, setSelectedAttendanceSem] = useState(null);
-  const [selectedSubjectsSem, setSelectedSubjectsSem] = useState(null);
-
-  const [attendanceGoal, setAttendanceGoal] = useState(() => {
-    const savedGoal = localStorage.getItem("attendanceGoal");
-    return savedGoal ? parseInt(savedGoal) : 75;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("attendanceGoal", attendanceGoal.toString());
-  }, [attendanceGoal]);
-
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'attendanceGoal') {
-        const newValue = e.newValue ? parseInt(e.newValue) : 75;
-        setAttendanceGoal(newValue);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  const [selectedSubjectsSem, setSelectedSubjectsSem] = useState(null); 
 
   const [profileData, setProfileData] = useState(null);
 
@@ -209,7 +187,6 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEndWithTransition}
       >
-        <Analytics />
         <div className="flex-none z-30 bg-[black] -mt-[2px] md:ml-64">
             <Header 
               setIsAuthenticated={setIsAuthenticated} 
@@ -501,10 +478,31 @@ function App() {
     localStorage.setItem("messMenuOpen", open.toString());
   };
 
+  const [attendanceGoal, setAttendanceGoal] = useState(() => {
+    const savedGoal = localStorage.getItem("attendanceGoal");
+    return savedGoal ? parseInt(savedGoal) : 75;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("attendanceGoal", attendanceGoal.toString());
+  }, [attendanceGoal]);
+
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'attendanceGoal') {
+        const newValue = e.newValue ? parseInt(e.newValue) : 75;
+        setAttendanceGoal(newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   useEffect(() => {
     const handleBeforeUnload = () => {
       localStorage.removeItem("messMenuOpen");
-    };
+    }; 
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -664,7 +662,27 @@ function App() {
         <Router>
           <div className="min-h-screen bg-[black] dark:bg-white dark:text-black">
             <Routes>
-              <Route path="/academic-calendar" element={<AcademicCalendar />} />
+              <Route
+                path="/academic-calendar"
+                element={
+                  <>
+                    <Header
+                      setIsAuthenticated={setIsAuthenticated}
+                      messMenuOpen={messMenuOpen}
+                      onMessMenuChange={handleMessMenuChange}
+                      attendanceGoal={attendanceGoal}
+                      setAttendanceGoal={setAttendanceGoal}
+                      w={currentWebPortal}
+                    />
+                    <div className="flex">
+                      <Navbar w={currentWebPortal} />
+                      <div className="flex-1 overflow-y-auto md:ml-64">
+                        <AcademicCalendar />
+                      </div>
+                    </div>
+                  </>
+                }
+              />
               {!isAuthenticated || (isAuthenticated && currentWebPortal === w && !w.session) ? (
                 <Route
                   path="*"
@@ -694,6 +712,8 @@ function App() {
                       setIsAuthenticated={setIsAuthenticated} 
                       messMenuOpen={messMenuOpen}
                       onMessMenuChange={handleMessMenuChange}
+                      attendanceGoal={attendanceGoal}
+                      setAttendanceGoal={setAttendanceGoal}
                     />
                   }
                 />

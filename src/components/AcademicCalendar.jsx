@@ -152,22 +152,19 @@ const AcademicCalendar = () => {
         <title>Academic Calendar - JP Portal | JIIT Student Portal</title>
         <meta name="description" content="View the academic calendar for Jaypee Institute of Information Technology (JIIT) with important dates, exam schedules, holidays, and semester events." />
         <meta name="keywords" content="academic calendar, exam schedule, holidays, semester events, JIIT calendar, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
+        <meta name="robots" content="index,follow" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="JP Portal" />
         <meta property="og:title" content="Academic Calendar - JP Portal | JIIT Student Portal" />
         <meta property="og:description" content="View the academic calendar for Jaypee Institute of Information Technology (JIIT) with important dates, exam schedules, holidays, and semester events." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/academic-calendar" />
-        <link rel="canonical" href="https://jportal2-0.vercel.app/academic-calendar" />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/academic-calendar" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/academic-calendar" />
       </Helmet>
+      <h1 className="sr-only">Academic Calendar</h1>
       <div className={`min-h-screen bg-black dark:bg-white text-white dark:text-black`}>
       <div className="sticky top-0 bg-black dark:bg-white border-b border-gray-800 dark:border-gray-200 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-800 to-gray-700 dark:from-gray-200 dark:to-gray-300 hover:from-gray-700 hover:to-gray-600 dark:hover:from-gray-300 dark:hover:to-gray-400 text-white dark:text-black rounded-lg border border-gray-600 dark:border-gray-400 shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
-            </button>
           </div>
         </div>
       </div>
@@ -262,6 +259,8 @@ const AcademicCalendar = () => {
                 data-event-index={index}
                 ref={isTargetEvent ? todayEventRef : null}
                 style={isMobile ? { scrollMarginTop: '120px' } : {}}
+                role="article"
+                aria-labelledby={`event-title-${index}`}
                 className={`border rounded-lg p-4 transition-all ${getCategoryColor(event.category)} ${isFirstTodayEvent ? 'ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-lg' : ''}`}
               >
                 <div className="flex-1">
@@ -270,7 +269,7 @@ const AcademicCalendar = () => {
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="flex items-center gap-2">
                           {getCategoryIcon(event.category)}
-                          <h3 className="font-medium break-words">{event.category}</h3>
+                          <h3 id={`event-title-${index}`} className="font-medium break-words">{event.category}</h3>
                         </div>
                         <span className="text-xs font-medium px-2 py-1 rounded bg-gray-700 text-gray-200 dark:bg-gray-300 dark:text-gray-800 flex-shrink-0">
                           {event.semester} Sem

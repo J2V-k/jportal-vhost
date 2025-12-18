@@ -1,19 +1,26 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThemeBtn from "./ui/ThemeBtn";
 import MessMenu from './MessMenu';
-import { Utensils, RefreshCw } from 'lucide-react';
+import { Utensils, RefreshCw, ArrowLeft } from 'lucide-react';
 import SettingsDialog from './SettingsDialog';
 import { ArtificialWebPortal } from './scripts/artificialW';
 
 const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal, w }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.removeItem('password');
     setIsAuthenticated(false);
     navigate('/login');
   };
+
+  const rawPath = location.pathname || (location.hash ? location.hash.replace('#', '') : '/');
+  const currentPath = rawPath.split('?')[0];
+  const backVisiblePaths = ['/academic-calendar', '/fee', '/feedback', '/gpa-calculator', '/timetable'];
+  const showBack = backVisiblePaths.includes(currentPath);
+  const handleBack = () => navigate(-1);
 
   return (
     <motion.header
@@ -23,14 +30,22 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
       className="bg-[black] mx-auto px-3 pt-4 pb-2 dark:bg-white shadow-md"
     >
       <div className="container-fluid flex justify-between items-center">
-        <motion.h1
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-white text-2xl font-bold lg:text-3xl font-sans dark:text-black"
-        >
-         <p className="md:hidden"> JP Portal</p>
-        </motion.h1>
+        <div className="flex items-center gap-3">
+          {showBack && (
+            <button onClick={handleBack} className="p-2 rounded-full bg-transparent hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
+              <ArrowLeft className="w-4 h-4 text-white dark:text-black" />
+            </button>
+          )}
+
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-white text-2xl font-bold lg:text-3xl font-sans dark:text-black"
+          >
+           <p className="md:hidden"> JP Portal</p>
+          </motion.h1>
+        </div>
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}

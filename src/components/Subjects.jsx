@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
-import { Link, useLocation, useSearchParams } from "react-router-dom"
+import { Link, useLocation, useSearchParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
+import { Helmet } from 'react-helmet-async'
 import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -252,8 +253,87 @@ export default function Subjects({
       return acc
     }, {}) || {}
 
+  const navigate = useNavigate();
+
+  const buildTimetableUrlFromSubjects = (semester) => {
+    const generateVariants = (subjectCode) => {
+      if (!subjectCode) return [];
+      const full = String(subjectCode).trim().toUpperCase();
+      const variants = new Set();
+
+      const matches = full.match(/[A-Z]+\d+/g);
+      if (matches) matches.forEach(m => variants.add(m));
+
+      if (full.length >= 5) variants.add(full.slice(-5));
+      if (full.length >= 6) variants.add(full.slice(-6));
+
+      return Array.from(variants).filter(v => v && v.length >= 4 && /^[A-Z]/.test(v));
+    };  
+
+    let selectedSubjectsArr = [];
+    const semId = semester?.registration_id || (selectedSem && selectedSem.registration_id);
+
+    const pushVariantsFromList = (list) => {
+      list.forEach((s) => {
+        const variants = generateVariants(s.subject_code);
+        variants.forEach(v => selectedSubjectsArr.push(v));
+      });
+    };
+
+    if (semId && subjectData?.[semId]?.subjects) {
+      pushVariantsFromList(subjectData[semId].subjects);
+    } else if (currentSubjects?.subjects) {
+      pushVariantsFromList(currentSubjects.subjects);
+    }
+
+    const unique = Array.from(new Set(selectedSubjectsArr.filter(v => v && v.length >= 4)));
+    let selectedSubjects = unique.join(',');
+
+    if (!selectedSubjects) selectedSubjects = 'EC611,EC671,EC691';
+
+    const baseUrl = 'https://simple-timetable.tashif.codes/';
+    const params = new URLSearchParams({
+      campus: '62',
+      year: '4',
+      batch: '2026',
+      selectedSubjects: selectedSubjects,
+      isGenerating: 'true'
+    });
+
+    return `${baseUrl}?${params.toString()}`;
+  }
+
+  const TimetableButton = ({ semester = selectedSem }) => {
+    const handleClick = (e) => {
+      e.preventDefault();
+      const semId = semester?.registration_id || (selectedSem && selectedSem.registration_id) || null;
+      sessionStorage.setItem('timetableRequest', JSON.stringify({ semId, ts: Date.now() }));
+      navigate('/timetable');
+    }
+
+    return (
+      <button
+        onClick={handleClick}
+        className="inline-flex items-center gap-3 px-6 py-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white rounded-lg hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-200 text-lg font-medium shadow-lg"
+      >
+        <Calendar size={20} />
+        Create personalized Timetable
+      </button>
+    )
+  }
+
   return (
-    <div className="relative pb-16 md:pb-20">
+    <>
+      <Helmet>
+        <title>Subjects - JP Portal | JIIT Student Portal</title>
+        <meta name="description" content="View your registered subjects and subject choices for each semester at JIIT." />
+        <meta property="og:title" content="Subjects - JP Portal | JIIT Student Portal" />
+        <meta property="og:description" content="View your registered subjects and subject choices for each semester at JIIT." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/subjects" />
+        <meta name="keywords" content="JIIT subjects, subject choices, student subjects" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/subjects" />
+      </Helmet>
+      <div className="relative pb-16 md:pb-20">
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -367,13 +447,7 @@ export default function Subjects({
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex justify-center mt-4"
             >
-              <Link
-                to="/timetable"
-                className="inline-flex items-center gap-3 px-6 py-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white rounded-lg hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-200 text-lg font-medium shadow-lg"
-              >
-                <Calendar size={20} />
-                Create personalized Timetable
-              </Link>
+              <TimetableButton />
             </motion.div>
           )}
         </TabsContent>
@@ -412,5 +486,6 @@ export default function Subjects({
       
       <div className="h-8 md:h-12" />
     </div>
+    </>
   )
 }

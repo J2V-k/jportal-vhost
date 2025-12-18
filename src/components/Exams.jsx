@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Helmet } from 'react-helmet-async';
 
 export default function Exams({
   w,
@@ -178,8 +179,18 @@ export default function Exams({
   };
 
   return (
+    <>
+      <Helmet>
+        <title>Exams - JP Portal | JIIT Student Portal</title>
+        <meta name="description" content="View exam schedules and downloadable schedules for your semesters at JIIT." />
+        <meta name="keywords" content="JIIT exams, exam schedule, JP Portal" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/exams" />
+      </Helmet>
     <div className="container mx-auto p-4 space-y-6 max-w-[1440px] pb-24">
       <div className="bg-black dark:bg-white shadow rounded-lg p-6 md:max-w-[50%] md:mx-auto">
+        <meta property="og:title" content="Exams - JP Portal | JIIT Student Portal" />
+        <meta property="og:description" content="View exam schedules and downloadable schedules for your semesters at JIIT." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/exams" />
         <h2 className="text-2xl font-bold mb-4 text-white dark:text-black">
           Exam Schedule
         </h2>
@@ -244,6 +255,7 @@ export default function Exams({
         </div>
       ) : null}
     </div>
+    </>
   );
 }
 

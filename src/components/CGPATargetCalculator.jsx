@@ -6,6 +6,7 @@ import { Calculator, Plus, Trash2, BookOpen, GraduationCap, Loader2, ArrowLeft, 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getFromCache } from "@/components/scripts/cache"
+import { Helmet } from 'react-helmet-async'
 
 export default function CGPATargetCalculator({ w }) {
   const navigate = useNavigate();
@@ -212,7 +213,7 @@ export default function CGPATargetCalculator({ w }) {
           const withMarksAndGrades = processedSubjects.map((s) => ({
             ...s,
             marks: marksMap[s.code] || null,
-            grade: gradeMap[s.code] || s.grade // Use cached grade if available, otherwise default
+            grade: gradeMap[s.code] || s.grade
           }));
           setSgpaSubjects(withMarksAndGrades);
         } catch (e) {
@@ -388,6 +389,16 @@ export default function CGPATargetCalculator({ w }) {
 
   
   return (
+    <>
+      <Helmet>
+        <title>GPA Calculator - JP Portal | JIIT Student Portal</title>
+        <meta name="description" content="Calculate SGPA/CGPA projections and targets for your semesters at JIIT." />
+          <meta property="og:title" content="GPA Calculator - JP Portal | JIIT Student Portal" />
+          <meta property="og:description" content="Calculate SGPA/CGPA projections and targets for your semesters at JIIT." />
+          <meta property="og:url" content="https://jportal2-0.vercel.app/#/gpa-calculator" />
+        <meta name="keywords" content="GPA calculator, SGPA, CGPA, JIIT, JP Portal" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/gpa-calculator" />
+      </Helmet>
         <div className="w-full max-w-5xl mx-auto bg-black dark:bg-white text-white dark:text-black rounded-lg overflow-hidden">
           <div className="sticky top-0 z-10 bg-gradient-to-r from-black to-black dark:from-white dark:to-white p-4 md:p-5 border-b border-gray-700 dark:border-gray-300 shadow-lg">
             <div className="flex items-center justify-between">
@@ -397,10 +408,7 @@ export default function CGPATargetCalculator({ w }) {
                 </div>
                 GPA Calculator
               </div>
-              <Button onClick={() => navigate(-1)} variant="outline" className="h-9 md:h-10 px-4 md:px-6 text-sm md:text-base font-semibold bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all rounded-lg flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Go Back
-              </Button>
+
             </div>
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -703,5 +711,6 @@ export default function CGPATargetCalculator({ w }) {
             </TabsContent>
           </Tabs>
         </div>
+        </>
       );
   }

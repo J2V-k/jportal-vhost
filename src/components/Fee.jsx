@@ -166,19 +166,11 @@ export default function Fee({ w, serialize_payload }) {
         <meta name="keywords" content="fee details, payment history, outstanding dues, JIIT fees, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
         <meta property="og:title" content="Fee Details - JP Portal | Unofficial JIIT Student Portal" />
         <meta property="og:description" content="View your fee summary, payment history, outstanding dues, and download fee demand reports at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/fee" />
-        <link rel="canonical" href="https://jportal2-0.vercel.app/fee" />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/fee" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/fee" />
       </Helmet>
       <div className="max-w-7xl mx-auto space-y-4 pb-20 md:pb-6 px-4 md:px-6 lg:px-8">
-      <div className="flex items-center justify-start mb-2 md:hidden">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-800 to-gray-700 dark:from-gray-200 dark:to-gray-300 hover:from-gray-700 hover:to-gray-600 dark:hover:from-gray-300 dark:hover:to-gray-400 text-white dark:text-black rounded-lg border border-gray-600 dark:border-gray-400 shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
-        </button>
-      </div>
+
 
       {data && (data.response || data.feeHeads || data.studentInfo) ? (() => {
         const feeData = data.response || data;

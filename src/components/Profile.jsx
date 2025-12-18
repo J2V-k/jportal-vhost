@@ -31,6 +31,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from "react-router-dom";
 
 export default function Profile({
@@ -129,6 +130,15 @@ export default function Profile({
       transition={{ duration: 0.5 }}
       className="container mx-auto max-w-4xl px-4 py-4 pb-24 md:pb-8 space-y-6"
     >
+      <Helmet>
+        <title>{info.studentname ? `${info.studentname} - Profile | JP Portal` : 'Profile - JP Portal'}</title>
+        <meta name="description" content={`Student profile page for ${info.studentname || 'JIIT student'}.`} />
+        <meta property="og:title" content={info.studentname ? `${info.studentname} - Profile | JP Portal` : 'Profile - JP Portal'} />
+        <meta property="og:description" content={`Student profile page for ${info.studentname || 'JIIT student'}.`} />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/profile" />
+        <meta name="keywords" content="JIIT profile, student profile, JP Portal" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/profile" />
+      </Helmet>
       <motion.div
         initial={{ y: -20 }}
         animate={{ y: 0 }}
@@ -445,6 +455,16 @@ export default function Profile({
             <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
             <span className="text-xs font-medium text-center">GPA Calculator</span>
           </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/timetable')}
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
+          >
+            <Calendar className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
+            <span className="text-xs font-medium text-center">Timetable</span>
+          </motion.button>
+
           <motion.a
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

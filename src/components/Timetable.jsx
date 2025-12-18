@@ -1,226 +1,329 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, Loader2, ArrowLeft, RefreshCw } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Calendar, Loader2, ArrowLeft, ExternalLink, RefreshCw, Edit2, Trash2, Check, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 
-const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selectedSubjectsSem }) => {
+const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData, subjectSemestersData }) => {
   const navigate = useNavigate();
+
   const [timetableUrl, setTimetableUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [localProfileData, setLocalProfileData] = useState(profileData);
-  const [localSubjectData, setLocalSubjectData] = useState(subjectData);
-  const [localSemestersData, setLocalSemestersData] = useState(subjectSemestersData);
+  const openedRef = useRef(false);
+
+  const [selectedVariants, setSelectedVariants] = useState([]);
+  const [variantNames, setVariantNames] = useState({});
+
+  const [selectedSemesterId, setSelectedSemesterId] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(-1);
+  const [editingValue, setEditingValue] = useState("");
+
+  const [lastCampus, setLastCampus] = useState("62");
+  const [lastYear, setLastYear] = useState("4");
+  const [lastBatch, setLastBatch] = useState("2026");
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!localProfileData && w) {
-        try {
-          const data = await w.get_personal_info();
-          setLocalProfileData(data);
-        } catch (error) {
-          setError("Failed to fetch profile data. Please try again.");
-        }
+    try {
+      const stored = sessionStorage.getItem('timetable_state');
+      if (stored) {
+        const obj = JSON.parse(stored);
+        if (Array.isArray(obj.variants)) setSelectedVariants(obj.variants);
+        if (obj.names && typeof obj.names === 'object') setVariantNames(obj.names);
       }
-    };
-
-    fetchProfileData();
-  }, [w, localProfileData]);
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
-    const fetchSubjectsData = async () => {
-      if (!localSemestersData && w) {
-        try {
-          const registeredSems = await w.get_registered_semesters();
-          const latestSem = registeredSems[0];
+    try {
+      sessionStorage.setItem('timetable_state', JSON.stringify({ variants: selectedVariants, names: variantNames }));
+    } catch (e) {}
+  }, [selectedVariants, variantNames]);
 
-          const semestersData = {
-            semesters: registeredSems,
-            latest_semester: latestSem,
-          };
-          setLocalSemestersData(semestersData);
+  const updateUrlFromVariants = (variants, campus = lastCampus, year = lastYear, batch = lastBatch) => {
+    const selectedSubjects = variants && variants.length ? variants.join(',') : 'EC611,EC671,EC691';
+    const baseUrl = "https://simple-timetable.tashif.codes/";
+    const params = new URLSearchParams({ campus, year, batch, selectedSubjects, isGenerating: "true" });
+    const url = `${baseUrl}?${params.toString()}`;
+    setTimetableUrl(url);
+  };
 
-          if (latestSem && (!localSubjectData || !localSubjectData[latestSem.registration_id])) {
-            const subjectsData = await w.get_registered_subjects_and_faculties(latestSem);
-            setLocalSubjectData(prev => ({
-              ...prev,
-              [latestSem.registration_id]: subjectsData,
-            }));
-          }
-        } catch (error) {
-        }
-      }
-    };
-
-    fetchSubjectsData();
-  }, [w, localSemestersData, localSubjectData]);
+  const [localProfileData, setLocalProfileData] = useState(profileData || null);
+  const [localSubjectData, setLocalSubjectData] = useState(subjectData || {});
+  const [localSemestersData, setLocalSemestersData] = useState(subjectSemestersData || null);
 
   useEffect(() => {
-    if (profileData && !localProfileData) {
-      setLocalProfileData(profileData);
-    }
-  }, [profileData, localProfileData]);
+    if (profileData && !localProfileData) setLocalProfileData(profileData);
+  }, [profileData]);
 
   useEffect(() => {
-    if (subjectData && !localSubjectData) {
+    if (subjectData && Object.keys(subjectData).length > 0 && Object.keys(localSubjectData).length === 0) {
       setLocalSubjectData(subjectData);
     }
-  }, [subjectData, localSubjectData]);
+  }, [subjectData]);
 
   useEffect(() => {
-    if (subjectSemestersData && !localSemestersData) {
-      setLocalSemestersData(subjectSemestersData);
-    }
-  }, [subjectSemestersData, localSemestersData]);
+    if (subjectSemestersData && !localSemestersData) setLocalSemestersData(subjectSemestersData);
+  }, [subjectSemestersData]);
 
-  useEffect(() => {
-    const buildTimetableUrl = () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const generateForSemester = async (semId) => {
+    setLoading(true);
+    setError(null);
 
-        const profileInfo = localProfileData?.generalinformation;
-        if (!profileInfo) {
-          if (localProfileData === null) {
-            setLoading(false);
-            return;
-          }
-          setError("Unable to load profile information. Using default values.");
+    const generateVariants = (subjectCode) => {
+      if (!subjectCode) return [];
+      const full = String(subjectCode).trim().toUpperCase();
+      const variants = new Set();
+
+      const matches = full.match(/[A-Z]+\d+/g);
+      if (matches) matches.forEach(m => variants.add(m));
+
+      if (full.length >= 5) variants.add(full.slice(-5));
+      if (full.length >= 6) variants.add(full.slice(-6));
+
+      return Array.from(variants).filter(v => v && v.length >= 4 && /^[A-Z]/.test(v));
+    };
+
+    try {
+      let profile = localProfileData;
+      if (!profile && w?.get_personal_info) {
+        profile = await w.get_personal_info().catch(() => null);
+        if (profile) setLocalProfileData(profile);
+        if (setProfileData && profile) setProfileData(profile);
+      }
+
+      const profileInfo = profile?.generalinformation || {};
+
+      let campus = "62";
+      const programCode = (profileInfo.programcode || "").toString();
+      const institute = (profileInfo.institutename || "").toString();
+      const enrollment = (profileInfo.registrationno || "").toString();
+      if (programCode.includes("128") || programCode.toLowerCase().includes("noida") || institute.toLowerCase().includes("noida") || enrollment.startsWith("99")) {
+        campus = "128";
+      }
+
+      let year = "4";
+      const semRaw = profileInfo.semester || "";
+      const semMatch = String(semRaw).match(/(\d+)/);
+      if (semMatch) {
+        const semNum = parseInt(semMatch[1]);
+        year = Math.ceil(semNum / 2).toString();
+      }
+
+      const batch = profileInfo.batch || profileInfo.batchname || "2026";
+
+      let subjectsMap = localSubjectData || {};
+      let semesters = localSemestersData;
+
+      if ((!semesters || !semesters.latest_semester) && w?.get_registered_semesters) {
+        const registered = await w.get_registered_semesters().catch(() => []);
+        if (registered && registered.length > 0) {
+          semesters = { semesters: registered, latest_semester: registered[0] };
+          setLocalSemestersData(semesters);
         }
+      }
 
-        const programCode = profileInfo?.programcode || "";
-        const batch = profileInfo?.batch || "2026";
-        const academicYear = profileInfo?.academicyear || "";
-        
-        let campus = "62";
-        if (programCode.includes("128") || programCode.toLowerCase().includes("noida") || 
-            profileInfo?.institutename?.toLowerCase().includes("noida")) {
-          campus = "128";
-        }
+      if (semId && (!subjectsMap[semId] || !subjectsMap[semId].subjects) && w?.get_registered_subjects_and_faculties) {
+        try {
+          const subs = await w.get_registered_subjects_and_faculties({ registration_id: semId });
+          subjectsMap = { ...subjectsMap, [semId]: subs };
+          setLocalSubjectData(subjectsMap);
+          if (setSubjectData) setSubjectData(subjectsMap);
+        } catch (e) {}
+      }
 
-        let year = "4";
-        const semester = profileInfo?.semester;
-        if (semester) {
-          const semNum = parseInt(semester);
-          year = Math.ceil(semNum / 2).toString();
-        }
-
-        const extractShortCode = (subjectCode) => {
-          if (!subjectCode) return '';
-          const match = subjectCode.match(/[A-Z]+\d+$/);
-          return match ? match[0] : subjectCode;
-        };
-
-        let selectedSubjects = "";
-        
-        if (localSemestersData?.latest_semester && localSubjectData?.[localSemestersData.latest_semester.registration_id]) {
-          const semesterData = localSubjectData[localSemestersData.latest_semester.registration_id];
-          if (semesterData && semesterData.subjects) {
-            const subjectCodes = semesterData.subjects
-              .map(subject => extractShortCode(subject.subject_code))
-              .filter(code => code && code.trim())
-              .join(',');
-            selectedSubjects = subjectCodes;
-          }
-        }
-
-        if (!selectedSubjects && selectedSubjectsSem && localSubjectData?.[selectedSubjectsSem.registration_id]) {
-          const semesterData = localSubjectData[selectedSubjectsSem.registration_id];
-          if (semesterData && semesterData.subjects) {
-            const subjectCodes = semesterData.subjects
-              .map(subject => extractShortCode(subject.subject_code))
-              .filter(code => code && code.trim())
-              .join(',');
-            selectedSubjects = subjectCodes;
-          }
-        }
-
-        if (!selectedSubjects && localSubjectData && Object.keys(localSubjectData).length > 0) {
-          const firstSemesterKey = Object.keys(localSubjectData)[0];
-          const semesterData = localSubjectData[firstSemesterKey];
-          if (semesterData && semesterData.subjects) {
-            const subjectCodes = semesterData.subjects
-              .map(subject => extractShortCode(subject.subject_code))
-              .filter(code => code && code.trim())
-              .join(',');
-            selectedSubjects = subjectCodes;
-          }
-        }
-
-        const baseUrl = "https://simple-timetable.tashif.codes/";
-        const params = new URLSearchParams({
-          campus: campus,
-          year: year,
-          batch: batch,
-          selectedSubjects: selectedSubjects || "EC611,EC671,EC691",
-          isGenerating: "true"
+      const arr = [];
+      const names = {};
+      if (semId && subjectsMap[semId] && subjectsMap[semId].subjects) {
+        subjectsMap[semId].subjects.forEach(s => {
+          const subjectName = s.subject_name || s.subjectname || s.subject || s.name || s.subject_code;
+          generateVariants(s.subject_code).forEach(v => { arr.push(v); if (!names[v]) names[v] = subjectName; });
         });
+      } else if (Object.keys(subjectsMap).length > 0) {
+        const firstKey = Object.keys(subjectsMap)[0];
+        subjectsMap[firstKey].subjects.forEach(s => {
+          const subjectName = s.subject_name || s.subjectname || s.subject || s.name || s.subject_code;
+          generateVariants(s.subject_code).forEach(v => { arr.push(v); if (!names[v]) names[v] = subjectName; });
+        });
+      }
 
-        const fullUrl = `${baseUrl}?${params.toString()}`;
-        setTimetableUrl(fullUrl);
-        
-        window.open(fullUrl, '_blank');
+      const unique = Array.from(new Set(arr.filter(v => v && v.length >= 4)));
+      setSelectedVariants(unique);
+      setVariantNames(names);
+      const selectedSubjects = unique.length ? unique.join(',') : 'EC611,EC671,EC691';
 
+      const baseUrl = "https://simple-timetable.tashif.codes/";
+      const params = new URLSearchParams({ campus, year, batch, selectedSubjects, isGenerating: "true" });
+      const url = `${baseUrl}?${params.toString()}`;
+      setLastCampus(campus);
+      setLastYear(year);
+      setLastBatch(batch);
+      setTimetableUrl(url);
+      if (!openedRef.current) {
+        window.open(url, '_blank');
+        openedRef.current = true;
+      }
+
+    } catch (err) {
+      console.error(err);
+      setError("Failed to generate timetable URL. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const requestRaw = sessionStorage.getItem('timetableRequest');
+    const request = requestRaw ? JSON.parse(requestRaw) : null;
+
+    if (request && request.semId) {
+      sessionStorage.removeItem('timetableRequest');
+      setSelectedSemesterId(request.semId);
+      return;
+    }
+
+    (async () => {
+      try {
+        const registered = await (w?.get_registered_semesters ? w.get_registered_semesters() : Promise.resolve([]));
+        if (registered && registered.length > 0) {
+          setLocalSemestersData({ semesters: registered, latest_semester: registered[0] });
+          
+          const currentYear = new Date().getFullYear().toString();
+          const currentYearSemester = registered.find(sem =>
+            sem.registration_code && sem.registration_code.includes(currentYear)
+          );
+          const selectedSem = currentYearSemester || registered[0];
+          setSelectedSemesterId(selectedSem.registration_id);
+        }
       } catch (err) {
-        setError("Failed to generate timetable. Please try again.");
       } finally {
         setLoading(false);
       }
+    })();
+
+    const updateOnVariantEdit = (variants) => {
+      if (!variants || variants.length === 0) return;
+      updateUrlFromVariants(variants, lastCampus, lastYear, lastBatch);
     };
 
-    buildTimetableUrl();
-  }, [localProfileData, localSubjectData, localSemestersData, selectedSubjectsSem]);
+    window.__rebuildTimetableFromVariants = updateOnVariantEdit;
+
+    return () => {
+      delete window.__rebuildTimetableFromVariants;
+    };
+  }, [w]);
+
+  useEffect(() => {
+    const requestRaw = sessionStorage.getItem('timetableRequest');
+    const request = requestRaw ? JSON.parse(requestRaw) : null;
+
+    if (request && request.semId) {
+      sessionStorage.removeItem('timetableRequest');
+
+      (async () => {
+        try {
+          const semId = request.semId;
+
+          let profile = localProfileData;
+          if (!profile && w?.get_personal_info) {
+            profile = await w.get_personal_info().catch(() => null);
+            if (profile) setLocalProfileData(profile);
+            if (setProfileData && profile) setProfileData(profile);
+          }
+
+          const profileInfo = profile?.generalinformation || {};
+          let campus = "62";
+          const programCode = (profileInfo.programcode || "").toString();
+          const institute = (profileInfo.institutename || "").toString();
+          const enrollment = (profileInfo.registrationno || "").toString();
+          if (programCode.includes("128") || programCode.toLowerCase().includes("noida") || institute.toLowerCase().includes("noida") || enrollment.startsWith("99")) {
+            campus = "128";
+          }
+          let year = "4";
+          const semRaw = profileInfo.semester || "";
+          const semMatch = String(semRaw).match(/(\d+)/);
+          if (semMatch) {
+            const semNum = parseInt(semMatch[1]);
+            year = Math.ceil(semNum / 2).toString();
+          }
+          const batch = profileInfo.batch || profileInfo.batchname || "2026";
+
+          let subjectsMap = localSubjectData || {};
+          let semesters = localSemestersData;
+
+          if ((!semesters || !semesters.latest_semester) && w?.get_registered_semesters) {
+            const registered = await w.get_registered_semesters().catch(() => []);
+            if (registered && registered.length > 0) {
+              semesters = { semesters: registered, latest_semester: registered[0] };
+              setLocalSemestersData(semesters);
+            }
+          }
+
+          if (!subjectsMap[semId] && w?.get_registered_subjects_and_faculties) {
+            try {
+              const subs = await w.get_registered_subjects_and_faculties({ registration_id: semId });
+              subjectsMap = { ...subjectsMap, [semId]: subs };
+              setLocalSubjectData(subjectsMap);
+              if (setSubjectData) setSubjectData(subjectsMap);
+            } catch (e) {
+            }
+          }
+
+          
+          const generateVariants = (subjectCode) => {
+            if (!subjectCode) return [];
+            const full = String(subjectCode).trim().toUpperCase();
+            const variants = new Set();
+            const matches = full.match(/[A-Z]+\d+/g);
+            if (matches) matches.forEach(m => variants.add(m));
+            if (full.length >= 5) variants.add(full.slice(-5));
+            if (full.length >= 6) variants.add(full.slice(-6));
+            return Array.from(variants).filter(v => v && v.length >= 4 && /^[A-Z]/.test(v));
+          };
+
+          let arr = [];
+          const names = {};
+          if (subjectsMap[semId] && subjectsMap[semId].subjects) {
+            subjectsMap[semId].subjects.forEach(s => {
+              const subjectName = s.subject_name || s.subjectname || s.subject || s.name || s.subject_code;
+              generateVariants(s.subject_code).forEach(v => { arr.push(v); if (!names[v]) names[v] = subjectName; });
+            });
+          }
+
+          const unique = Array.from(new Set(arr.filter(v => v && v.length >= 4)));
+          setSelectedVariants(unique);
+          setVariantNames(names);
+          updateUrlFromVariants(unique, campus, year, batch);
+        } catch (err) {
+          console.error('Error processing timetableRequest:', err);
+        }
+      })();
+
+      return;
+    }
+
+  }, [timetableUrl]);
+
+  useEffect(() => {
+    if (selectedSemesterId) {
+      generateForSemester(selectedSemesterId);
+    }
+  }, [selectedSemesterId]);
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] bg-[black] dark:bg-white">
-        <div className="p-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-2 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Go Back
-          </button>
-        </div>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
+      <div className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black">
+        <div className="text-center py-8">
             <Loader2 className="w-8 h-8 text-white dark:text-black animate-spin mx-auto mb-4" />
             <p className="text-white dark:text-black">Loading timetable...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-[60vh] bg-[black] dark:bg-white">
-        <div className="p-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-2 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Go Back
-          </button>
-        </div>
-        <div className="flex items-center justify-center min-h-[50vh] p-4">
-          <div className="text-center max-w-md">
-            <Calendar className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white dark:text-black mb-2">
-              Timetable Unavailable
-            </h3>
-            <p className="text-gray-400 dark:text-gray-600 mb-4">
-              {error}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Retry
-            </button>
+            <div className="mt-4 flex justify-center">
+              <Button size="sm" variant="ghost" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
           </div>
         </div>
       </div>
@@ -232,23 +335,138 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData, selected
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-[60vh] bg-[black] dark:bg-white"
+      className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black h-full overflow-hidden"
     >
-      <div className="p-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-3 py-2 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Go Back
-        </button>
-      </div>
-      
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <Calendar className="w-12 h-12 text-white dark:text-black mx-auto mb-4" />
-          <p className="text-white dark:text-black">Opening your personalized timetable...</p>
+        <Helmet>
+          <title>Timetable - JP Portal | JIIT Student Portal</title>
+          <meta name="description" content="Generate and view your personalized timetable based on registered subjects at JIIT." />
+          <meta property="og:title" content="Timetable - JP Portal | JIIT Student Portal" />
+          <meta property="og:description" content="Generate and view your personalized timetable based on registered subjects at JIIT." />
+          <meta property="og:url" content="https://jportal2-0.vercel.app/#/timetable" />
+          <meta name="keywords" content="timetable, class schedule, JP Portal, JIIT" />
+          <link rel="canonical" href="https://jportal2-0.vercel.app/#/timetable" />
+        </Helmet>
+
+      <div className="max-w-full mx-auto p-6 rounded-lg bg-[#0B0B0D] text-white dark:bg-white dark:text-black shadow-sm">
+        <h1 className="text-xl font-bold mb-4 text-center">Timetable Generator</h1>
+        <p className="text-sm text-center mb-4 text-gray-600 dark:text-gray-400">Select your semester, generate subject codes, and open your personalized timetable.</p>
+        <div className="p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+        <div className="flex items-start sm:items-center gap-3 w-full">
+          <div className="flex flex-col w-full">
+            <Select value={selectedSemesterId || ""} onValueChange={(val) => setSelectedSemesterId(val)}>
+              <SelectTrigger className="bg-[#0B0B0D] text-white border-gray-200 dark:bg-white dark:text-black dark:border-gray-300 w-full sm:w-56">
+                <SelectValue placeholder="Select semester" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black">
+                {localSemestersData?.semesters?.map((s) => (
+                  <SelectItem key={s.registration_id} value={s.registration_id}>{s.registration_code}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!localSemestersData?.semesters?.length && (
+              <span className="text-gray-600 dark:text-gray-400 text-xs mt-1">No registered semesters available — Generate will use default subjects.</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button size="sm" className="w-full sm:w-auto bg-white text-black border-white/10 dark:bg-[#0B0B0D] dark:text-white dark:border-gray-300" onClick={async () => {
+              if (!selectedSemesterId && localSemestersData?.semesters?.length) { setError('Please select a semester'); return; }
+              await generateForSemester(selectedSemesterId);
+              if (timetableUrl) {
+                window.open(timetableUrl, '_blank');
+              }
+            }}>Generate</Button>
+          </div>
         </div>
+      </div>
+
+      <div className="flex justify-center py-1">
+        <div className="text-center">
+          <div className="mt-4 flex justify-center flex-col items-center gap-3">
+            {selectedVariants && selectedVariants.length > 0 && (
+              <div className="flex flex-wrap gap-2 max-w-full pb-2 align-top justify-center">
+                {selectedVariants.slice(0, 50).map((v, i) => (
+                  <div key={v} className="flex items-center justify-between p-2 rounded-lg bg-white/10 text-white dark:bg-black/10 dark:text-black border border-white/20 dark:border-gray-300">
+                    {editingIndex === i ? (
+                      <input
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const newArr = [...selectedVariants];
+                            newArr[i] = editingValue.trim();
+                            setSelectedVariants(newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av)));
+                            setEditingIndex(-1);
+                            updateUrlFromVariants(newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av)));
+                          } else if (e.key === 'Escape') {
+                            setEditingIndex(-1);
+                          }
+                        }}
+                        className="bg-transparent outline-none text-sm flex-1"
+                      />
+                    ) : (
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{v}</div>
+                        {variantNames[v] && variantNames[v] !== v && (
+                          <div className="text-xs text-gray-400 dark:text-gray-600 truncate">{variantNames[v]}</div>
+                        )}
+                      </div>
+                    )}
+                    {editingIndex === i ? (
+                      <Button size="icon" variant="ghost" onClick={() => {
+                        const old = selectedVariants[i];
+                        const newVal = editingValue.trim();
+                        const newArr = [...selectedVariants];
+                        newArr[i] = newVal;
+                        const filtered = newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av));
+                        const newNames = { ...variantNames };
+                        if (newVal) newNames[newVal] = newNames[newVal] || newVal;
+                        if (old && old !== newVal) delete newNames[old];
+                        setVariantNames(newNames);
+                        setSelectedVariants(filtered);
+                        setEditingIndex(-1);
+                        updateUrlFromVariants(filtered);
+                      }}><Check className="w-3 h-3" /></Button>
+                    ) : (
+                      <div className="flex gap-0">
+                        <Button size="icon" variant="ghost" onClick={() => { setEditingIndex(i); setEditingValue(v); }}><Edit2 className="w-3 h-3" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => { const old = v; const newArr = selectedVariants.filter((_, idx) => idx !== i); const newNames = { ...variantNames }; delete newNames[old]; setVariantNames(newNames); setSelectedVariants(newArr); updateUrlFromVariants(newArr); }}><Trash2 className="w-3 h-3" /></Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button size="sm" className="bg-[#0B0B0D] text-white border-white/10 dark:bg-white dark:text-black dark:border-gray-300" onClick={() => {
+              const v = prompt('Enter new variant (e.g., PH532)');
+              if (v) {
+                const trimmed = v.trim().toUpperCase();
+                if (!trimmed || trimmed.length < 4 || !/^[A-Z]/.test(trimmed)) { alert('Variant must start with a letter and be at least 4 characters'); return; }
+                const newArr = Array.from(new Set([trimmed, ...selectedVariants]));
+                const newNames = { ...variantNames };
+                newNames[trimmed] = newNames[trimmed] || trimmed;
+                setVariantNames(newNames);
+                setSelectedVariants(newArr);
+                updateUrlFromVariants(newArr);
+              }
+            }}>+</Button>
+
+            <div className="flex items-center gap-2">
+              <Button size="sm" className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black" disabled={!timetableUrl} onClick={() => {
+                  if (!timetableUrl) { setError('Timetable URL not ready yet.'); return; }
+                  try { window.open(timetableUrl, '_blank'); openedRef.current = true; } catch (e) {}
+                }}>
+                <ExternalLink className="w-4 h-4" />
+                Open in new tab
+              </Button>
+              <Button size="sm" className="text-white dark:text-black" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
       </div>
     </motion.div>
   );

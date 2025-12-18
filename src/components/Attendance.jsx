@@ -491,8 +491,8 @@ const Attendance = ({
         <meta name="keywords" content="attendance records, subject-wise attendance, daily attendance, JIIT attendance, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
         <meta property="og:title" content="Attendance - JP Portal | JIIT Student Portal" />
         <meta property="og:description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/attendance" />
-        <link rel="canonical" href="https://jportal2-0.vercel.app/attendance" />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/attendance" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/attendance" />
       </Helmet>
       <div className="text-white dark:text-black font-sans">
       <div className="top-14 left-0 right-0 bg-[black] dark:bg-white z-10">

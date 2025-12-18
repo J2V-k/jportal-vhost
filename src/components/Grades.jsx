@@ -31,7 +31,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Helmet } from 'react-helmet-async';
-import { generate_local_name, API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
+import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import {
   getGradesFromCache,
   saveGradesToCache,
@@ -465,8 +465,8 @@ export default function Grades({
         <meta name="keywords" content="grades, marks, SGPA, CGPA, semester marks, JIIT grades, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
         <meta property="og:title" content="Grades & Marks - JP Portal | JIIT Student Portal" />
         <meta property="og:description" content="View your academic grades, SGPA, CGPA, semester-wise marks, and grade progression charts at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/grades" />
-        <link rel="canonical" href="https://jportal2-0.vercel.app/grades" />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/grades" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/grades" />
       </Helmet>
       <motion.div
         initial={{ opacity: 0 }}
