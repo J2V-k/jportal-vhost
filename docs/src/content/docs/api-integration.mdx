@@ -4,8 +4,6 @@ description: Live vs offline data sources and dev endpoints.
 head: []
 ---
 
-# API Integration
-
 Live Data (Online)
 - The app imports `WebPortal` + `LoginError` from the `jsjiit` CDN ESM module:
   - `https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js`
@@ -15,8 +13,6 @@ Offline Data
 - `ArtificialWebPortal` ([src/components/scripts/artificialW.js](../../../../src/components/scripts/artificialW.js)) reads from the local cache via helpers in [cache.js](../../../../src/components/scripts/cache.js).
 - Only data previously cached will be available.
 
-Dev-only Endpoints
-- Mess Menu: the Vite dev server exposes `/api/messmenu` by reading `data/mess_menu.json`. See [vite.config.js](../../../../vite.config.js).
 
 Fee Serialization
 - `serialize_payload()` from [src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js) encrypts the payload with AES-CBC per-day key schedule.

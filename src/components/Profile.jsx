@@ -481,6 +481,20 @@ export default function Profile({
               and Contribute
             </span>
           </motion.a>
+
+          <motion.a
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            href="https://J2V-k.github.io/jportal-vhost"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300 group"
+          >
+            <BookOpen className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600 group-hover:text-green-400 dark:group-hover:text-green-500 transition-colors duration-200" />
+            <span className="text-xs font-medium text-center">
+              Documentation
+            </span>
+          </motion.a>
         </div>
       </motion.div>
     </motion.div>

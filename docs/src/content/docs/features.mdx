@@ -1,36 +1,77 @@
 ---
 title: Features
-description: Feature guides for main views.
+description: Comprehensive feature guides for all main views.
 head: []
 ---
 
-# Features
+## Attendance
+- Multi-view interface with overview and detailed subject views
+- Smart caching with cache age indicators
+- Customizable attendance goals with visual progress bars
+- Color-coded status (green/yellow/red)
+- Offline support with cached data
 
-Attendance
-- Overview and per-subject tabs with goal tracking.
-- Daily view and caching with keys like `attendance-<username>-<sem>`.
+## Grades
+- SGPA/CGPA display with semester breakdown
+- Grade cards with marks distribution
+- PDF marks download using Pyodide
+- Color-coded grade badges
+- Historical data access
 
-Grades
-- Semester summaries and grade card data.
-- Marks download pipeline leverages Pyodide artifacts for PDF handling.
+## Exams
+- Complete exam schedule with date, time, and venue
+- Automatic date-based filtering
+- Semester selection
+- Visual timeline of exams
 
-Exams
-- Exam schedule and events. App can auto-focus this tab during exam windows if `examStartDate`/`examEndDate` are set in `localStorage`.
+## Subjects
+- List of registered subjects with codes, credits, and faculties
+- Elective selection system with status tracking
+- Faculty information and component breakdown
+- Credit calculation and semester switching
 
-Subjects
-- Registered subjects and faculties for a selected semester.
+## Profile
+- Student profile with photo and contact details
+- Educational background and hostel information
+- Quick action links to related features
+- Responsive design
 
-Profile
-- Basic personal data and hostel details where available.
+## Academic Calendar
+- Filterable events by type, month, or search
+- Event details with dates and descriptions
+- Data sourced from public/AC.json
 
-Academic Calendar
-- Filterable list of events backed by `public/AC.json`.
+## Timetable
+- Auto-generated timetable based on subjects
+- Subject code customization
+- Campus/year/batch selection
+- External timetable integration
 
-Mess Menu
-- Dialog component that fetches `/api/messmenu` (dev plugin expects `data/mess_menu.json`). Displays daily and weekly views.
+## Fee
+- Fee structure display with payment status
+- Secure AES-CBC encryption for submissions
+- Date-based key generation
 
-Fee
-- Uses `serialize_payload()` ([src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js)) to encrypt payloads before submission.
+## Feedback
+- Faculty feedback submission
+- Dynamic question sets
+- Rating system and randomization
+- Encrypted submissions
 
-CGPA Target Calculator
-- Utility tool for planning target scores.
+## CGPA Target Calculator
+- SGPA calculator for current semester
+- CGPA target planning with required SGPA calculation
+- Historical data import
+- Persistent localStorage saves
+
+## PWA Features
+- Installable on Android devices
+- Offline functionality with cached data
+- Service worker caching strategies
+- Background sync
+
+## Settings
+- Light/dark theme toggle
+- Default tab selection
+- Attendance goal configuration
+- Cache management tools

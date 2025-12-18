@@ -1,33 +1,348 @@
 ---
 title: PWA & Offline
-description: How caching and offline mode work.
+description: Comprehensive guide to PWA features and offline functionality.
 head: []
 ---
 
-# PWA & Offline
+## Progressive Web App Features
 
-Service Worker
-- Configured via `vite-plugin-pwa` in [vite.config.js](../../../../vite.config.js).
-- Precache includes Pyodide CDN assets and wheel artifacts in `public/artifact`.
-- Runtime caching strategies:
-  - CacheFirst for Pyodide and wheels
-  - StaleWhileRevalidate for JS/CSS and marks PDFs
-  - Images cached with size and TTL caps
+### What Makes This a PWA?
+- **Installable**: Can be installed on Android devices as a standalone app
+- **Offline-capable**: Works with cached data when no connection available
+- **Fast**: Service worker caching makes subsequent loads instant
+- **Reliable**: Never shows "no connection" page when data is cached
+- **Engaging**: App-like experience with smooth transitions
 
-Local Cache Scheme
-- Implemented in [cache.js](../../../../src/components/scripts/cache.js) with TTL-aware records:
-  - `attendance-<username>-<sem>`
-  - `grades-<username>-<sem>`
-  - `registered-subjects-<username>-<sem>`
-  - `subject-<code>-<username>-<sem>`
-  - `subject-choices-<username>-<sem>`
-  - `semesters-<username>` and helpers like `profileData`
+### Manifest Configuration
+- **Name**: JP Portal (JIIT Student Portal)
+- **Short Name**: JP Portal
+- **Theme Color**: `#000000` (black)
+- **Background Color**: `#000000`
+- **Display**: `standalone` (hides browser UI)
+- **Start URL**: `/`
+- **Icons**: Multiple sizes (72x72 to 512x512) in `public/pwa-icons/`
 
-Offline WebPortal
-- When online login fails but data exists, the app switches to `ArtificialWebPortal`, serving from cache only.
-- Restricted routes/features are hidden when in offline mode.
+## Service Worker Architecture
 
-Testing Offline
-1. Load the app online and navigate through features to warm caches.
-2. Switch DevTools to offline and reload.
-3. Verify the header shows an Offline badge and permitted routes.
+### Configuration
+Configured via `vite-plugin-pwa` in [vite.config.js](../../../../vite.config.js) with Workbox strategies.
+
+### Precaching
+Assets precached during service worker installation:
+- **Pyodide Core**: WASM files and data files from CDN
+- **Python Wheels**: `jiit_marks` and `PyMuPDF` from `public/artifact/`
+- **Static Assets**: App icons, manifest, critical files
+- **App Shell**: HTML, CSS, JavaScript bundles
+
+### Runtime Caching Strategies
+
+#### 1. CacheFirst (Offline-first)
+Used for: Pyodide files, Python wheels, static images
+```javascript
+// Returns cached version if available, otherwise fetches
+// Ideal for assets that rarely change
+```
+Benefits:
+- Instant load times
+- Works offline
+- Reduces bandwidth
+
+#### 2. StaleWhileRevalidate
+Used for: JavaScript bundles, CSS files, API responses, PDFs
+```javascript
+// Returns cached version immediately
+// Updates cache in background for next time
+```
+Benefits:
+- Fast response times
+- Always up-to-date eventually
+- Good for frequently changing content
+
+#### 3. NetworkFirst
+Used for: HTML documents, navigation requests
+```javascript
+// Tries network first, falls back to cache on failure
+```
+Benefits:
+- Always fresh when online
+- Offline fallback available
+
+### Cache Expiration
+- **Images**: 50 entries max, 30 days TTL
+- **Pyodide**: No expiration (long-term cache)
+- **API Data**: Managed by localStorage (see below)
+
+## Local Storage Cache System
+
+### Implementation
+Comprehensive caching system in [cache.js](../../../../src/components/scripts/cache.js) with TypeScript-like interfaces.
+
+### Cache Key Structure
+```javascript
+// User-specific data with semester context
+attendance-{username}-{semesterId}
+subjects-{username}-{semesterId}
+grades-{username}-{semesterId}
+examSchedule-{username}-{semesterId}
+
+// Subject-specific data
+subject-{subjectCode}-{username}-{semesterId}
+subject-attendance-{subjectCode}-{username}-{semesterId}
+subject-choices-{username}-{semesterId}
+
+// Semester metadata
+semesters-{username}
+attendance-semesters-{username}
+subject-semesters-{username}
+
+// Global user data
+profile-{username}
+hostel-{username}
+
+// App state
+cgpaCalculatorSemesters
+cgpaCalculatorSgpaSubjects
+cgpaCalculatorTargetCgpa
+defaultTheme
+defaultTab
+attendanceGoal
+swipeEnabled
+defaultMessMenuView
+```
+
+### Cache Entry Format
+```javascript
+{
+  data: any,              // The actual cached data
+  timestamp: number,      // When cached (Date.now())
+  expiry: number,         // TTL in milliseconds
+  version: string         // Cache version for migrations
+}
+```
+
+### Cache Functions
+
+#### Getters
+```javascript
+getAttendanceFromCache(username, semesterId)
+getSubjectDataFromCache(username, semesterId)
+getGradesFromCache(username, semesterId)
+getExamScheduleFromCache(username, semesterId)
+getProfileFromCache(username)
+// ... and many more
+```
+
+#### Setters
+```javascript
+saveAttendanceToCache(username, semesterId, data, expiry)
+saveSubjectDataToCache(username, semesterId, data, expiry)
+saveGradesToCache(username, semesterId, data, expiry)
+// ... corresponding setters
+```
+
+#### Management
+```javascript
+clearExpiredCache()           // Remove expired entries only
+clearAllCache()               // Remove all cached data
+clearSpecificCache(dataType)  // Remove specific data type
+getCacheStats()               // Get cache size and entry count
+```
+
+### Cache Expiration
+- **Default TTL**: 24 hours (86400000 ms)
+- **Configurable**: Can be set per-cache-call
+- **Automatic Cleanup**: Checked on cache reads
+- **Manual Cleanup**: Via Settings dialog
+
+## Offline Mode
+
+### Activation Conditions
+Offline mode activates when:
+1. Login fails (network error or wrong credentials)
+2. AND cached data exists for the user
+3. App automatically switches to `ArtificialWebPortal`
+
+### ArtificialWebPortal
+
+Mimics the online `WebPortal` API using cached data:
+```javascript
+class ArtificialWebPortal {
+  async get_attendance_meta()     // Returns cached semester list
+  async get_attendance(semester)  // Returns cached attendance
+  async get_sgpa_cgpa()           // Returns cached grades
+  async get_registered_subjects() // Returns cached subjects
+  async get_personal_info()       // Returns cached profile
+  async get_exam_schedule()       // Returns cached exam data
+  // ... other methods
+}
+```
+
+### Offline Indicator
+- Yellow badge in header: "Offline" with refresh icon
+- Clicking badge reloads page (attempts reconnection)
+- Visible only when using `ArtificialWebPortal`
+
+### Feature Restrictions
+When offline, restricted features:
+- **Fee Submission**: Requires live connection
+- **Feedback Submission**: Requires API
+- **Data Refresh**: Uses cached data only
+- **Timetable Generation**: May fail if external service unavailable
+
+Available features:
+- **Attendance**: Full functionality with cached data
+- **Grades**: View cached grades and SGPA/CGPA
+- **Subjects**: View registered subjects
+- **Profile**: View personal information
+- **Exams**: View cached exam schedule
+- **Academic Calendar**: Works (static JSON file)
+- **CGPA Calculator**: Full functionality (localStorage-based)
+
+## Installation Guide
+
+### Android Installation
+1. Open app in Chrome or supported browser
+2. Look for install button in navbar (download icon)
+3. Click install button or use browser menu "Add to Home Screen"
+4. App icon appears on home screen
+5. Opens in standalone mode (no browser UI)
+
+### iOS (Limited PWA Support)
+- iOS Safari has limited PWA support
+- Can add to home screen via Share menu
+- No install prompt available
+- Service worker support varies by iOS version
+
+### Desktop Installation
+- Chrome, Edge: Install button in address bar
+- Creates desktop shortcut
+- Opens in app window
+
+## Testing Offline Functionality
+
+### Method 1: Browser DevTools
+1. Open app and log in
+2. Navigate through all features to warm caches:
+   - Visit Attendance, Grades, Exams, Subjects, Profile
+   - View subject details to cache individual subjects
+   - Check at least 2-3 subjects to ensure good coverage
+3. Open Chrome DevTools (F12)
+4. Go to Network tab
+5. Select "Offline" from throttling dropdown
+6. Reload page (Ctrl+R)
+7. App should load with offline indicator
+8. Navigate features - should work with cached data
+
+### Method 2: Airplane Mode
+1. Warm caches as above
+2. Enable airplane mode on device
+3. Open app (or reload if already open)
+4. Should work with offline indicator
+
+### Method 3: Service Worker Test
+1. Visit `chrome://serviceworker-internals/`
+2. Find JP Portal service worker
+3. Click "Stop" to simulate service worker failure
+4. Reload page
+5. Service worker restarts and app works
+
+### Verification Checklist
+- [ ] Offline badge appears in header
+- [ ] Can view attendance with cached data
+- [ ] Can view grades for cached semesters
+- [ ] Can view profile information
+- [ ] Subject details load from cache
+- [ ] Academic calendar works (static data)
+- [ ] Theme toggle works
+- [ ] CGPA calculator works
+- [ ] No error messages about network
+- [ ] Smooth navigation between routes
+
+## Cache Management
+
+### Via Settings Dialog
+1. Click settings icon in header
+2. Go to "Cache" tab
+3. View cache statistics (size, entry count)
+4. Options:
+   - **Clear Expired**: Removes only expired entries
+   - **Clear All**: Removes all cached data (requires confirmation)
+   - **Clear Specific**: Remove data by type (attendance, grades, etc.)
+
+### Programmatic Management
+```javascript
+import {
+  clearExpiredCache,
+  clearAllCache,
+  clearSpecificCache,
+  getCacheStats
+} from '@/components/scripts/cache'
+
+// Clear expired entries
+clearExpiredCache()
+
+// Clear all cache
+clearAllCache()
+
+// Clear specific data
+clearSpecificCache('attendance')
+clearSpecificCache('grades')
+
+// Get cache info
+const stats = getCacheStats()
+console.log(`Cache size: ${stats.size} bytes`)
+console.log(`Entries: ${stats.count}`)
+```
+
+### When to Clear Cache
+- Data appears stale or outdated
+- Experiencing unusual behavior
+- After semester change (to fetch new data)
+- Before important operations (fee, feedback)
+- When storage quota exceeded
+
+## Performance Optimization
+
+### Cache-First Loading
+1. Component mounts
+2. Check cache for data
+3. Display cached data immediately (if available)
+4. Fetch fresh data in background
+5. Update UI when fresh data arrives
+6. Update cache with fresh data
+
+### Smart Prefetching
+- Attendance page prefetches subject list
+- Grades page prefetches semester metadata
+- Profile page prefetches hostel info
+- Reduces perceived load time
+
+### Background Sync (Future)
+- Planned: Queue failed requests for retry
+- Auto-submit when connection restored
+- Useful for feedback, fee payments
+
+## Troubleshooting
+
+### App Won't Work Offline
+1. Check if you visited pages while online first
+2. Clear browser cache and reload while online
+3. Check localStorage not disabled in browser
+4. Verify service worker registered (DevTools → Application → Service Workers)
+
+### Stale Data Showing
+1. Pull down to refresh (if implemented)
+2. Use refresh button in settings
+3. Clear cache and reload
+
+### Service Worker Not Registering
+1. Check HTTPS (required for service workers)
+2. Check browser compatibility
+3. Clear browser data and retry
+4. Check console for registration errors
+
+### Storage Quota Exceeded
+1. Clear old cached data
+2. Reduce cache size in settings
+3. Browser may auto-evict least-used data
+4. Check browser storage settings

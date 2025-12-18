@@ -1,25 +1,253 @@
 ---
 title: Code Map
-description: Project structure overview by folders.
+description: Comprehensive project structure and component mapping.
 head: []
 ---
 
-# Code Map
+## Top-level Configuration
 
-Top-level
-- `vite.config.js`: Build, dev middleware for Mess Menu, and PWA configuration.
-- `tailwind.config.js`: Theme tokens and plugin config.
-- `public/`: Static assets, `AC.json` (calendar), `artifact/` (wheels).
+### Build & Development
+- **vite.config.js**: Build config, PWA settings, Workbox caching strategies, alias resolvers
+- **tailwind.config.js**: Custom theme tokens, dark mode, animations, plugin configuration
+- **postcss.config.js**: PostCSS with Tailwind and autoprefixer
+- **eslint.config.js**: ESLint rules and configuration
+- **jsconfig.json**: Path aliases and module resolution
+- **components.json**: shadcn/ui component configuration
 
-Source
-- `src/main.jsx`: Mounts the app.
-- `src/App.jsx`: Router, authentication, layout, offline fallback logic.
-- `src/context/ThemeContext.jsx`: Theme provider and hook.
-- `src/lib/`: Utilities (`utils`, `pyodide`, `jiitCrypto`).
-- `src/components/`: Feature and UI components.
-  - `ui/`: shadcn-based UI primitives and helpers.
-  - `scripts/`: `artificialW.js` (offline `WebPortal` shim), `cache.js` (localStorage cache helpers).
+### Public Assets
+- **public/AC.json**: Academic calendar data (filterable events)
+- **public/artifact/**: Python wheels for Pyodide (PyMuPDF, jiit_marks)
+- **public/icons/**: App icons and favicons
+- **public/pwa-icons/**: PWA manifest icons (multiple sizes)
+- **public/robots.txt**: SEO crawler directives
+- **public/sitemap.xml**: Site structure for search engines
 
-Routes (from `src/App.jsx`)
-- `/attendance`, `/grades`, `/exams`, `/subjects`, `/profile`
-- `/fee`, `/academic-calendar`, `/timetable`, `/feedback`, `/gpa-calculator`
+### Documentation
+- **docs/**: Astro Starlight documentation site
+- **README.md**: Quick start and overview
+- **CONTRIBUTING.md**: Developer contribution guide
+- **LICENSE**: Project license
+
+## Source Structure
+
+### Entry Points
+- **src/main.jsx**: App initialization, theme provider, Helmet provider, router mounting
+- **src/index.css**: Global styles and CSS variables
+- **src/App.css**: App-specific styles
+
+### Core Application
+- **src/App.jsx**: 
+  - Main router configuration (HashRouter)
+  - Authentication flow management
+  - Global state management
+  - Offline mode detection and fallback
+  - Layout and navigation structure
+  - Route-based data fetching coordination
+
+### Context & Providers
+- **src/context/ThemeContext.jsx**: 
+  - Theme state management (light/dark)
+  - Theme toggle functionality
+  - localStorage persistence
+  - CSS class application
+
+## Component Library
+
+### Layout Components
+- **src/components/Header.jsx**: Top navigation, theme toggle, offline indicator, settings, back button
+- **src/components/Navbar.jsx**: Bottom/side navigation with route links, PWA install
+- **src/components/Login.jsx**: Authentication form, auto-login, offline mode detection
+
+### Feature Pages
+- **src/components/Attendance.jsx**: 
+  - Multi-tab interface (overview, subject details, daily logs)
+  - Semester selection and caching
+  - Attendance goal tracking
+  - Subject sorting and filtering
+  - Cache management and refresh
+  
+- **src/components/Grades.jsx**: 
+  - SGPA/CGPA overview
+  - Semester grade cards
+  - Marks download coordination
+  - Historical data access
+  
+- **src/components/Exams.jsx**: 
+  - Exam schedule display
+  - Event filtering
+  - Auto-focus during exam periods
+  - Semester-wise exam data
+  
+- **src/components/Subjects.jsx**: 
+  - Registered subjects list
+  - Faculty information
+  - Component breakdown (L/T/P)
+  - Subject choices integration
+  
+- **src/components/Profile.jsx**: 
+  - Personal information tabs
+  - Contact details
+  - Educational qualifications
+  - Hostel information
+  - Quick action buttons
+  
+- **src/components/Timetable.jsx**: 
+  - Dynamic timetable generation
+  - Subject variant management
+  - Campus/year/batch configuration
+  - External service integration
+  
+- **src/components/Fee.jsx**: 
+  - Fee structure display
+  - Encrypted payload generation
+  - Payment status tracking
+  
+- **src/components/Feedback.jsx**: 
+  - Faculty feedback forms
+  - Dynamic question loading
+  - Rating system (1-5 stars)
+  - Submission tracking
+  
+- **src/components/AcademicCalendar.jsx**: 
+  - Event filtering and search
+  - Month-wise navigation
+  - Category-based filtering
+  
+- **src/components/CGPATargetCalculator.jsx**: 
+  - SGPA calculator mode
+  - Target CGPA planning
+  - Semester data import
+  - What-if analysis
+
+### Sub-Components & Cards
+- **src/components/AttendanceCard.jsx**: Subject attendance card with progress, details sheet, trends
+- **src/components/SubjectInfoCard.jsx**: Subject info with faculty, credits, components
+- **src/components/GradeCard.jsx**: Grade display with marks breakdown
+- **src/components/MarksCard.jsx**: Exam marks with download functionality
+- **src/components/SubjectChoices.jsx**: Elective choice management with status
+- **src/components/CircleProgress.jsx**: Circular progress indicator with customization
+
+### Dialog Components
+- **src/components/MessMenu.jsx**: Mess menu viewer (daily/weekly)
+- **src/components/SettingsDialog.jsx**: App settings and preferences
+- **src/components/InstallPWA.jsx**: PWA installation prompt
+
+### UI Primitives (shadcn/ui)
+- **src/components/ui/button.jsx**: Button variants and sizes
+- **src/components/ui/input.jsx**: Text input with validation
+- **src/components/ui/select.jsx**: Dropdown select menus
+- **src/components/ui/dialog.jsx**: Modal dialogs
+- **src/components/ui/sheet.jsx**: Side panels/drawers
+- **src/components/ui/tabs.jsx**: Tab navigation
+- **src/components/ui/switch.jsx**: Toggle switches
+- **src/components/ui/label.jsx**: Form labels
+- **src/components/ui/progress.jsx**: Progress bars
+- **src/components/ui/calendar.jsx**: Date picker
+- **src/components/ui/table.jsx**: Data tables
+- **src/components/ui/form.jsx**: Form validation helpers
+- **src/components/ui/ThemeBtn.jsx**: Theme toggle button
+
+## Utility Scripts
+
+### Data Management
+- **src/components/scripts/cache.js**: 
+  - localStorage cache helpers
+  - Expiration management
+  - Typed cache getters/setters
+  - Cache statistics
+  - Cleanup utilities
+  
+- **src/components/scripts/artificialW.js**: 
+  - Offline WebPortal shim
+  - Reads from cached data
+  - Mimics live API structure
+  - Enables offline functionality
+
+### Library Utilities
+- **src/lib/utils.js**: 
+  - `cn()` class name merger (clsx + tailwind-merge)
+  - Utility helpers
+  
+- **src/lib/pyodide.js**: 
+  - Pyodide loader and initializer
+  - Python package management
+  - Wheel artifact loading
+  - PDF processing setup
+  
+- **src/lib/jiitCrypto.js**: 
+  - AES-CBC encryption utilities
+  - Date-based key generation
+  - Payload serialization
+  - Fee payload encryption
+
+### API Integration
+- **src/api/messmenu.js**: Mess menu API endpoint handler
+
+## Styles
+- **src/styles/layout.css**: Layout-specific styles and containers
+- **src/styles/transitions.css**: Page transition animations for React Transition Group
+
+## Routes
+
+The app uses HashRouter with the following routes:
+
+### Main Navigation
+- `/` → Redirects to default tab or `/attendance`
+- `/attendance` → Attendance tracking
+- `/grades` → Grades and SGPA/CGPA
+- `/exams` → Exam schedule
+- `/subjects` → Registered subjects
+- `/profile` → Student profile
+
+### Secondary Pages
+- `/academic-calendar` → Academic events calendar
+- `/fee` → Fee details and payments
+- `/feedback` → Faculty feedback forms
+- `/gpa-calculator` → CGPA target calculator
+- `/timetable` → Class timetable
+
+### Authentication
+- `/login` → Login page (shows when not authenticated)
+
+## Data Flow
+
+### Authentication
+1. User credentials → `Login.jsx`
+2. jsjiit `WebPortal` authentication
+3. Success → Store credentials in localStorage
+4. Failure with cache → Load `ArtificialWebPortal`
+5. Set `isAuthenticated` state → Show main app
+
+### Data Fetching
+1. Component mount → Check cache
+2. Cache miss or expired → Fetch from `w` (WebPortal)
+3. Store response in cache
+4. Update component state
+5. Display data
+
+### Offline Mode
+1. Login fails but cache exists
+2. Swap to `ArtificialWebPortal`
+3. All API calls read from cache
+4. Show offline indicator
+5. Restrict features requiring live data
+
+## Caching Strategy
+
+### Cache Keys
+- `attendance-{username}-{semester}`: Attendance data
+- `subjects-{username}-{semester}`: Subject data
+- `grades-{username}-{semester}`: Grade data
+- `profile-{username}`: Profile data
+- `examSchedule-{username}-{semester}`: Exam data
+- `cgpaCalculatorSemesters`: Calculator state
+- `defaultTheme`: Theme preference
+- `defaultTab`: Startup tab
+- `attendanceGoal`: Global attendance goal
+
+### Cache Management
+- Expiration-based cleanup
+- Manual refresh options
+- Clear all cache (Settings)
+- Per-data-type clearing
+- Cache age display

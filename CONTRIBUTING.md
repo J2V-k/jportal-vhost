@@ -12,7 +12,6 @@ npm run dev
 
 Useful Dev Data
 - Academic Calendar: edit [public/AC.json](public/AC.json).
-- Mess Menu (dev-only): create `data/mess_menu.json` at the repo root. The Vite dev server exposes it at `/api/messmenu`. Use a structure compatible with the component (see `MessMenu.jsx`).
 
 Project Conventions
 - Language: React + Vite (ES Modules)
@@ -42,7 +41,7 @@ Testing & Verification
 - Manual checks:
   - Login flow (online/offline fallback)
   - Attendance, Grades, Exams, Subjects navigation
-  - Mess Menu (dev endpoint) and Academic Calendar rendering
+  - Academic Calendar rendering
   - PWA install prompt on Android; offline caching works after first load
 - Build check: `npm run build` followed by `npm run preview`
 
