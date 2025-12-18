@@ -1,0 +1,31 @@
+---
+// Custom theme provider component
+---
+
+<script>
+  // Initialize theme from localStorage or system preference
+  function initTheme() {
+    const savedTheme = localStorage.getItem('starlight-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('starlight-theme', theme);
+  }
+
+  // Run on page load
+  initTheme();
+
+  // Listen for theme changes
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeButtons = document.querySelectorAll('[data-theme-toggle]');
+    themeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const currentTheme = document.documentElement.dataset.theme;
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = newTheme;
+        localStorage.setItem('starlight-theme', newTheme);
+      });
+    });
+  });
+</script>

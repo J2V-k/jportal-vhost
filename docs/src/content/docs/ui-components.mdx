@@ -1,24 +1,45 @@
 ---
 title: UI Components
-description: UI primitives and common patterns.
+description: UI component library and patterns.
 head: []
 ---
 
-# UI Components
+## Libraries & Frameworks
+- shadcn/ui: Accessible UI primitives
+- Tailwind CSS: Utility-first styling
+- Framer Motion: Animations and gestures
+- Radix UI: Accessible primitives
+- Lucide React: Icon library
+- Recharts: Data visualization
 
-Libraries
-- shadcn UI primitives for dialogs, inputs, selects, tabs, etc. (see `src/components/ui/*`).
-- Tailwind CSS for styling and `tailwindcss-animate` for transitions.
-- Framer Motion for subtle entrance and transition animations.
+## Core Layout Components
+- **Header**: Top navigation with branding, theme toggle, and settings
+- **Navbar**: Adaptive mobile/desktop navigation
+- **Login**: Secure authentication form with auto-login
 
-Notable Components
-- Header: [src/components/Header.jsx](../../../../src/components/Header.jsx)
-- Navbar: [src/components/Navbar.jsx](../../../../src/components/Navbar.jsx)
-- Login: [src/components/Login.jsx](../../../../src/components/Login.jsx)
-- Mess Menu: [src/components/MessMenu.jsx](../../../../src/components/MessMenu.jsx)
-- Academic Calendar: [src/components/AcademicCalendar.jsx](../../../../src/components/AcademicCalendar.jsx)
+## Feature Components
+- **AttendanceCard**: Circular progress for attendance tracking
+- **SubjectInfoCard**: Subject details with faculty info
+- **GradeCard**: Grade display with marks breakdown
+- **MarksCard**: Exam marks with download option
+- **SubjectChoices**: Elective selection interface
+- **CircleProgress**: SVG progress indicator
 
-Patterns
-- Use `cn()` from [src/lib/utils.js](../../../../src/lib/utils.js) to compose class names.
-- Keep components focused, and lift shared state when necessary.
-- Prefer composition over prop drilling where possible.
+## Dialog Components
+- **MessMenu**: Daily/weekly mess menu viewer
+- **SettingsDialog**: App settings and preferences
+
+## Utility Components
+- **InstallPWA**: PWA install prompt
+- **ThemeBtn**: Theme toggle button
+
+## shadcn/ui Primitives
+- Form controls: Input, Button, Select, Switch
+- Layout: Dialog, Sheet, Tabs, Table
+- Feedback: Progress bars
+
+## Design Patterns
+- Class name composition with \`cn()\` utility
+- Component structure: Container/Presentational
+- Animation patterns with Framer Motion
+- Responsive design with Tailwind breakpoints
