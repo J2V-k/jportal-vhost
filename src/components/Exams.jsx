@@ -27,9 +27,9 @@ export default function Exams({
   if (isOffline) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6 max-w-md mx-auto text-center">
-          <h2 className="text-xl font-semibold text-white dark:text-black">Exam Schedule Unavailable</h2>
-          <p className="text-gray-400 dark:text-gray-600 mt-2">Exam schedule is not available while offline. Connect to the internet to view exam schedules.</p>
+        <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-auto text-center">
+          <h2 className="text-xl font-semibold text-foreground">Exam Schedule Unavailable</h2>
+          <p className="text-muted-foreground mt-2">Exam schedule is not available while offline. Connect to the internet to view exam schedules.</p>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export default function Exams({
 
           if (examSems.length > 0) {
             const currentYear = new Date().getFullYear().toString();
-            const currentYearSemester = examSems.find(sem => 
+            const currentYearSemester = examSems.find(sem =>
               sem.registration_code && sem.registration_code.includes(currentYear)
             );
             const selectedSemester = currentYearSemester || examSems[examSems.length - 1];
@@ -186,75 +186,75 @@ export default function Exams({
         <meta name="keywords" content="JIIT exams, exam schedule, JP Portal" />
         <link rel="canonical" href="https://jportal2-0.vercel.app/#/exams" />
       </Helmet>
-    <div className="container mx-auto p-4 space-y-6 max-w-[1440px] pb-24">
-      <div className="bg-black dark:bg-white shadow rounded-lg p-6 md:max-w-[50%] md:mx-auto">
-        <meta property="og:title" content="Exams - JP Portal | JIIT Student Portal" />
-        <meta property="og:description" content="View exam schedules and downloadable schedules for your semesters at JIIT." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/#/exams" />
-        <h2 className="text-2xl font-bold mb-4 text-white dark:text-black">
-          Exam Schedule
-        </h2>
-        <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
-          <div className="flex-1">
-            <Select
-              onValueChange={handleSemesterChange}
-              value={selectedExamSem?.registration_id || ""}
-            >
-              <SelectTrigger className="w-full bg-[#0B0B0D] text-white dark:bg-white dark:text-black border-gray-700 dark:border-gray-300">
-                <SelectValue placeholder="Select semester" />
-              </SelectTrigger>
-              <SelectContent>
-                {examSemesters.map((sem) => (
-                  <SelectItem
-                    key={sem.registration_id}
-                    value={sem.registration_id}
-                  >
-                    {sem.registration_code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {selectedExamSem && (
+      <div className="container mx-auto p-4 space-y-6 max-w-[1440px] pb-24">
+        <div className="bg-card shadow rounded-lg p-6 md:max-w-[50%] md:mx-auto">
+          <meta property="og:title" content="Exams - JP Portal | JIIT Student Portal" />
+          <meta property="og:description" content="View exam schedules and downloadable schedules for your semesters at JIIT." />
+          <meta property="og:url" content="https://jportal2-0.vercel.app/#/exams" />
+          <h2 className="text-2xl font-bold mb-4 text-foreground">
+            Exam Schedule
+          </h2>
+          <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
             <div className="flex-1">
               <Select
-                onValueChange={handleEventChange}
-                value={selectedExamEvent?.exam_event_id || ""}
+                onValueChange={handleSemesterChange}
+                value={selectedExamSem?.registration_id || ""}
               >
-                <SelectTrigger className="w-full bg-[#0B0B0D] text-white dark:bg-white dark:text-black border-gray-700 dark:border-gray-300">
-                  <SelectValue placeholder="Select exam event" />
+                <SelectTrigger className="w-full bg-muted/10 text-foreground border border-border">
+                  <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {examEvents.map((event) => (
+                  {examSemesters.map((sem) => (
                     <SelectItem
-                      key={event.exam_event_id}
-                      value={event.exam_event_id}
+                      key={sem.registration_id}
+                      value={sem.registration_id}
                     >
-                      {event.exam_event_desc}
+                      {sem.registration_code}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
+            {selectedExamSem && (
+              <div className="flex-1">
+                <Select
+                  onValueChange={handleEventChange}
+                  value={selectedExamEvent?.exam_event_id || ""}
+                >
+                  <SelectTrigger className="w-full bg-muted/10 text-foreground border border-border">
+                    <SelectValue placeholder="Select exam event" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {examEvents.map((event) => (
+                      <SelectItem
+                        key={event.exam_event_id}
+                        value={event.exam_event_id}
+                      >
+                        {event.exam_event_desc}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {loading ? (
-        <LoadingSkeleton />
-      ) : currentSchedule?.length > 0 ? (
-        <ExamScheduleGrid
-          currentSchedule={currentSchedule}
-          formatDate={formatDate}
-        />
-      ) : selectedExamEvent ? (
-        <div className="bg-black dark:bg-white shadow rounded-lg p-6 flex items-center justify-center h-32">
-          <p className="text-gray-400 dark:text-gray-500">
-            No exam schedule available
-          </p>
-        </div>
-      ) : null}
-    </div>
+        {loading ? (
+          <LoadingSkeleton />
+        ) : currentSchedule?.length > 0 ? (
+          <ExamScheduleGrid
+            currentSchedule={currentSchedule}
+            formatDate={formatDate}
+          />
+        ) : selectedExamEvent ? (
+          <div className="bg-card shadow rounded-lg p-6 flex items-center justify-center h-32">
+            <p className="text-muted-foreground">
+              No exam schedule available
+            </p>
+          </div>
+        ) : null}
+      </div>
     </>
   );
 }
@@ -301,7 +301,7 @@ function ExamScheduleGrid({ currentSchedule, formatDate }) {
   });
 
   return (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-4">
       {currentSchedule.map((exam) => (
         <ExamCard
           key={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`}
@@ -381,7 +381,7 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
   const { timeLeft } = useCountdown(examDateTime);
 
   return (
-  <div className="bg-black dark:bg-white shadow rounded-lg p-6 border border-gray-700 dark:border-gray-300">
+    <div className="bg-card shadow rounded-lg p-6 border border-border">
       <div className="space-y-2">
         {showTimer && timeLeft && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-500 dark:to-orange-500 p-4 rounded-lg border-2 border-red-400 shadow-lg">
@@ -395,23 +395,23 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
           </div>
         )}
 
-        <div className="border-b border-gray-800 dark:border-gray-200 pb-3">
-          <h3 className="font-semibold text-lg sm:text-xl text-white dark:text-black">
+        <div className="border-b border-border pb-3">
+          <h3 className="font-semibold text-lg sm:text-xl text-foreground">
             {exam.subjectdesc.split("(")[0].trim()}
           </h3>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {exam.subjectcode}
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-3 text-sm text-gray-300 dark:text-gray-600">
+          <div className="space-y-3 text-sm text-muted-foreground">
             <div className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <Calendar className="mr-2 h-5 w-5 text-muted-foreground" />
               <span>{formatDate(exam.datetime)}</span>
             </div>
             <div className="flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <Clock className="mr-2 h-5 w-5 text-muted-foreground" />
               <span>{exam.datetimeupto}</span>
             </div>
           </div>
@@ -419,22 +419,22 @@ function ExamCard({ exam, formatDate, showTimer = false }) {
           {(exam.roomcode || exam.seatno) && (
             <div className="space-y-3 text-sm">
               {exam.roomcode && (
-                <div className="flex items-center bg-blue-900/30 dark:bg-blue-100 px-3 py-2 rounded-lg">
-                  <MapPin className="mr-2 h-5 w-5 text-blue-400 dark:text-blue-600" />
-                  <span className="text-blue-200 dark:text-blue-800 font-medium">
-                    Room:{" "}
-                    <span className="text-blue-100 dark:text-blue-900 font-semibold">
+                <div className="flex items-center bg-accent/10 px-3 py-2 rounded-lg">
+                  <MapPin className="mr-2 h-5 w-5 text-accent-foreground" />
+                  <span className="text-accent-foreground font-medium">
+                    Room: {" "}
+                    <span className="text-accent-foreground font-semibold">
                       {exam.roomcode}
                     </span>
                   </span>
                 </div>
               )}
               {exam.seatno && (
-                <div className="flex items-center bg-green-900/30 dark:bg-green-100 px-3 py-2 rounded-lg">
-                  <Armchair className="mr-2 h-5 w-5 text-green-400 dark:text-green-600" />
-                  <span className="text-green-200 dark:text-green-800 font-medium">
-                    Seat:{" "}
-                    <span className="text-green-100 dark:text-green-900 font-semibold">
+                <div className="flex items-center bg-secondary/10 px-3 py-2 rounded-lg">
+                  <Armchair className="mr-2 h-5 w-5 text-secondary-foreground" />
+                  <span className="text-secondary-foreground font-medium">
+                    Seat: {" "}
+                    <span className="text-secondary-foreground font-semibold">
                       {exam.seatno}
                     </span>
                   </span>
@@ -452,18 +452,18 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-4">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="bg-black dark:bg-white shadow rounded-lg p-6">
+        <div key={i} className="bg-card shadow rounded-lg p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="space-y-2">
-              <div className="h-5 w-40 bg-[#0B0B0D] dark:bg-gray-200 rounded"></div>
-              <div className="h-4 w-24 bg-[#0B0B0D] dark:bg-gray-200 rounded"></div>
+              <div className="h-5 w-40 bg-muted/10 rounded"></div>
+              <div className="h-4 w-24 bg-muted/10 rounded"></div>
             </div>
-            <div className="h-6 w-16 bg-[#0B0B0D] dark:bg-gray-200 rounded"></div>
+            <div className="h-6 w-16 bg-muted/10 rounded"></div>
           </div>
           <div className="space-y-2">
-            <div className="h-4 w-full bg-[#0B0B0D] dark:bg-gray-200 rounded"></div>
-            <div className="h-4 w-full bg-[#0B0B0D] dark:bg-gray-200 rounded"></div>
-            <div className="h-4 w-full bg-[#0B0B0D] dark:bg-gray-200 rounded"></div>
+            <div className="h-4 w-full bg-muted/10 rounded"></div>
+            <div className="h-4 w-full bg-muted/10 rounded"></div>
+            <div className="h-4 w-full bg-muted/10 rounded"></div>
           </div>
         </div>
       ))}

@@ -21,7 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronRight, Archive, Calculator, BarChart3, GraduationCap } from "lucide-react";
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
+import { Badge } from "@/components/ui/badge";
+import { Download, Loader2, ChevronRight, Archive, Calculator, BarChart3, GraduationCap, ArrowUpDown, Grid3x3, ListFilter, SortAsc, SortDesc } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -30,11 +32,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Helmet } from 'react-helmet-async';
 import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import {
-  getGradesFromCache,
-  saveGradesToCache,
   saveToCache,
   getFromCache,
 } from "@/components/scripts/cache";
@@ -91,9 +92,9 @@ export default function Grades({
   if (isOffline) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6 max-w-md mx-auto text-center">
-          <h2 className="text-xl font-semibold text-white dark:text-black">Grades Unavailable</h2>
-          <p className="text-gray-400 dark:text-gray-600 mt-2">Grades are not available while offline. Connect to the internet to view grade reports.</p>
+        <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-auto text-center">
+          <h2 className="text-xl font-semibold text-foreground">Grades Unavailable</h2>
+          <p className="text-muted-foreground mt-2">Grades are not available while offline. Connect to the internet to view grade reports.</p>
         </div>
       </div>
     );
@@ -103,6 +104,9 @@ export default function Grades({
   const [isDownloading, setIsDownloading] = useState(false);
   const [mounted, setMounted] = useState(true);
   const [marksCacheTimestamp, setMarksCacheTimestamp] = useState(null);
+  const [semesterSortBy, setSemesterSortBy] = useState('credit');
+  const [gradeSort, setGradeSort] = useState('default');
+  const [creditSort, setCreditSort] = useState('default');
   const [isMarksRefreshing, setIsMarksRefreshing] = useState(false);
   const [isMarksFromCache, setIsMarksFromCache] = useState(false);
   const marksFetchInFlight = React.useRef(new Set());
@@ -230,7 +234,7 @@ export default function Grades({
         setMarksCacheTimestamp(cached.timestamp || null);
         setIsMarksFromCache(true);
         setMarksLoading(false);
-        
+
         const cacheTs = cached.timestamp || 0;
         if (Date.now() - cacheTs > 10 * 60 * 1000) {
           setIsMarksRefreshing(true);
@@ -281,7 +285,7 @@ export default function Grades({
         `);
         console.log(`marks:parse: ${performance.now() - tParseStart} ms`);
 
-        try { pyodide.globals.delete("data"); } catch(e) {}
+        try { pyodide.globals.delete("data"); } catch (e) { }
 
         if (mounted) {
           const result = res.toJs({
@@ -308,7 +312,7 @@ export default function Grades({
         if (mounted) {
           setMarksLoading(false);
         }
-        try { marksFetchInFlight.current.delete(selectedMarksSem.registration_id); } catch {}
+        try { marksFetchInFlight.current.delete(selectedMarksSem.registration_id); } catch { }
       }
     };
 
@@ -361,6 +365,22 @@ export default function Grades({
     return gradeColors[grade] || "text-white";
   };
 
+  const toggleGradeSort = () => {
+    setGradeSort(prev => {
+      if (prev === 'default') return 'asc';
+      if (prev === 'asc') return 'desc';
+      return 'default';
+    });
+  };
+
+  const toggleCreditSort = () => {
+    setCreditSort(prev => {
+      if (prev === 'default') return 'asc';
+      if (prev === 'asc') return 'desc';
+      return 'default';
+    });
+  };
+
   const handleMarksSemesterChange = async (value) => {
     try {
       const semester = marksSemesters.find(
@@ -389,7 +409,7 @@ export default function Grades({
       const username = w.username || "user";
       const cacheKey = `marks-${semester.registration_code}-${username}`;
       const cached = await getFromCache(cacheKey);
-      
+
       if (cached) {
         setMarksSemesterData(cached.data || cached);
         setMarksData((prev) => ({
@@ -398,7 +418,7 @@ export default function Grades({
         }));
         setMarksCacheTimestamp(cached.timestamp || null);
         setIsMarksFromCache(true);
-        
+
         setIsMarksRefreshing(true);
         try {
           await fetchFreshMarksData();
@@ -424,7 +444,7 @@ export default function Grades({
     borderRadius: '8px',
     color: themeMode === 'dark' ? 'white' : 'black',
     fontWeight: '500',
-    boxShadow: themeMode === 'dark' 
+    boxShadow: themeMode === 'dark'
       ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
       : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
   });
@@ -473,590 +493,663 @@ export default function Grades({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
-        className="min-h-screen bg-[black] dark:bg-white text-white dark:text-black pt-2 pb-24 md:pb-8 px-3 md:px-6 mb-4 font-sans text-sm max-[390px]:text-xs"
+        className="min-h-screen bg-background text-foreground pt-2 pb-24 md:pb-8 px-3 md:px-6 mb-4 font-sans text-sm max-[390px]:text-xs"
       >
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full max-w-7xl mx-auto"
-      >
-        <div className="md:hidden">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-1">
-            {[
-              { name: "overview", icon: BarChart3 },
-              { name: "marks", icon: Download },
-              { name: "semester", icon: GraduationCap }
-            ].map((tab, index) => (
-              <TabsTrigger
-                key={tab.name}
-                value={tab.name}
-                className="bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black text-gray-300 dark:text-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white rounded-md transition-all duration-200 flex items-center justify-center gap-1"
-              >
-                <motion.div
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full max-w-7xl mx-auto"
+        >
+          <div className="md:hidden">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 bg-muted/50 rounded-lg p-1">
+              {[
+                { name: "overview", icon: BarChart3 },
+                { name: "marks", icon: Download },
+                { name: "semester", icon: GraduationCap }
+              ].map((tab, index) => (
+                <TabsTrigger
+                  key={tab.name}
+                  value={tab.name}
+                  className="bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground text-muted-foreground data-[state=active]:shadow-sm rounded-md transition-all duration-200 flex items-center justify-center gap-1"
                 >
-                  <tab.icon className="w-4 h-4 hidden md:inline" />
-                  <span>{tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}</span>
-                </motion.div>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
+                  <motion.div
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -10, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <tab.icon className="w-4 h-4 hidden md:inline" />
+                    <span>{tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}</span>
+                  </motion.div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
-        <div className="hidden md:block">
-          <div className="flex justify-center mb-4">
-            <div className="flex bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-1">
-              <button
-                onClick={() => setActiveTab("overview")}
-                className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === "overview"
-                    ? "bg-white dark:bg-black text-black dark:text-white"
-                    : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveTab("marks")}
-                className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === "marks"
-                    ? "bg-white dark:bg-black text-black dark:text-white"
-                    : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
-                }`}
-              >
-                <Download className="w-4 h-4" />
-                Marks
-              </button>
-              <button
-                onClick={() => setActiveTab("semester")}
-                className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === "semester"
-                    ? "bg-white dark:bg-black text-black dark:text-white"
-                    : "text-gray-300 dark:text-gray-700 hover:text-white dark:hover:text-black"
-                }`}
-              >
-                <GraduationCap className="w-4 h-4" />
-                Semester
-              </button>
+          <div className="hidden md:block">
+            <div className="flex justify-center mb-4">
+              <div className="flex bg-muted/50 rounded-lg p-1">
+                <button
+                  onClick={() => setActiveTab("overview")}
+                  className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${activeTab === "overview"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveTab("marks")}
+                  className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${activeTab === "marks"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  <Download className="w-4 h-4" />
+                  Marks
+                </button>
+                <button
+                  onClick={() => setActiveTab("semester")}
+                  className={`px-4 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${activeTab === "semester"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  Semester
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="w-full max-w-7xl mx-auto">
-          <TabsContent value="overview">
-            <motion.div {...fadeInUp} className="space-y-4">
-              {gradesError ? (
-                <motion.div
-                  {...fadeInUp}
-                  className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                >
-                  <p className="text-xl text-red-400"> {gradesError} </p>
-                  <p className="text-gray-400 dark:text-gray-600 mt-2">
-                    {" "}
-                    Please check back later{" "}
-                  </p>
-                </motion.div>
-              ) : (
-                <>
-                  <motion.div
-                    {...fadeInUp}
-                    className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
-                  >
-                    <h2 className="text-xl font-bold mb-4 text-center">
-                      Grade Progression
-                    </h2>
-                    <ResponsiveContainer
-                      width="100%"
-                      height={250}
-                      className="md:h-[300px]"
+          <div className="w-full max-w-7xl mx-auto">
+            <TabsContent value="overview">
+              <motion.div {...fadeInUp} className="space-y-4">
+                {gradesError ? (
+                  <motion.div {...fadeInUp}>
+                    <Alert variant="destructive">
+                      <AlertDescription className="text-center">
+                        <div className="text-xl font-semibold mb-2">{gradesError}</div>
+                        <div className="text-sm">Please check back later</div>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                ) : (
+                  <>
+                    <motion.div
+                      {...fadeInUp}
+                      className="bg-card rounded-lg p-4 border border-border shadow-md hover:shadow-lg transition-shadow duration-200"
                     >
-                      <LineChart
-                        data={semesterData}
-                        margin={{
-                          top: 0,
-                          right: 10,
-                          left: 0,
-                          bottom: 20,
-                        }}
+                      <h2 className="text-xl font-bold mb-4 text-center">
+                        Grade Progression
+                      </h2>
+                      <ResponsiveContainer
+                        width="100%"
+                        height={250}
+                        className="md:h-[300px]"
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis
-                          dataKey="stynumber"
-                          stroke="#9CA3AF"
-                          label={{
-                            value: "Semester",
-                            position: "bottom",
-                            fill: "#9CA3AF",
+                        <LineChart
+                          data={semesterData}
+                          margin={{
+                            top: 0,
+                            right: 10,
+                            left: 0,
+                            bottom: 20,
                           }}
-                          tickFormatter={(value) => `${value}`}
-                        />
-                        <YAxis
-                          stroke="#9CA3AF"
-                          domain={["dataMin", "dataMax"]}
-                          ticks={undefined}
-                          tickCount={5}
-                          padding={{ top: 20, bottom: 20 }}
-                          tickFormatter={(value) => value.toFixed(1)}
-                        />
-                        <Tooltip
-                          contentStyle={getTooltipStyle()}
-                          labelStyle={getTooltipLabelStyle()}
-                        />
-                        <Legend verticalAlign="top" height={36} />
-                        <Line
-                          type="monotone"
-                          dataKey="sgpa"
-                          stroke="#4ADE80"
-                          name="SGPA"
-                          strokeWidth={3}
-                          dot={{ fill: "#4ADE80" }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="cgpa"
-                          stroke="#60A5FA"
-                          name="CGPA"
-                          strokeWidth={3}
-                          dot={{ fill: "#60A5FA" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </motion.div>
-
-                  <motion.div
-                    {...fadeInUp}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
-                  >
-                    {semesterData.map((sem, index) => (
-                      <motion.div
-                        key={sem.stynumber}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="text-base md:text-lg font-semibold">
-                              {" "}
-                              Semester {sem.stynumber}{" "}
-                            </h4>
-                            <p className="text-sm text-gray-400 dark:text-gray-600">
-                              GP: {sem.earnedgradepoints.toFixed(1)}/
-                              {sem.totalcoursecredit * 10}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-center">
-                              <div className="text-base md:text-lg font-bold text-green-400">
-                                {sem.sgpa}
-                              </div>
-                              <div className="text-xs text-gray-400 dark:text-gray-600">
-                                SGPA
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-base md:text-lg font-bold text-blue-400">
-                                {sem.cgpa}
-                              </div>
-                              <div className="text-xs text-gray-400 dark:text-gray-600">
-                                CGPA
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <div className="grid grid-cols-3 gap-4">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate("/gpa-calculator")}
-                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
-                      >
-                        <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
-                        <span className="text-xs font-medium text-center">GPA Calculator</span>
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setIsDownloadDialogOpen(true)}
-                        disabled={isDownloading}
-                        className="aspect-square md:aspect-auto bg-[#0B0B0D] dark:bg-white hover:bg-[#0A0A0C] dark:hover:bg-gray-200 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-gray-200 dark:text-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-600 dark:border-gray-300"
-                      >
-                        <Download className="w-8 h-8 md:w-6 md:h-6 mb-2 text-gray-400 dark:text-gray-600" />
-                        <span className="text-xs font-medium text-center">Download Marks</span>
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="semester">
-            <motion.div {...fadeInUp} className="space-y-3">
-              {gradeCardSemesters.length === 0 ? (
-                <motion.div
-                  {...fadeInUp}
-                  className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                >
-                  <p className="text-xl"> Grade card is not available yet </p>
-                  <p className="text-gray-400 dark:text-gray-600 mt-2">
-                    {" "}
-                    Please check back later{" "}
-                  </p>
-                </motion.div>
-              ) : (
-                <>
-                  <Select
-                    onValueChange={handleSemesterChange}
-                    value={selectedGradeCardSem?.registration_id}
-                  >
-                    <SelectTrigger className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                      <SelectValue
-                        placeholder={
-                          gradeCardLoading
-                            ? "Loading semesters..."
-                            : "Select semester"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                      {gradeCardSemesters.map((sem) => (
-                        <SelectItem
-                          key={sem.registration_id}
-                          value={sem.registration_id}
                         >
-                          {sem.registration_code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis
+                            dataKey="stynumber"
+                            stroke="#9CA3AF"
+                            label={{
+                              value: "Semester",
+                              position: "bottom",
+                              fill: "#9CA3AF",
+                            }}
+                            tickFormatter={(value) => `${value}`}
+                          />
+                          <YAxis
+                            stroke="#9CA3AF"
+                            domain={["dataMin", "dataMax"]}
+                            ticks={undefined}
+                            tickCount={5}
+                            padding={{ top: 20, bottom: 20 }}
+                            tickFormatter={(value) => value.toFixed(1)}
+                          />
+                          <Tooltip
+                            contentStyle={getTooltipStyle()}
+                            labelStyle={getTooltipLabelStyle()}
+                          />
+                          <Legend verticalAlign="top" height={36} />
+                          <Line
+                            type="monotone"
+                            dataKey="sgpa"
+                            stroke="#4ADE80"
+                            name="SGPA"
+                            strokeWidth={3}
+                            dot={{ fill: "#4ADE80" }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="cgpa"
+                            stroke="#60A5FA"
+                            name="CGPA"
+                            strokeWidth={3}
+                            dot={{ fill: "#60A5FA" }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </motion.div>
 
-                  <AnimatePresence mode="wait">
-                    {gradeCardLoading ? (
-                      <motion.div
-                        key="loading"
-                        {...fadeInUp}
-                        className="flex items-center justify-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                      >
-                        <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                        <span> Loading subjects... </span>
-                      </motion.div>
-                    ) : gradeCard ? (
-                      <motion.div
-                        key="gradecard"
-                        {...fadeInUp}
-                        className="space-y-3"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {(() => {
-                            let subjects = gradeCard.gradecard || [];
-
-                            subjects = subjects.sort((a, b) => (b.coursecreditpoint || 0) - (a.coursecreditpoint || 0));
-
-                            return subjects.map((subject) => (
-                              <GradeCard
-                                key={subject.subjectcode}
-                                subject={subject}
-                                getGradeColor={getGradeColor}
-                              />
-                            ));
-                          })()}
-                        </div>
+                    <motion.div
+                      {...fadeInUp}
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+                    >
+                      {semesterData.map((sem, index) => (
                         <motion.div
+                          key={sem.stynumber}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                          className="flex justify-center mt-6"
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-card rounded-lg p-4 border border-border shadow-md hover:shadow-lg transition-shadow duration-200"
                         >
-                          <Button
-                            variant="outline"
-                            className="flex items-center gap-2 bg-[#0B0B0D] dark:bg-gray-50 hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-black border border-gray-600 dark:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
-                            onClick={() => setIsDownloadDialogOpen(true)}
-                            disabled={isDownloading}
-                          >
-                            <Download className="h-5 w-5" />
-                            Download Marks
-                          </Button>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="text-base md:text-lg font-semibold text-foreground">
+                                {" "}
+                                Semester {sem.stynumber}{" "}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                GP: {sem.earnedgradepoints.toFixed(1)}/
+                                {sem.totalcoursecredit * 10}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-center">
+                                <div className="text-base md:text-lg font-bold text-green-400">
+                                  {sem.sgpa}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  SGPA
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-base md:text-lg font-bold text-blue-400">
+                                  {sem.cgpa}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  CGPA
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </motion.div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="nodata"
-                        {...fadeInUp}
-                        className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                      >
-                        <p> No grade card data available for this semester </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </>
-              )}
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="marks">
-            <motion.div {...fadeInUp} className="space-y-3">
-              {marksSemesters.length === 0 ? (
-                <motion.div
-                  {...fadeInUp}
-                  className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                >
-                  <p className="text-xl"> Marks data is not available yet </p>
-                  <p className="text-gray-400 dark:text-gray-600 mt-2">
-                    {" "}
-                    Please check back later{" "}
-                  </p>
-                </motion.div>
-              ) : (
-                <>
-                  <Select
-                    onValueChange={handleMarksSemesterChange}
-                    value={selectedMarksSem?.registration_id}
-                  >
-                    <SelectTrigger className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                      <SelectValue placeholder="Select semester" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300 text-white dark:text-black">
-                      {marksSemesters.map((sem) => (
-                        <SelectItem
-                          key={sem.registration_id}
-                          value={sem.registration_id}
-                        >
-                          {sem.registration_code}
-                        </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <div className="grid grid-cols-3 gap-4">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => navigate("/gpa-calculator")}
+                          className="aspect-square md:aspect-auto bg-card hover:bg-accent/50 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-foreground shadow-lg hover:shadow-xl transition-all duration-200 border border-border"
+                        >
+                          <Calculator className="w-8 h-8 md:w-6 md:h-6 mb-2 text-muted-foreground" />
+                          <span className="text-xs font-medium text-center">GPA Calculator</span>
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setIsDownloadDialogOpen(true)}
+                          disabled={isDownloading}
+                          className="aspect-square md:aspect-auto bg-card hover:bg-accent/50 rounded-lg p-4 md:p-3 md:h-20 flex flex-col items-center justify-center text-foreground shadow-lg hover:shadow-xl transition-all duration-200 border border-border"
+                        >
+                          <Download className="w-8 h-8 md:w-6 md:h-6 mb-2 text-muted-foreground" />
+                          <span className="text-xs font-medium text-center">Download Marks</span>
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </motion.div>
+            </TabsContent>
 
-                  {isMarksFromCache && marksCacheTimestamp && (
-                    <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Archive size={12} />
-                        Cached: {new Date(marksCacheTimestamp).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })} at {new Date(marksCacheTimestamp).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true
-                        })}
-                      </span>
-                      {isMarksRefreshing && (
-                        <span className="ml-2 flex items-center gap-1">
-                          <Loader2 className="animate-spin w-4 h-4" />
-                          Refreshing...
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  <AnimatePresence mode="wait">
-                    {marksLoading ? (
-                      <motion.div
-                        key="loading"
-                        {...fadeInUp}
-                        className="flex items-center justify-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+            <TabsContent value="semester">
+              <motion.div {...fadeInUp} className="space-y-3">
+                {gradeCardSemesters.length === 0 ? (
+                  <motion.div
+                    {...fadeInUp}
+                    className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
+                  >
+                    <p className="text-xl"> Grade card is not available yet </p>
+                    <p className="text-muted-foreground mt-2">
+                      {" "}
+                      Please check back later{" "}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-4 mb-6 flex-wrap">
+                      <Select
+                        onValueChange={handleSemesterChange}
+                        value={selectedGradeCardSem?.registration_id}
+                        className="flex-1"
                       >
-                        <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                        <span> Loading marks data... </span>
-                      </motion.div>
-                    ) : marksSemesterData && marksSemesterData.courses ? (
-                      <motion.div
-                        key="marksdata"
-                        {...fadeInUp}
-                        className="space-y-3"
-                      >
-                        {selectedMarksSem &&
-                          gradeCards[selectedMarksSem.registration_id] &&
-                          (() => {
-                            const currentSemesterGradeInfo =
-                              gradeCards[selectedMarksSem.registration_id];
-                            let calculatedEarnedGradePoints = 0;
-                            let calculatedTotalCredits = 0;
+                        <SelectTrigger className="bg-background border-border text-foreground">
+                          <SelectValue
+                            placeholder={
+                              gradeCardLoading
+                                ? "Loading semesters..."
+                                : "Select semester"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border-border text-foreground">
+                          {gradeCardSemesters.map((sem) => (
+                            <SelectItem
+                              key={sem.registration_id}
+                              value={sem.registration_id}
+                            >
+                              {sem.registration_code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                            if (currentSemesterGradeInfo.gradecard) {
-                              currentSemesterGradeInfo.gradecard
-                                .filter((subject) => subject.sgpapoints != 0)
-                                .forEach((subject) => {
-                                  const credits = parseFloat(
-                                    subject.coursecreditpoint
-                                  );
-                                  let points = 0;
-                                  if (subject.gradepoint !== undefined) {
-                                    points = parseFloat(subject.gradepoint);
-                                  } else if (subject.pointsecured !== undefined) {
-                                    points = parseFloat(subject.pointsecured);
-                                  }
+                      {gradeCard && (
+                        <Badge
+                          variant="outline"
+                          className="px-4 py-2 text-sm font-semibold bg-background border-border text-foreground"
+                        >
+                          Total Credits: {(() => {
+                            let subjects = gradeCard?.gradecard || [];
 
-                                  if (!isNaN(credits) && !isNaN(points)) {
-                                    calculatedEarnedGradePoints += credits * points;
-                                    calculatedTotalCredits += credits;
-                                  }
-                                });
+                            if (gradeSort === 'asc') {
+                              subjects = subjects.sort((a, b) => {
+                                const ga = gradePointMap[a.grade] || 0;
+                                const gb = gradePointMap[b.grade] || 0;
+                                return ga - gb;
+                              });
+                            } else if (gradeSort === 'desc') {
+                              subjects = subjects.sort((a, b) => {
+                                const ga = gradePointMap[a.grade] || 0;
+                                const gb = gradePointMap[b.grade] || 0;
+                                return gb - ga;
+                              });
+                            } else if (creditSort === 'asc') {
+                              subjects = subjects.sort((a, b) => (a.coursecreditpoint || 0) - (b.coursecreditpoint || 0));
+                            } else if (creditSort === 'desc') {
+                              subjects = subjects.sort((a, b) => (b.coursecreditpoint || 0) - (a.coursecreditpoint || 0));
                             }
 
-                            const calculatedSGPA =
-                              calculatedTotalCredits > 0
-                                ? calculatedEarnedGradePoints /
-                                  calculatedTotalCredits
-                                : 0.0;
-
-                            return (
-                              <>
-                                {calculatedSGPA !== 0 && (
-                                  <motion.div
-                                    {...fadeInUp}
-                                    className="bg-[#0D0E0F] dark:bg-gray-50 rounded-lg p-4"
-                                  >
-                                    <div className="flex flex-row justify-around items-start text-center gap-4">
-                                      <div className="flex-1">
-                                        <h4 className="text-gray-400 dark:text-gray-600 text-sm">
-                                          Grade Points
-                                        </h4>
-                                        <p className="text-lg font-bold">
-                                          {calculatedEarnedGradePoints.toFixed(1)} /{" "}
-                                          {calculatedTotalCredits * 10}
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center gap-4">
-                                        <div className="text-center">
-                                          <div className="text-lg font-bold text-green-400">
-                                            {calculatedSGPA.toFixed(2)}
-                                          </div>
-                                          <div className="text-xs text-gray-400 dark:text-gray-600">
-                                            SGPA
-                                          </div>
-                                        </div>
-                                        <div className="text-center">
-                                          <div className="text-lg font-bold text-blue-400">
-                                            {gradesData?.cgpa || "--"}
-                                          </div>
-                                          <div className="text-xs text-gray-400 dark:text-gray-600">
-                                            CGPA
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </>
-                            );
+                            return subjects.reduce((sum, subject) => sum + (subject.coursecreditpoint || 0), 0).toFixed(1);
                           })()}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {(() => {
-                            const courses = marksSemesterData.courses || [];
-                            const labPattern = /\bLab$/i;
-                            const nonLabs = courses.filter(c => !labPattern.test((c.name || '').trim()));
-                            const labs = courses.filter(c => labPattern.test((c.name || '').trim()));
-                            const sortedCourses = nonLabs.concat(labs);
-
-                            return sortedCourses.map((course) => (
-                              <MarksCard
-                                key={course.code}
-                                course={course}
-                                gradeInfo={
-                                  gradeCards[selectedMarksSem?.registration_id]
-                                }
-                              />
-                            ));
-                          })()}
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="nodata"
-                        {...fadeInUp}
-                        className="text-center py-8 bg-[#0B0B0D] dark:bg-gray-50 rounded-lg"
-                      >
-                        <p> Select a semester to view marks </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex justify-center mt-6"
-                  >
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 bg-[#0B0B0D] dark:bg-gray-50 hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-black border border-gray-600 dark:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
-                      onClick={() => setIsDownloadDialogOpen(true)}
-                      disabled={isDownloading}
-                    >
-                      {isDownloading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Download className="h-5 w-5" />
+                        </Badge>
                       )}
-                      {isDownloading ? "Downloading..." : "Download Marks"}
-                    </Button>
-                  </motion.div>
-                </>
-              )}
-            </motion.div>
-          </TabsContent>
-        </div>
-      </Tabs>
 
-      <AnimatePresence>
-        {isDownloadDialogOpen && (
-          <Dialog
-            open={isDownloadDialogOpen}
-            onOpenChange={setIsDownloadDialogOpen}
-          >
-            <DialogContent className="bg-[#0B0B0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">Download Marks</DialogTitle>
-                <DialogDescription className="text-sm text-gray-400">Select the semester to download marks from the available list.</DialogDescription>
-              </DialogHeader>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-1.5"
-              >
-                {marksSemesters.map((sem, index) => (
-                  <motion.div
-                    key={sem.registration_id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-left bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900 text-black dark:text-white border-none"
-                      onClick={() => handleDownloadMarks(sem)}
-                      disabled={isDownloading}
-                    >
-                      {sem.registration_code}
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </motion.div>
-                ))}
+                      <ButtonGroup className="w-auto border-1 rounded-lg overflow-hidden border border-border">
+                        <Button
+                          variant="outline"
+                          onClick={toggleGradeSort}
+                          title={`Sort by grade (${gradeSort})`}
+                          className="cursor-pointer px-2 bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50 border-0"
+                        >
+                          <span className="text-xs">Grade</span>
+                          {gradeSort === "default" && <ListFilter className="w-3.5 h-3.5" />}
+                          {gradeSort === "asc" && <SortAsc className="w-3.5 h-3.5" />}
+                          {gradeSort === "desc" && <SortDesc className="w-3.5 h-3.5" />}
+                        </Button>
+
+                        <ButtonGroupSeparator className="bg-border" />
+
+                        <Button
+                          variant="outline"
+                          onClick={toggleCreditSort}
+                          title={`Sort by credits (${creditSort})`}
+                          className="cursor-pointer px-2 bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50 border-0"
+                        >
+                          <span className="text-xs">Credit</span>
+                          {creditSort === "default" && <ListFilter className="w-3.5 h-3.5" />}
+                          {creditSort === "asc" && <SortAsc className="w-3.5 h-3.5" />}
+                          {creditSort === "desc" && <SortDesc className="w-3.5 h-3.5" />}
+                        </Button>
+                      </ButtonGroup>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      {gradeCardLoading ? (
+                        <motion.div
+                          key="loading"
+                          {...fadeInUp}
+                          className="flex items-center justify-center py-8 bg-card rounded-lg"
+                        >
+                          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                          <span> Loading subjects... </span>
+                        </motion.div>
+                      ) : gradeCard ? (
+                        <motion.div
+                          key="gradecard"
+                          {...fadeInUp}
+                          className="space-y-3"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {(() => {
+                              let subjects = gradeCard?.gradecard || [];
+
+                              if (gradeSort === 'asc') {
+                                subjects = subjects.sort((a, b) => {
+                                  const ga = gradePointMap[a.grade] || 0;
+                                  const gb = gradePointMap[b.grade] || 0;
+                                  return ga - gb;
+                                });
+                              } else if (gradeSort === 'desc') {
+                                subjects = subjects.sort((a, b) => {
+                                  const ga = gradePointMap[a.grade] || 0;
+                                  const gb = gradePointMap[b.grade] || 0;
+                                  return gb - ga;
+                                });
+                              } else if (creditSort === 'asc') {
+                                subjects = subjects.sort((a, b) => (a.coursecreditpoint || 0) - (b.coursecreditpoint || 0));
+                              } else if (creditSort === 'desc') {
+                                subjects = subjects.sort((a, b) => (b.coursecreditpoint || 0) - (a.coursecreditpoint || 0));
+                              }
+
+                              return subjects.map((subject) => (
+                                <GradeCard
+                                  key={subject.subjectcode}
+                                  subject={subject}
+                                  getGradeColor={getGradeColor}
+                                />
+                              ));
+                            })()}
+                          </div>
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="flex justify-center mt-6"
+                          >
+                            <Button
+                              variant="outline"
+                              className="flex items-center gap-2 bg-[#0B0B0D] dark:bg-gray-50 hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-black border border-gray-600 dark:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
+                              onClick={() => setIsDownloadDialogOpen(true)}
+                              disabled={isDownloading}
+                            >
+                              <Download className="h-5 w-5" />
+                              Download Marks
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="nodata"
+                          {...fadeInUp}
+                          className="text-center py-8 bg-card rounded-lg"
+                        >
+                          <p> No grade card data available for this semester </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
               </motion.div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </AnimatePresence>
-    </motion.div>
+            </TabsContent>
+
+            <TabsContent value="marks">
+              <motion.div {...fadeInUp} className="space-y-3">
+                {marksSemesters.length === 0 ? (
+                  <motion.div
+                    {...fadeInUp}
+                    className="text-center py-8 bg-card rounded-lg"
+                  >
+                    <p className="text-xl"> Marks data is not available yet </p>
+                    <p className="text-gray-400 dark:text-gray-600 mt-2">
+                      {" "}
+                      Please check back later{" "}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <>
+                    <Select
+                      onValueChange={handleMarksSemesterChange}
+                      value={selectedMarksSem?.registration_id}
+                    >
+                      <SelectTrigger className="bg-background border-border text-foreground">
+                        <SelectValue placeholder="Select semester" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border-border text-foreground">
+                        {marksSemesters.map((sem) => (
+                          <SelectItem
+                            key={sem.registration_id}
+                            value={sem.registration_id}
+                          >
+                            {sem.registration_code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {isMarksFromCache && marksCacheTimestamp && (
+                      <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <Archive size={12} />
+                          Cached: {new Date(marksCacheTimestamp).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })} at {new Date(marksCacheTimestamp).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          })}
+                        </span>
+                        {isMarksRefreshing && (
+                          <span className="ml-2 flex items-center gap-1">
+                            <Loader2 className="animate-spin w-4 h-4" />
+                            Refreshing...
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <AnimatePresence mode="wait">
+                      {marksLoading ? (
+                        <motion.div
+                          key="loading"
+                          {...fadeInUp}
+                          className="flex items-center justify-center py-8 bg-card rounded-lg"
+                        >
+                          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                          <span> Loading marks data... </span>
+                        </motion.div>
+                      ) : marksSemesterData && marksSemesterData.courses ? (
+                        <motion.div
+                          key="marksdata"
+                          {...fadeInUp}
+                          className="space-y-3"
+                        >
+                          {selectedMarksSem &&
+                            gradeCards[selectedMarksSem.registration_id] &&
+                            (() => {
+                              const currentSemesterGradeInfo =
+                                gradeCards[selectedMarksSem.registration_id];
+                              let calculatedEarnedGradePoints = 0;
+                              let calculatedTotalCredits = 0;
+
+                              if (currentSemesterGradeInfo.gradecard) {
+                                currentSemesterGradeInfo.gradecard
+                                  .filter((subject) => subject.sgpapoints != 0)
+                                  .forEach((subject) => {
+                                    const credits = parseFloat(
+                                      subject.coursecreditpoint
+                                    );
+                                    let points = 0;
+                                    if (subject.gradepoint !== undefined) {
+                                      points = parseFloat(subject.gradepoint);
+                                    } else if (subject.pointsecured !== undefined) {
+                                      points = parseFloat(subject.pointsecured);
+                                    }
+
+                                    if (!isNaN(credits) && !isNaN(points)) {
+                                      calculatedEarnedGradePoints += credits * points;
+                                      calculatedTotalCredits += credits;
+                                    }
+                                  });
+                              }
+
+                              const calculatedSGPA =
+                                calculatedTotalCredits > 0
+                                  ? calculatedEarnedGradePoints /
+                                  calculatedTotalCredits
+                                  : 0.0;
+
+                              return (
+                                <>
+                                  {calculatedSGPA !== 0 && (
+                                    <motion.div
+                                      {...fadeInUp}
+                                      className="bg-card rounded-lg p-4 border border-border"
+                                    >
+                                      <div className="flex flex-row justify-around items-start text-center gap-4">
+                                        <div className="flex-1">
+                                          <h4 className="text-muted-foreground text-sm">
+                                            Grade Points
+                                          </h4>
+                                          <p className="text-lg font-bold">
+                                            {calculatedEarnedGradePoints.toFixed(1)} /{" "}
+                                            {calculatedTotalCredits * 10}
+                                          </p>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                          <div className="text-center">
+                                            <div className="text-lg font-bold text-green-400">
+                                              {calculatedSGPA.toFixed(2)}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                              SGPA
+                                            </div>
+                                          </div>
+                                          <div className="text-center">
+                                            <div className="text-lg font-bold text-blue-400">
+                                              {gradesData?.cgpa || "--"}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                              CGPA
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </>
+                              );
+                            })()}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {(() => {
+                              const courses = marksSemesterData.courses || [];
+                              const labPattern = /\bLab$/i;
+                              const nonLabs = courses.filter(c => !labPattern.test((c.name || '').trim()));
+                              const labs = courses.filter(c => labPattern.test((c.name || '').trim()));
+                              const sortedCourses = nonLabs.concat(labs);
+
+                              return sortedCourses.map((course) => (
+                                <MarksCard
+                                  key={course.code}
+                                  course={course}
+                                  gradeInfo={
+                                    gradeCards[selectedMarksSem?.registration_id]
+                                  }
+                                />
+                              ));
+                            })()}
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="nodata"
+                          {...fadeInUp}
+                          className="text-center py-8 bg-card rounded-lg"
+                        >
+                          <p> Select a semester to view marks </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="flex justify-center mt-6"
+                    >
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-2 bg-primary text-primary-foreground border border-border shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg"
+                        onClick={() => setIsDownloadDialogOpen(true)}
+                        disabled={isDownloading}
+                      >
+                        {isDownloading ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Download className="h-5 w-5" />
+                        )}
+                        {isDownloading ? "Downloading..." : "Download Marks"}
+                      </Button>
+                    </motion.div>
+                  </>
+                )}
+              </motion.div>
+            </TabsContent>
+          </div>
+        </Tabs>
+
+        <AnimatePresence>
+          {isDownloadDialogOpen && (
+            <Dialog
+              open={isDownloadDialogOpen}
+              onOpenChange={setIsDownloadDialogOpen}
+            >
+              <DialogContent className="bg-card text-foreground border-border">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold">Download Marks</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-400">Select the semester to download marks from the available list.</DialogDescription>
+                </DialogHeader>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-1.5"
+                >
+                  {marksSemesters.map((sem, index) => (
+                    <motion.div
+                      key={sem.registration_id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between text-left bg-background hover:bg-accent text-foreground border-none"
+                        onClick={() => handleDownloadMarks(sem)}
+                        disabled={isDownloading}
+                      >
+                        {sem.registration_code}
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </>
   );
 }

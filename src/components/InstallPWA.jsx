@@ -42,7 +42,7 @@ const InstallPWA = () => {
     <motion.li className="flex-1" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
       <button
         onClick={handleInstallClick}
-        className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-gray-400 hover:text-gray-200 dark:text-gray-500 dark:hover:text-gray-800"
+        className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-muted-foreground hover:text-foreground"
       >
         <motion.div
           initial={{ scale: 1 }}

@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Calendar, Clock, BookOpen, GraduationCap, Users, Award, Target, Filter, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Empty } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AcademicCalendar = () => {
   const [calendarData, setCalendarData] = useState(null);
@@ -72,23 +77,23 @@ const AcademicCalendar = () => {
   const getCategoryColor = (category) => {
     const categoryLower = category.toLowerCase();
     if (categoryLower.includes('registration') || categoryLower.includes('reporting'))
-      return 'bg-blue-700 border-blue-600 text-white';
+      return 'bg-blue-700/80 border-blue-600 text-white dark:bg-blue-900/40 dark:border-blue-700';
     else if (categoryLower.includes('orientation') || categoryLower.includes('commencement'))
-      return 'bg-emerald-700 border-emerald-600 text-white';
+      return 'bg-emerald-700/80 border-emerald-600 text-white dark:bg-emerald-900/40 dark:border-emerald-700';
     else if (categoryLower.includes('examination') || categoryLower.includes('exam') || categoryLower.includes('result'))
-      return 'bg-red-700 border-red-600 text-white';
+      return 'bg-red-700/80 border-red-600 text-white dark:bg-red-900/40 dark:border-red-700';
     else if (categoryLower.includes('holiday') || categoryLower.includes('vacation'))
-      return 'bg-violet-700 border-violet-600 text-white';
+      return 'bg-violet-700/80 border-violet-600 text-white dark:bg-violet-900/40 dark:border-violet-700';
     else if (categoryLower.includes('phd') || categoryLower.includes('ph.d'))
-      return 'bg-indigo-800 border-indigo-700 text-white';
+      return 'bg-indigo-800/80 border-indigo-700 text-white dark:bg-indigo-900/40 dark:border-indigo-700';
     else if (categoryLower.includes('attendance') || categoryLower.includes('review'))
-      return 'bg-amber-600 border-amber-500 text-black';
+      return 'bg-amber-600/80 border-amber-500 text-white dark:bg-amber-900/40 dark:border-amber-700';
     else if (categoryLower.includes('lab') || categoryLower.includes('project'))
-      return 'bg-teal-700 border-teal-600 text-white';
+      return 'bg-teal-700/80 border-teal-600 text-white dark:bg-teal-900/40 dark:border-teal-700';
     else if (categoryLower.includes('training') || categoryLower.includes('viva'))
-      return 'bg-orange-700 border-orange-600 text-white';
+      return 'bg-orange-700/80 border-orange-600 text-white dark:bg-orange-900/40 dark:border-orange-700';
     else
-      return 'bg-rose-700 border-rose-600 text-white';
+      return 'bg-rose-700/80 border-rose-600 text-white dark:bg-rose-900/40 dark:border-rose-700';
   };
 
   const allEvents = calendarData?.timelineEvents || [];
@@ -137,10 +142,15 @@ const AcademicCalendar = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black dark:bg-white flex items-center justify-center">
-        <div className="text-center">
-          <Clock className="w-8 h-8 animate-spin mx-auto mb-4 text-white dark:text-black" />
-          <p className="text-white dark:text-black">Loading Academic Calendar...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Skeleton className="w-8 h-8 mx-auto rounded-full" />
+          <Skeleton className="h-4 w-48 mx-auto" />
+          <div className="space-y-2 mt-8">
+            <Skeleton className="h-4 w-64 mx-auto" />
+            <Skeleton className="h-4 w-56 mx-auto" />
+            <Skeleton className="h-4 w-60 mx-auto" />
+          </div>
         </div>
       </div>
     );
@@ -161,178 +171,171 @@ const AcademicCalendar = () => {
         <link rel="canonical" href="https://jportal2-0.vercel.app/#/academic-calendar" />
       </Helmet>
       <h1 className="sr-only">Academic Calendar</h1>
-      <div className={`min-h-screen bg-black dark:bg-white text-white dark:text-black`}>
-      <div className="sticky top-0 bg-black dark:bg-white border-b border-gray-800 dark:border-gray-200 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-          </div>
-        </div>
-      </div>
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="w-full bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+          <div className="max-w-6xl mx-auto px-4 py-2">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+              <div className="flex items-center gap-2 pr-4 border-r border-border shrink-0">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filters</span>
+                {(selectedSemesters.length > 0 || selectedCategories.length > 0) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSelectedSemesters([]);
+                      setSelectedCategories([]);
+                    }}
+                    className="h-6 w-6 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                    title="Clear All"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-24">
-        <div className="mb-6 p-4 bg-gray-900/50 dark:bg-gray-100/50 rounded-lg border border-gray-700 dark:border-gray-300">
-          <div className="flex items-center gap-4 mb-4">
-            <Filter className="w-5 h-5 text-gray-400 dark:text-gray-600" />
-            <h2 className="text-lg font-semibold">Filters</h2>
-            {(selectedSemesters.length > 0 || selectedCategories.length > 0) && (
-              <button
-                onClick={() => {
-                  setSelectedSemesters([]);
-                  setSelectedCategories([]);
-                }}
-                className="flex items-center gap-1 text-sm text-gray-400 hover:text-white dark:hover:text-black transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Clear All
-              </button>
-            )}
-          </div>
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
-              <button
-                key="all"
-                onClick={() => {
-                  setSelectedSemesters([]);
-                  setSelectedCategories([]);
-                }}
-                className={`px-3 py-1 rounded-full text-sm transition-colors border ${
-                  selectedSemesters.length === 0 && selectedCategories.length === 0
-                    ? 'bg-gray-700 dark:bg-gray-300 text-white dark:text-black border-gray-600 dark:border-gray-400'
-                    : 'bg-gray-800/50 dark:bg-gray-200/50 text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-400 hover:bg-gray-700/50 dark:hover:bg-gray-300/50'
-                }`}
-              >
-                All
-              </button>
-              {getUniqueSemesters().map(semester => (
-                <button
-                  key={`sem-${semester}`}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={selectedSemesters.length === 0 && selectedCategories.length === 0 ? "secondary" : "ghost"}
+                  size="sm"
                   onClick={() => {
-                    setSelectedSemesters(prev => 
-                      prev.includes(semester) 
-                        ? prev.filter(s => s !== semester)
-                        : [...prev, semester]
-                    );
+                    setSelectedSemesters([]);
+                    setSelectedCategories([]);
                   }}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors border ${
-                    selectedSemesters.includes(semester)
-                      ? 'bg-blue-600 text-white border-blue-500'
-                      : 'bg-gray-800/50 dark:bg-gray-200/50 text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-400 hover:bg-gray-700/50 dark:hover:bg-gray-300/50'
-                  }`}
+                  className="rounded-full text-xs h-7 px-3"
                 >
-                  {semester}
-                </button>
-              ))}
-              {getUniqueCategories().map(category => (
-                <button
-                  key={`cat-${category}`}
-                  onClick={() => {
-                    setSelectedCategories(prev => 
-                      prev.includes(category) 
-                        ? prev.filter(c => c !== category)
-                        : [...prev, category]
-                    );
-                  }}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors border ${
-                    selectedCategories.includes(category)
-                      ? 'bg-emerald-600 text-white border-emerald-500'
-                      : 'bg-gray-800/50 dark:bg-gray-200/50 text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-400 hover:bg-gray-700/50 dark:hover:bg-gray-300/50'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
+                  All
+                </Button>
+                {getUniqueSemesters().map(semester => (
+                  <Badge
+                    key={`sem-${semester}`}
+                    variant={selectedSemesters.includes(semester) ? "default" : "outline"}
+                    className="cursor-pointer transition-colors hover:bg-primary/20 bg-background text-foreground border border-border whitespace-nowrap"
+                    onClick={() => {
+                      setSelectedSemesters(prev =>
+                        prev.includes(semester)
+                          ? prev.filter(s => s !== semester)
+                          : [...prev, semester]
+                      );
+                    }}
+                  >
+                    {semester}
+                  </Badge>
+                ))}
+                <div className="w-px h-4 bg-border mx-2 shrink-0" />
+                {getUniqueCategories().map(category => (
+                  <Badge
+                    key={`cat-${category}`}
+                    variant={selectedCategories.includes(category) ? "default" : "outline"}
+                    className="cursor-pointer transition-colors hover:bg-primary/20 bg-background text-foreground border border-border whitespace-nowrap"
+                    onClick={() => {
+                      setSelectedCategories(prev =>
+                        prev.includes(category)
+                          ? prev.filter(c => c !== category)
+                          : [...prev, category]
+                      );
+                    }}
+                  >
+                    {category}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {filteredEvents.map((event, index) => {
-            const isTodayEvent = isEventToday(event);
-            const isFirstTodayEvent = isTodayEvent && index === firstTodayEventIndex;
-            const isTargetEvent = index === targetEventIndex;
-            const isUpcoming = isEventUpcoming(event);
-            
-            return (
-              <div
-                key={index}
-                id={(isTargetEvent || (targetEventIndex === -1 && index === 0)) ? 'today' : undefined}
-                data-event-index={index}
-                ref={isTargetEvent ? todayEventRef : null}
-                style={isMobile ? { scrollMarginTop: '120px' } : {}}
-                role="article"
-                aria-labelledby={`event-title-${index}`}
-                className={`border rounded-lg p-4 transition-all ${getCategoryColor(event.category)} ${isFirstTodayEvent ? 'ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-lg' : ''}`}
-              >
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(event.category)}
-                          <h3 id={`event-title-${index}`} className="font-medium break-words">{event.category}</h3>
+        <div className="max-w-6xl mx-auto px-4 py-8">
+
+          <div className="space-y-4">
+            {filteredEvents.map((event, index) => {
+              const isTodayEvent = isEventToday(event);
+              const isFirstTodayEvent = isTodayEvent && index === firstTodayEventIndex;
+              const isTargetEvent = index === targetEventIndex;
+              const isUpcoming = isEventUpcoming(event);
+
+              return (
+                <Card
+                  key={index}
+                  id={(isTargetEvent || (targetEventIndex === -1 && index === 0)) ? 'today' : undefined}
+                  data-event-index={index}
+                  ref={isTargetEvent ? todayEventRef : null}
+                  style={isMobile ? { scrollMarginTop: '120px' } : {}}
+                  role="article"
+                  aria-labelledby={`event-title-${index}`}
+                  className={`${getCategoryColor(event.category)} ${isFirstTodayEvent ? 'ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] border-amber-400' : ''} transition-all hover:shadow-md border`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white/80">{getCategoryIcon(event.category)}</span>
+                              <h3 id={`event-title-${index}`} className="font-medium break-words text-white">{event.category}</h3>
+                            </div>
+                            <Badge variant="secondary" className="text-xs bg-black/20 text-white border-white/20 backdrop-blur-sm">
+                              {event.semester} Sem
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs bg-black/20 text-white border-white/20 backdrop-blur-sm">
+                              {event.type}
+                            </Badge>
+                            {isTodayEvent && (
+                              <Badge className="text-xs font-bold bg-white text-black hover:bg-white/90 border-none shadow-sm">
+                                TODAY
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-gray-700 text-gray-200 dark:bg-gray-300 dark:text-gray-800 flex-shrink-0">
-                          {event.semester} Sem
-                        </span>
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-gray-700 text-gray-200 dark:bg-gray-300 dark:text-gray-800 flex-shrink-0">
-                          {event.type}
-                        </span>
-                        {isTodayEvent && (
-                          <span className="text-xs font-bold px-2 py-1 rounded bg-yellow-500 text-black flex-shrink-0">
-                            TODAY
-                          </span>
-                        )}
+                        <div className="text-sm font-medium text-white/90 whitespace-nowrap bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
+                          {formatDate(event.startDate)}
+                          {event.endDate && ` - ${formatDate(event.endDate)}`}
+                        </div>
                       </div>
+                      <p className="text-sm text-white/90 leading-relaxed font-medium">{event.description}</p>
                     </div>
-                    <div className="text-sm font-medium">
-                      {formatDate(event.startDate)}
-                      {event.endDate && ` - ${formatDate(event.endDate)}`}
-                    </div>
-                  </div>
-                  <p className="text-sm opacity-90">{event.description}</p>
-                </div>
-              </div>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {filteredEvents.length === 0 && (
+            <div className="text-center py-12">
+              <Empty
+                description={
+                  allEvents.length === 0
+                    ? "No events found in academic calendar."
+                    : "No events match the selected filters."
+                }
+              />
+              {allEvents.length > 0 && filteredEvents.length === 0 && (
+                <Button
+                  onClick={() => {
+                    setSelectedSemesters([]);
+                    setSelectedCategories([]);
+                  }}
+                  className="mt-4"
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
-        {filteredEvents.length === 0 && (
-          <div className="text-center py-12">
-            <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-            <p className="text-gray-400 dark:text-gray-500">
-              {allEvents.length === 0 
-                ? "No events found in academic calendar." 
-                : "No events match the selected filters."
-              }
-            </p>
-            {allEvents.length > 0 && filteredEvents.length === 0 && (
-              <button
-                onClick={() => {
-                  setSelectedSemesters([]);
-                  setSelectedCategories([]);
-                }}
-                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <button
-        onClick={scrollToCurrentEvent}
-        disabled={filteredEvents.length === 0}
-        className={`fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50 group ${
-          filteredEvents.length === 0
-            ? 'bg-yellow-500/50 cursor-not-allowed opacity-50 border border-yellow-400'
-            : 'bg-yellow-500 hover:bg-yellow-600 border border-yellow-400'
-        }`}
-        title={filteredEvents.length === 0 ? "No events available" : targetEventIndex !== -1 ? "Go to Current Event" : "Go to First Event"}
-      >
-        <Target className={`w-4 h-4 ${filteredEvents.length === 0 ? 'text-yellow-200' : 'text-black group-hover:scale-110 transition-transform duration-200'}`} />
-      </button>
-    </div>
+        <Button
+          onClick={scrollToCurrentEvent}
+          disabled={filteredEvents.length === 0}
+          size="icon"
+          className={`fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 ${filteredEvents.length === 0
+            ? 'bg-muted cursor-not-allowed opacity-50 border border-border'
+            : 'bg-primary hover:bg-primary/90 border border-primary text-primary-foreground'
+            }`}
+          title={filteredEvents.length === 0 ? "No events available" : targetEventIndex !== -1 ? "Go to Current Event" : "Go to First Event"}
+        >
+          <Target className={`w-4 h-4 ${filteredEvents.length === 0 ? 'text-muted-foreground' : 'text-primary-foreground'}`} />
+        </Button>
+      </div >
     </>
   );
 };

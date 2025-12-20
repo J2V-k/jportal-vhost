@@ -1,31 +1,35 @@
-import useTheme from '../../context/ThemeContext';
-import { Sun, Moon } from 'lucide-react';
+import { useState } from 'react'
+import useTheme from '../../context/ThemeContext'
+import { Palette } from 'lucide-react'
+import ThemeDialog from './ThemeDialog'
 
 function ThemeBtn() {
-    const { themeMode, darkTheme, lightTheme } = useTheme();
-
-    function handleClick() {
-        if (themeMode === 'dark') {
-            lightTheme();
-        } else {
-            darkTheme();
-        }
-    }
+    const { themeMode } = useTheme()
+    const [open, setOpen] = useState(false)
 
     return (
-        <button
-            onClick={handleClick}
-            className="p-2 rounded-full focus:outline-none focus:ring-2 transition-colors duration-300 ease-in-out
-                        dark:text-gray-700 dark:hover:bg-gray-200 text-gray-300 hover:bg-[#0A0A0C]"
-            aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-            {themeMode === 'dark' ? (
-                <Moon className="w-5 h-5" />
-            ) : (
-                <Sun className="w-5 h-5" />
-            )}
-        </button>
-    );
+        <>
+            <button
+                onClick={() => setOpen(true)}
+                className="p-0.5 rounded-full relative focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200"
+                aria-label="Open theme dialog"
+                style={{ background: 'transparent' }}
+            >
+                <span
+                    aria-hidden
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-full"
+                    style={{
+                        background: 'hsl(var(--primary))',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
+                    }}
+                >
+                    <Palette className="w-6 h-6" style={{ color: 'hsl(var(--primary-foreground))' }} />
+                </span>
+            </button>
+            <ThemeDialog open={open} onClose={() => setOpen(false)} />
+        </>
+    )
 }
 
-export default ThemeBtn;
+export default ThemeBtn

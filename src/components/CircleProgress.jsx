@@ -40,7 +40,7 @@ const CircleProgress = memo(function CircleProgress({ percentage, label, target 
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="butt"
+          strokeLinecap="round"
           className="transition-all duration-1000 ease-out"
         />
       </g>
@@ -49,7 +49,7 @@ const CircleProgress = memo(function CircleProgress({ percentage, label, target 
         y="50%"
         dominantBaseline="middle"
         textAnchor="middle"
-        className="text-[11px] max-[375px]:text-[10px] fill-white dark:fill-black font-medium"
+        className="text-[11px] max-[375px]:text-[10px] font-medium fill-foreground"
       >
         {label ?? percentage}
       </text>

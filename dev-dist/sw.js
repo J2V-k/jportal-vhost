@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-c5f6b949'], (function (workbox) { 'use strict';
+define(['./workbox-0491c06e'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -82,14 +82,36 @@ define(['./workbox-c5f6b949'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.95kfketfcbg"
+    "revision": "0.iouffvnovr8"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
-    allowlist: [/^\/$/]
+    allowlist: [/^\/$/],
+    denylist: [/^\/api\//, /\/artifact\//, /\.json$/]
   }));
-  workbox.registerRoute(/^https:\/\/cdn\.jsdelivr\.net\/pyodide\/v0\.23\.4\/full\/pyodide\.js$/, new workbox.CacheFirst({
-    "cacheName": "pyodide-cache",
+  workbox.registerRoute(/^https:\/\/cdn\.jsdelivr\.net\/pyodide\/v0\.23\.4\/full\//, new workbox.CacheFirst({
+    "cacheName": "pyodide-core-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxAgeSeconds: 31536000
+    })]
+  }), 'GET');
+  workbox.registerRoute(/\/artifact\/.*\.whl$/, new workbox.CacheFirst({
+    "cacheName": "python-packages-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxAgeSeconds: 31536000
+    })]
+  }), 'GET');
+  workbox.registerRoute(/\/studentsexamview\/printstudent-exammarks\/.*/, new workbox.StaleWhileRevalidate({
+    "cacheName": "marks-pdf-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 25,
+      maxAgeSeconds: 259200
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [200]
+    })]
+  }), 'GET');
+  workbox.registerRoute(/\.(?:wasm|data)$/, new workbox.CacheFirst({
+    "cacheName": "wasm-cache",
     plugins: [new workbox.ExpirationPlugin({
       maxAgeSeconds: 31536000
     })]

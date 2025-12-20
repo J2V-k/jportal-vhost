@@ -57,7 +57,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   const [gradesSemesterData, setGradesSemesterData] = useState(null);
 
   const [selectedAttendanceSem, setSelectedAttendanceSem] = useState(null);
-  const [selectedSubjectsSem, setSelectedSubjectsSem] = useState(null); 
+  const [selectedSubjectsSem, setSelectedSubjectsSem] = useState(null);
 
   const [profileData, setProfileData] = useState(null);
 
@@ -132,7 +132,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   const onTouchEndWithTransition = () => {
     if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
-    
+
     const swipeEnabled = localStorage.getItem('swipeEnabled') !== 'false';
     const isDesktop = window.innerWidth >= 768;
     if (!swipeEnabled || isDesktop) {
@@ -142,10 +142,10 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
       setTouchEndY(null);
       return;
     }
-    
+
     const distanceX = Math.abs(touchStart - touchEnd);
     const distanceY = Math.abs(touchStartY - touchEndY);
-    
+
     if (distanceY > distanceX) {
       setTouchStart(null);
       setTouchEnd(null);
@@ -153,25 +153,25 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
       setTouchEndY(null);
       return;
     }
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-    
+
     const routes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
     const currentPath = window.location.hash.replace('#', '');
     const currentIndex = routes.indexOf(currentPath);
-    
+
     if (isLeftSwipe && currentIndex < routes.length - 1) {
       setTransitionDirection('forward');
       navigate(routes[currentIndex + 1]);
     }
-    
+
     if (isRightSwipe && currentIndex > 0) {
       setTransitionDirection('reverse');
       navigate(routes[currentIndex - 1]);
     }
-    
+
     setTouchStart(null);
     setTouchEnd(null);
     setTouchStartY(null);
@@ -181,226 +181,226 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   return (
     <div className="relative">
       <Navbar w={w} messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
-      <div 
+      <div
         className="h-screen flex flex-col"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEndWithTransition}
       >
-        <div className="flex-none z-30 bg-[black] -mt-[2px] md:ml-64">
-            <Header 
-              setIsAuthenticated={setIsAuthenticated} 
-              messMenuOpen={messMenuOpen}
-              onMessMenuChange={onMessMenuChange}
-              attendanceGoal={attendanceGoal}
-              setAttendanceGoal={setAttendanceGoal}
-              w={w}
-            />
-          </div>
+        <div className="flex-none z-30 bg-background -mt-[2px] md:ml-64">
+          <Header
+            setIsAuthenticated={setIsAuthenticated}
+            messMenuOpen={messMenuOpen}
+            onMessMenuChange={onMessMenuChange}
+            attendanceGoal={attendanceGoal}
+            setAttendanceGoal={setAttendanceGoal}
+            w={w}
+          />
+        </div>
         <div className="flex-1 overflow-y-auto md:ml-64">
-        <TransitionGroup component={null}>
-          <CSSTransition
-            key={location.pathname}
-            timeout={300}
-            classNames={`page-transition${transitionDirection === 'reverse' ? '-reverse' : ''}`}
-            unmountOnExit
-          >
-            <div className="w-full min-h-full">
-              <Routes location={location}>
-                <Route path="/" element={<Navigate to={(() => {
-                  let targetTab = localStorage.getItem('defaultTab') || '/attendance';
-                  if (targetTab === 'auto') {
-                    const examStartDate = localStorage.getItem('examStartDate');
-                    const examEndDate = localStorage.getItem('examEndDate');
-                    if (examStartDate && examEndDate) {
-                      const now = new Date();
-                      const examStart = new Date(examStartDate);
-                      const examEnd = new Date(examEndDate);
-                      const tomorrow = new Date(now);
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
-                      const isInExamPeriod = now >= examStart && now <= examEnd;
-                      if (isTomorrowExamStart || isInExamPeriod) {
-                        return '/exams';
+          <TransitionGroup component={null}>
+            <CSSTransition
+              key={location.pathname}
+              timeout={300}
+              classNames={`page-transition${transitionDirection === 'reverse' ? '-reverse' : ''}`}
+              unmountOnExit
+            >
+              <div className="w-full min-h-full">
+                <Routes location={location}>
+                  <Route path="/" element={<Navigate to={(() => {
+                    let targetTab = localStorage.getItem('defaultTab') || '/attendance';
+                    if (targetTab === 'auto') {
+                      const examStartDate = localStorage.getItem('examStartDate');
+                      const examEndDate = localStorage.getItem('examEndDate');
+                      if (examStartDate && examEndDate) {
+                        const now = new Date();
+                        const examStart = new Date(examStartDate);
+                        const examEnd = new Date(examEndDate);
+                        const tomorrow = new Date(now);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
+                        const isInExamPeriod = now >= examStart && now <= examEnd;
+                        if (isTomorrowExamStart || isInExamPeriod) {
+                          return '/exams';
+                        }
                       }
+                      return '/attendance';
                     }
-                    return '/attendance';
-                  }
-                  const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
-                  return validRoutes.includes(targetTab) ? targetTab : '/attendance';
-                })()} replace />} />
-                <Route path="/login" element={<Navigate to={(() => {
-                  let targetTab = localStorage.getItem('defaultTab') || '/attendance';
-                  if (targetTab === 'auto') {
-                    const examStartDate = localStorage.getItem('examStartDate');
-                    const examEndDate = localStorage.getItem('examEndDate');
-                    if (examStartDate && examEndDate) {
-                      const now = new Date();
-                      const examStart = new Date(examStartDate);
-                      const examEnd = new Date(examEndDate);
-                      const tomorrow = new Date(now);
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
-                      const isInExamPeriod = now >= examStart && now <= examEnd;
-                      if (isTomorrowExamStart || isInExamPeriod) {
-                        return '/exams';
+                    const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+                    return validRoutes.includes(targetTab) ? targetTab : '/attendance';
+                  })()} replace />} />
+                  <Route path="/login" element={<Navigate to={(() => {
+                    let targetTab = localStorage.getItem('defaultTab') || '/attendance';
+                    if (targetTab === 'auto') {
+                      const examStartDate = localStorage.getItem('examStartDate');
+                      const examEndDate = localStorage.getItem('examEndDate');
+                      if (examStartDate && examEndDate) {
+                        const now = new Date();
+                        const examStart = new Date(examStartDate);
+                        const examEnd = new Date(examEndDate);
+                        const tomorrow = new Date(now);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
+                        const isInExamPeriod = now >= examStart && now <= examEnd;
+                        if (isTomorrowExamStart || isInExamPeriod) {
+                          return '/exams';
+                        }
                       }
+                      return '/attendance';
                     }
-                    return '/attendance';
-                  }
-                  const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
-                  return validRoutes.includes(targetTab) ? targetTab : '/attendance';
-                })()} replace />} />
-        <Route
-          path="/attendance"
-          element={
-            <Attendance
-              w={w}
-              attendanceData={attendanceData}
-              setAttendanceData={setAttendanceData}
-              semestersData={attendanceSemestersData}
-              setSemestersData={setAttendanceSemestersData}
-              selectedSem={selectedAttendanceSem}
-              setSelectedSem={setSelectedAttendanceSem}
-              attendanceGoal={attendanceGoal}
-              setAttendanceGoal={setAttendanceGoal}
-              subjectAttendanceData={subjectAttendanceData}
-              setSubjectAttendanceData={setSubjectAttendanceData}
-              selectedSubject={selectedSubject}
-              setSelectedSubject={setSelectedSubject}
-              isAttendanceMetaLoading={isAttendanceMetaLoading}
-              setIsAttendanceMetaLoading={setIsAttendanceMetaLoading}
-              isAttendanceDataLoading={isAttendanceDataLoading}
-              setIsAttendanceDataLoading={setIsAttendanceDataLoading}
-              activeTab={activeAttendanceTab}
-              setActiveTab={setActiveAttendanceTab}
-              dailyDate={attendanceDailyDate}
-              setDailyDate={setAttendanceDailyDate}
-              calendarOpen={isAttendanceCalendarOpen}
-              setCalendarOpen={setIsAttendanceCalendarOpen}
-              isTrackerOpen={isAttendanceTrackerOpen}
-              setIsTrackerOpen={setIsAttendanceTrackerOpen}
-              subjectCacheStatus={attendanceSubjectCacheStatus}
-              setSubjectCacheStatus={setAttendanceSubjectCacheStatus}
-            />
-          }
-        />
-        <Route
-          path="/grades"
-          element={
-            <Grades
-              w={w}
-              gradesData={gradesData}
-              setGradesData={setGradesData}
-              semesterData={gradesSemesterData}
-              setSemesterData={setGradesSemesterData}
-              activeTab={activeGradesTab}
-              setActiveTab={setActiveGradesTab}
-              gradeCardSemesters={gradeCardSemesters}
-              setGradeCardSemesters={setGradeCardSemesters}
-              selectedGradeCardSem={selectedGradeCardSem}
-              setSelectedGradeCardSem={setSelectedGradeCardSem}
-              gradeCard={gradeCard}
-              setGradeCard={setGradeCard}
-              gradeCards={gradeCards}
-              setGradeCards={setGradeCards}
-              marksSemesters={marksSemesters}
-              setMarksSemesters={setMarksSemesters}
-              selectedMarksSem={selectedMarksSem}
-              setSelectedMarksSem={setSelectedMarksSem}
-              marksSemesterData={marksSemesterData}
-              setMarksSemesterData={setMarksSemesterData}
-              marksData={marksData}
-              setMarksData={setMarksData}
-              gradesLoading={gradesLoading}
-              setGradesLoading={setGradesLoading}
-              gradesError={gradesError}
-              setGradesError={setGradesError}
-              gradeCardLoading={gradeCardLoading}
-              setGradeCardLoading={setGradeCardLoading}
-              isDownloadDialogOpen={isDownloadDialogOpen}
-              setIsDownloadDialogOpen={setIsDownloadDialogOpen}
-              marksLoading={marksLoading}
-              setMarksLoading={setMarksLoading}
-            />
-          }
-        />
-        <Route
-          path="/exams"
-          element={
-            <Exams
-              w={w}
-              examSchedule={examSchedule}
-              setExamSchedule={setExamSchedule}
-              examSemesters={examSemesters}
-              setExamSemesters={setExamSemesters}
-              selectedExamSem={selectedExamSem}
-              setSelectedExamSem={setSelectedExamSem}
-              selectedExamEvent={selectedExamEvent}
-              setSelectedExamEvent={setSelectedExamEvent}
-            />
-          }
-        />
-        <Route
-          path="/subjects"
-          element={
-            <Subjects
-              w={w}
-              subjectData={subjectData}
-              setSubjectData={setSubjectData}
-              semestersData={subjectSemestersData}
-              setSemestersData={setSubjectSemestersData}
-              selectedSem={selectedSubjectsSem}
-              setSelectedSem={setSelectedSubjectsSem}
-            />
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <Profile
-              w={w}
-              profileData={profileData}
-              setProfileData={setProfileData}
-              semesterData={gradesSemesterData}
-            />
-          }
-        />
-        <Route
-          path="/fee"
-          element={
-            <Fee w={w} serialize_payload={serialize_payload} />
-          }
-        />
-        <Route
-          path="/academic-calendar"
-          element={<AcademicCalendar />}
-        />
-        <Route
-          path="/timetable"
-          element={
-            <Timetable
-              w={w}
-              profileData={profileData}
-              subjectData={subjectData}
-              subjectSemestersData={subjectSemestersData}
-              selectedSubjectsSem={selectedSubjectsSem}
-            />
-          }
-        />
-        <Route
-          path="/feedback"
-          element={<Feedback w={w} />}
-        />
-        <Route
-          path="/gpa-calculator"
-          element={<CGPATargetCalculator w={w} />}
-        />
-            </Routes>
-          </div>
-        </CSSTransition>
-      </TransitionGroup>
-      </div>
+                    const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+                    return validRoutes.includes(targetTab) ? targetTab : '/attendance';
+                  })()} replace />} />
+                  <Route
+                    path="/attendance"
+                    element={
+                      <Attendance
+                        w={w}
+                        attendanceData={attendanceData}
+                        setAttendanceData={setAttendanceData}
+                        semestersData={attendanceSemestersData}
+                        setSemestersData={setAttendanceSemestersData}
+                        selectedSem={selectedAttendanceSem}
+                        setSelectedSem={setSelectedAttendanceSem}
+                        attendanceGoal={attendanceGoal}
+                        setAttendanceGoal={setAttendanceGoal}
+                        subjectAttendanceData={subjectAttendanceData}
+                        setSubjectAttendanceData={setSubjectAttendanceData}
+                        selectedSubject={selectedSubject}
+                        setSelectedSubject={setSelectedSubject}
+                        isAttendanceMetaLoading={isAttendanceMetaLoading}
+                        setIsAttendanceMetaLoading={setIsAttendanceMetaLoading}
+                        isAttendanceDataLoading={isAttendanceDataLoading}
+                        setIsAttendanceDataLoading={setIsAttendanceDataLoading}
+                        activeTab={activeAttendanceTab}
+                        setActiveTab={setActiveAttendanceTab}
+                        dailyDate={attendanceDailyDate}
+                        setDailyDate={setAttendanceDailyDate}
+                        calendarOpen={isAttendanceCalendarOpen}
+                        setCalendarOpen={setIsAttendanceCalendarOpen}
+                        isTrackerOpen={isAttendanceTrackerOpen}
+                        setIsTrackerOpen={setIsAttendanceTrackerOpen}
+                        subjectCacheStatus={attendanceSubjectCacheStatus}
+                        setSubjectCacheStatus={setAttendanceSubjectCacheStatus}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/grades"
+                    element={
+                      <Grades
+                        w={w}
+                        gradesData={gradesData}
+                        setGradesData={setGradesData}
+                        semesterData={gradesSemesterData}
+                        setSemesterData={setGradesSemesterData}
+                        activeTab={activeGradesTab}
+                        setActiveTab={setActiveGradesTab}
+                        gradeCardSemesters={gradeCardSemesters}
+                        setGradeCardSemesters={setGradeCardSemesters}
+                        selectedGradeCardSem={selectedGradeCardSem}
+                        setSelectedGradeCardSem={setSelectedGradeCardSem}
+                        gradeCard={gradeCard}
+                        setGradeCard={setGradeCard}
+                        gradeCards={gradeCards}
+                        setGradeCards={setGradeCards}
+                        marksSemesters={marksSemesters}
+                        setMarksSemesters={setMarksSemesters}
+                        selectedMarksSem={selectedMarksSem}
+                        setSelectedMarksSem={setSelectedMarksSem}
+                        marksSemesterData={marksSemesterData}
+                        setMarksSemesterData={setMarksSemesterData}
+                        marksData={marksData}
+                        setMarksData={setMarksData}
+                        gradesLoading={gradesLoading}
+                        setGradesLoading={setGradesLoading}
+                        gradesError={gradesError}
+                        setGradesError={setGradesError}
+                        gradeCardLoading={gradeCardLoading}
+                        setGradeCardLoading={setGradeCardLoading}
+                        isDownloadDialogOpen={isDownloadDialogOpen}
+                        setIsDownloadDialogOpen={setIsDownloadDialogOpen}
+                        marksLoading={marksLoading}
+                        setMarksLoading={setMarksLoading}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/exams"
+                    element={
+                      <Exams
+                        w={w}
+                        examSchedule={examSchedule}
+                        setExamSchedule={setExamSchedule}
+                        examSemesters={examSemesters}
+                        setExamSemesters={setExamSemesters}
+                        selectedExamSem={selectedExamSem}
+                        setSelectedExamSem={setSelectedExamSem}
+                        selectedExamEvent={selectedExamEvent}
+                        setSelectedExamEvent={setSelectedExamEvent}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/subjects"
+                    element={
+                      <Subjects
+                        w={w}
+                        subjectData={subjectData}
+                        setSubjectData={setSubjectData}
+                        semestersData={subjectSemestersData}
+                        setSemestersData={setSubjectSemestersData}
+                        selectedSem={selectedSubjectsSem}
+                        setSelectedSem={setSelectedSubjectsSem}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <Profile
+                        w={w}
+                        profileData={profileData}
+                        setProfileData={setProfileData}
+                        semesterData={gradesSemesterData}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/fee"
+                    element={
+                      <Fee w={w} serialize_payload={serialize_payload} />
+                    }
+                  />
+                  <Route
+                    path="/academic-calendar"
+                    element={<AcademicCalendar />}
+                  />
+                  <Route
+                    path="/timetable"
+                    element={
+                      <Timetable
+                        w={w}
+                        profileData={profileData}
+                        subjectData={subjectData}
+                        subjectSemestersData={subjectSemestersData}
+                        selectedSubjectsSem={selectedSubjectsSem}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/feedback"
+                    element={<Feedback w={w} />}
+                  />
+                  <Route
+                    path="/gpa-calculator"
+                    element={<CGPATargetCalculator w={w} />}
+                  />
+                </Routes>
+              </div>
+            </CSSTransition>
+          </TransitionGroup>
+        </div>
       </div>
     </div>
   );
@@ -414,21 +414,21 @@ function LoginWrapper({ onLoginSuccess, w }) {
     onLoginSuccess(portal);
     setTimeout(() => {
       let targetTab = localStorage.getItem('defaultTab') || '/attendance';
-      
+
       if (targetTab === 'auto') {
         const examStartDate = localStorage.getItem('examStartDate');
         const examEndDate = localStorage.getItem('examEndDate');
-        
+
         if (examStartDate && examEndDate) {
           const now = new Date();
           const examStart = new Date(examStartDate);
           const examEnd = new Date(examEndDate);
           const tomorrow = new Date(now);
           tomorrow.setDate(tomorrow.getDate() + 1);
-          
+
           const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
           const isInExamPeriod = now >= examStart && now <= examEnd;
-          
+
           if (isTomorrowExamStart || isInExamPeriod) {
             targetTab = '/exams';
           } else {
@@ -438,7 +438,7 @@ function LoginWrapper({ onLoginSuccess, w }) {
           targetTab = '/attendance';
         }
       }
-      
+
       const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
       if (!validRoutes.includes(targetTab)) {
         console.warn(`Invalid default tab: ${targetTab}, falling back to /attendance`);
@@ -466,9 +466,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentWebPortal, setCurrentWebPortal] = useState(w);
-  const [themeMode, setThemeMode] = useState(() => {
-    return localStorage.getItem('defaultTheme') || 'light';
-  });
   const [messMenuOpen, setMessMenuOpen] = useState(() => {
     return localStorage.getItem("messMenuOpen") === "true";
   });
@@ -502,7 +499,7 @@ function App() {
   useEffect(() => {
     const handleBeforeUnload = () => {
       localStorage.removeItem("messMenuOpen");
-    }; 
+    };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -534,24 +531,6 @@ function App() {
     };
   }, []);
 
-  const darkTheme = () => {
-    setThemeMode("dark");
-    localStorage.setItem('defaultTheme', 'dark');
-  };
-  const lightTheme = () => {
-    setThemeMode("light");
-    localStorage.setItem('defaultTheme', 'light');
-  };
-  useEffect(() => {
-    document.querySelector("html")?.classList.remove("dark", "light");
-    document.querySelector("html")?.classList.add(themeMode);
-  }, [themeMode]);
-
-  useEffect(() => {
-    document.querySelector("html")?.classList.remove("dark", "light");
-    document.querySelector("html")?.classList.add(themeMode);
-  }, []);
-
   useEffect(() => {
     const username = localStorage.getItem("username");
     const password = localStorage.getItem("password");
@@ -568,9 +547,9 @@ function App() {
       } catch (error) {
         console.error("Login failed:", error);
         const keys = Object.keys(localStorage);
-        const hasCachedData = keys.some(key => 
-          key.startsWith('attendance-') || 
-          key.startsWith('grades-') || 
+        const hasCachedData = keys.some(key =>
+          key.startsWith('attendance-') ||
+          key.startsWith('grades-') ||
           key.startsWith('subject-') ||
           key === 'latestSemester' ||
           key === 'semestersData' ||
@@ -578,7 +557,7 @@ function App() {
           key === 'mess-menu' ||
           key === 'profileData'
         );
-        
+
         if (hasCachedData) {
           setIsAuthenticated(true);
           setCurrentWebPortal(new ArtificialWebPortal());
@@ -613,7 +592,7 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-blue-900 dark:text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
         <div className="flex flex-col items-center">
           <Loader2 className="w-8 h-8 animate-spin mb-2" />
           <p className="text-lg font-semibold mb-1">
@@ -622,8 +601,8 @@ function App() {
           <p className="text-sm mb-4">
             Welcome to JP Portal
           </p>
-              <div className="bg-white/10 rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
-            <span className="text-xs text-white/60 mb-1">Quick Access</span>
+          <div className="bg-card/50 border border-border rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
+            <span className="text-xs text-muted-foreground mb-1">Quick Access</span>
             <div className="flex flex-wrap gap-2 items-center justify-center">
               <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
                 <span className="flex items-center justify-center px-6 py-2 bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:text-green-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
@@ -658,9 +637,9 @@ function App() {
 
   return (
     <HelmetProvider>
-      <ThemeProvider value={{ themeMode, darkTheme, lightTheme }}>
+      <ThemeProvider>
         <Router>
-          <div className="min-h-screen bg-[black] dark:bg-white dark:text-black">
+          <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
             <Routes>
               <Route
                 path="/academic-calendar"
@@ -707,9 +686,9 @@ function App() {
                 <Route
                   path="*"
                   element={
-                    <AuthenticatedApp 
-                      w={currentWebPortal} 
-                      setIsAuthenticated={setIsAuthenticated} 
+                    <AuthenticatedApp
+                      w={currentWebPortal}
+                      setIsAuthenticated={setIsAuthenticated}
                       messMenuOpen={messMenuOpen}
                       onMessMenuChange={handleMessMenuChange}
                       attendanceGoal={attendanceGoal}

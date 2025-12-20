@@ -5,7 +5,6 @@ import {
   saveAttendanceToCache,
   getSubjectDataFromCache,
   saveSubjectDataToCache,
-  getSemesterFromCache,
   getSemestersFromCache,
   saveSemestersToCache,
 } from "@/components/scripts/cache";
@@ -18,9 +17,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Empty } from "@/components/ui/empty";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import {
   Loader2,
   AlertCircle,
@@ -68,14 +74,22 @@ const Attendance = ({
   const [isFromCache, setIsFromCache] = useState(false);
   const [sortOrder, setSortOrder] = useState('default');
 
+  const cycleSortOrder = () => {
+    setSortOrder(current => {
+      if (current === 'default') return 'asc';
+      if (current === 'asc') return 'desc';
+      return 'default';
+    });
+  };
+
   const getRelativeTime = (timestamp) => {
     const now = new Date();
     const timeDiff = now - new Date(timestamp);
-    
+
     const minutes = Math.floor(timeDiff / (1000 * 60));
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
     const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    
+
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
     if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
@@ -160,15 +174,15 @@ const Attendance = ({
           setIsAttendanceDataLoading(false);
           setIsRefreshing(true);
           try {
-                const data = await w.get_attendance(header, semesterToLoad);
-                if (!data) {
-                  setAttendanceData((prev) => ({
-                    ...prev,
-                    [semesterToLoad.registration_id]: { error: 'No cached attendance available' },
-                  }));
-                  setIsRefreshing(false);
-                  return;
-                }
+            const data = await w.get_attendance(header, semesterToLoad);
+            if (!data) {
+              setAttendanceData((prev) => ({
+                ...prev,
+                [semesterToLoad.registration_id]: { error: 'No cached attendance available' },
+              }));
+              setIsRefreshing(false);
+              return;
+            }
             setAttendanceData((prev) => ({
               ...prev,
               [semesterToLoad.registration_id]: data,
@@ -243,12 +257,12 @@ const Attendance = ({
       setIsFromCache(true);
       setIsAttendanceDataLoading(false);
       setIsRefreshing(true);
-        try {
-          const meta = await w.get_attendance_meta();
-          if (!meta) throw new Error('No attendance metadata available');
-          const header = (meta.latest_header && meta.latest_header()) || null;
-          const data = await w.get_attendance(header, semester);
-          if (!data) throw new Error('No cached attendance available');
+      try {
+        const meta = await w.get_attendance_meta();
+        if (!meta) throw new Error('No attendance metadata available');
+        const header = (meta.latest_header && meta.latest_header()) || null;
+        const data = await w.get_attendance(header, semester);
+        if (!data) throw new Error('No cached attendance available');
         setAttendanceData((prev) => ({
           ...prev,
           [value]: data,
@@ -322,14 +336,14 @@ const Attendance = ({
           const currentPercentage = (attended / total) * 100;
           const classesNeeded = attendanceGoal
             ? Math.ceil(
-                (attendanceGoal * total - 100 * attended) /
-                  (100 - attendanceGoal)
-              )
+              (attendanceGoal * total - 100 * attended) /
+              (100 - attendanceGoal)
+            )
             : null;
           const classesCanMiss = attendanceGoal
             ? Math.floor(
-                (100 * attended - attendanceGoal * total) / attendanceGoal
-              )
+              (100 * attended - attendanceGoal * total) / attendanceGoal
+            )
             : null;
 
           return {
@@ -357,7 +371,7 @@ const Attendance = ({
           };
         }
       )) ||
-    [];
+      [];
 
     if (sortOrder === 'default') {
       const isDesktop = window.innerWidth > 768;
@@ -382,13 +396,13 @@ const Attendance = ({
     try {
       const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
       const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
-      
+
       if (cached) {
         setSubjectAttendanceData((prev) => ({
           ...prev,
           [subject.name]: cached.data || cached,
         }));
-        
+
         await fetchFreshSubjectData(subject, username);
         return;
       }
@@ -426,7 +440,7 @@ const Attendance = ({
         return;
       }
       const freshData = data.studentAttdsummarylist;
-      
+
       setSubjectAttendanceData((prev) => ({
         ...prev,
         [subject.name]: freshData,
@@ -494,344 +508,300 @@ const Attendance = ({
         <meta property="og:url" content="https://jportal2-0.vercel.app/#/attendance" />
         <link rel="canonical" href="https://jportal2-0.vercel.app/#/attendance" />
       </Helmet>
-      <div className="text-white dark:text-black font-sans">
-      <div className="top-14 left-0 right-0 bg-[black] dark:bg-white z-10">
-        <div className="flex gap-2 py-2 px-3 max-w-[1440px] mx-auto">
-          <Select
-            onValueChange={handleSemesterChange}
-            value={selectedSem?.registration_id}
-          >
-            <SelectTrigger className="bg-[#0B0B0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black">
-              <SelectValue
-                placeholder={
-                  isAttendanceMetaLoading
-                    ? "Loading semesters..."
-                    : "Select semester"
-                }
-              >
-                {selectedSem?.registration_code}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black">
-              {semestersData?.semesters?.map((sem) => (
-                <SelectItem
-                  key={sem.registration_id}
-                  value={sem.registration_id}
-                  className="dark:text-black text-white hover:bg-black"
+      <div className="text-foreground font-sans">
+        <div className="top-14 left-0 right-0 bg-background z-10">
+          <div className="flex gap-2 py-2 px-3 max-w-[1440px] mx-auto">
+            <Select
+              onValueChange={handleSemesterChange}
+              value={selectedSem?.registration_id}
+            >
+              <SelectTrigger className="bg-background text-foreground border-border">
+                <SelectValue
+                  placeholder={
+                    isAttendanceMetaLoading
+                      ? "Loading semesters..."
+                      : "Select semester"
+                  }
                 >
-                  {sem.registration_code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            type="number"
-            value={attendanceGoal}
-            onChange={handleGoalChange}
-            min="-1"
-            max="100"
-            className="w-32 bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border-white dark:border-black"
-            placeholder="Goal %"
-          />
-          <button
-            onClick={() => setSortOrder(prev => prev === 'default' ? 'asc' : prev === 'asc' ? 'desc' : 'default')}
-            className="flex items-center gap-2 px-3 py-1 bg-[#0B0D0D] dark:bg-[#f9f9f9] text-white dark:text-black border border-white dark:border-black rounded text-xs font-medium hover:bg-[#1A1A1D] dark:hover:bg-gray-200 hover:text-white dark:hover:text-black transition-colors"
-            title={`Sort by attendance: ${sortOrder === 'default' ? 'Default' : sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
-          >
-            {sortOrder === 'asc' ? (
-              <>
-                <ChevronUp className="w-4 h-4" />
-                <span className="hidden md:inline">Ascending</span>
-              </>
-            ) : sortOrder === 'desc' ? (
-              <>
-                <ChevronDown className="w-4 h-4" />
-                <span className="hidden md:inline">Descending</span>
-              </>
-            ) : (
-              <>
-                <ArrowUpDown className="w-4 h-4" />
-                <span className="hidden md:inline">Default</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {!attendanceData[selectedSem?.registration_id]?.error && (
-        <div className="flex items-center justify-center py-2 text-xs text-gray-400 dark:text-gray-600">
-          <span>
-            {cacheTimestamp  && isFromCache ? (
-              <span className="flex items-center gap-1">
-                <Archive size={12} />
-                Cached: {getRelativeTime(cacheTimestamp)}
-              </span>
-            ) : (
-              ''
-            )}
-          </span>
-          {isRefreshing && (
-            <span className="ml-2 flex items-center gap-1">
-              <Loader2 className="animate-spin w-4 h-4" />
-              Refreshing...
-            </span>
-          )}
-        </div>
-      )}
-      {isAttendanceMetaLoading || isAttendanceDataLoading ? (
-        <div className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]">
-          <Loader2 className="animate-spin text-white dark:text-black w-6 h-6 mr-2" />
-          Loading attendance...
-        </div>
-      ) : (
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="px-3 pb-4 max-w-[1440px] mx-auto"
-        >
-          <TabsList className="grid grid-cols-2 bg-[#0B0D0D] dark:bg-white relative z-30">
-            <TabsTrigger
-              value="overview"
-              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white flex items-center gap-2"
-            >
-              <BarChart3 className="w-4 h-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="daily"
-              className="bg-[#0B0D0D] dark:bg-white data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-black dark:data-[state=active]:text-white flex items-center gap-2"
-            >
-              <CalendarDays className="w-4 h-4" />
-              Day‑to‑Day
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            {selectedSem &&
-            attendanceData[selectedSem.registration_id]?.error ? (
-              <div className="flex items-center justify-center py-4">
-                {attendanceData[selectedSem.registration_id].error}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {subjects.map((subject) => (
-                  <AttendanceCard
-                    key={subject.name}
-                    subject={subject}
-                    selectedSubject={selectedSubject}
-                    setSelectedSubject={setSelectedSubject}
-                    subjectAttendanceData={subjectAttendanceData}
-                    fetchSubjectAttendance={fetchSubjectAttendance}
-                    attendanceGoal={attendanceGoal}
-                  />
+                  {selectedSem?.registration_code}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background text-foreground border-border">
+                {semestersData?.semesters?.map((sem) => (
+                  <SelectItem
+                    key={sem.registration_id}
+                    value={sem.registration_id}
+                    className="text-foreground hover:bg-accent"
+                  >
+                    {sem.registration_code}
+                  </SelectItem>
                 ))}
-              </div>
-            )}
-          </TabsContent>
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              value={attendanceGoal}
+              onChange={handleGoalChange}
+              min="-1"
+              max="100"
+              className="w-32 bg-background text-foreground border-border"
+              placeholder="Goal %"
+            />
+            <Button
+              onClick={cycleSortOrder}
+              variant="outline"
+              className="bg-background border-border text-foreground hover:bg-accent"
+              title={`Sort: ${sortOrder === 'default' ? 'Default' : sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+            >
+              {sortOrder === 'default' && <ArrowUpDown className="w-4 h-4 mr-1" />}
+              {sortOrder === 'asc' && <ChevronUp className="w-4 h-4 mr-1" />}
+              {sortOrder === 'desc' && <ChevronDown className="w-4 h-4 mr-1" />}
+              <span className="hidden md:inline">
+                {sortOrder === 'default' ? 'Default' : sortOrder === 'asc' ? 'Asc' : 'Desc'}
+              </span>
+            </Button>
+          </div>
+        </div>
 
-          <TabsContent value="daily">
-            <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                <div className="lg:col-span-1 order-2 lg:order-1">
-                  <div className="sticky top-4">
-                    <div className="bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-lg flex flex-col items-center">
-                      <h3 className="text-lg font-semibold mb-3 text-white dark:text-black text-center">
-                        Select Date
-                      </h3>
-                      <CalendarComponent
-                        mode="single"
-                        selected={safeDailyDate}
-                        onSelect={(d) => {
-                          if (d) {
-                            setDailyDate(d);
-                          }
-                        }}
-                        modifiers={{
-                          hasActivity: (date) =>
-                            subjects.some(
-                              (s) => getClassesFor(s.name, date).length > 0
-                            ),
-                          selected: (date) =>
-                            date.toDateString() ===
-                            safeDailyDate.toDateString(),
-                        }}
-                        modifiersStyles={{
-                          hasActivity: {
-                            backgroundColor: "rgba(59, 130, 246, 0.2)",
-                            border: "2px solid rgba(59, 130, 246, 0.6)",
-                            borderRadius: "6px",
-                            fontWeight: "bold",
-                          },
-                        }}
-                        classNames={{
-                          day_selected:
-                            "bg-[#1e40af] text-white border-2 border-[#1e40af] hover:bg-[#1e40af] hover:text-white hover:border-[#1e40af] rounded-md",
-                          day_today:
-                            "aria-selected:bg-[#1e40af] aria-selected:text-white aria-selected:border-[#1e40af] bg-accent text-accent-foreground",
-                        }}
-                        className="dark:bg-white dark:text-black rounded-md border-0"
-                      />
-                      <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full border border-blue-300"></div>
-                          <span>Has Classes</span>
+        {!attendanceData[selectedSem?.registration_id]?.error && (
+          <div className="flex items-center justify-center py-2 text-xs text-muted-foreground">
+            <span>
+              {cacheTimestamp && isFromCache ? (
+                <span className="flex items-center gap-1">
+                  <Archive size={12} />
+                  Cached: {getRelativeTime(cacheTimestamp)}
+                </span>
+              ) : (
+                ''
+              )}
+            </span>
+            {isRefreshing && (
+              <span className="ml-2 flex items-center gap-1">
+                <Loader2 className="animate-spin w-4 h-4" />
+                Refreshing...
+              </span>
+            )}
+          </div>
+        )}
+        {isAttendanceMetaLoading || isAttendanceDataLoading ? (
+          <div className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]">
+            <Loader2 className="animate-spin text-foreground w-6 h-6 mr-2" />
+            Loading attendance...
+          </div>
+        ) : (
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="px-3 pb-4 max-w-[1440px] mx-auto"
+          >
+            <TabsList className="grid grid-cols-2 bg-background relative z-30">
+              <TabsTrigger
+                value="overview"
+                className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="daily"
+                className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2"
+              >
+                <CalendarDays className="w-4 h-4" />
+                Day‑to‑Day
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              {selectedSem &&
+                attendanceData[selectedSem.registration_id]?.error ? (
+                <div className="flex items-center justify-center py-4">
+                  {attendanceData[selectedSem.registration_id].error}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {subjects.map((subject) => (
+                    <AttendanceCard
+                      key={subject.name}
+                      subject={subject}
+                      selectedSubject={selectedSubject}
+                      setSelectedSubject={setSelectedSubject}
+                      subjectAttendanceData={subjectAttendanceData}
+                      fetchSubjectAttendance={fetchSubjectAttendance}
+                      attendanceGoal={attendanceGoal}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="daily">
+              <div className="max-w-6xl mx-auto">
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+
+                  {/* Left Column: Calendar (Sticky on desktop) */}
+                  <div className="w-full md:w-auto md:sticky md:top-24 flex-shrink-0 flex justify-center md:justify-start">
+                    <Card className="bg-card border-border max-w-fit">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-center text-foreground flex items-center justify-center gap-2">
+                          <Calendar className="w-5 h-5" />
+                          Select Date
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <CalendarComponent
+                          mode="single"
+                          selected={safeDailyDate}
+                          onSelect={(d) => {
+                            if (d) {
+                              setDailyDate(d);
+                            }
+                          }}
+                          modifiers={{
+                            hasActivity: (date) =>
+                              subjects.some(
+                                (s) => getClassesFor(s.name, date).length > 0
+                              ),
+                            selected: (date) =>
+                              date.toDateString() ===
+                              safeDailyDate.toDateString(),
+                          }}
+                          modifiersStyles={{
+                            hasActivity: {
+                              backgroundColor: "rgba(59, 130, 246, 0.2)",
+                              border: "2px solid rgba(59, 130, 246, 0.6)",
+                              borderRadius: "6px",
+                              fontWeight: "bold",
+                            },
+                          }}
+                          classNames={{
+                            caption_label: "text-sm font-medium text-foreground",
+                            head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                            day: "text-foreground h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent",
+                            day_selected:
+                              "bg-primary text-primary-foreground border-2 border-primary hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-md",
+                            day_today:
+                              "aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:border-primary bg-accent text-accent-foreground",
+                            day_outside:
+                              "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+                            nav_button: "text-foreground hover:bg-accent",
+                          }}
+                          className="bg-card text-card-foreground rounded-md border-0"
+                        />
+                        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full border border-blue-300"></div>
+                            <span className="text-muted-foreground">Has Classes</span>
+                          </div>
                         </div>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="flex-1 w-full min-w-0">
+                    <div className="min-h-[400px]">
+                      {isAttendanceDataLoading ? (
+                        <div className="space-y-4">
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className="flex items-center space-x-4">
+                              <Skeleton className="h-12 w-12 rounded-full" />
+                              <div className="space-y-2 flex-1">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                              </div>
+                              <Skeleton className="h-8 w-16" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : subjects.length === 0 ? (
+                        <Empty description="No subjects found. Please select a semester first." />
+                      ) : (
+                        <div className="space-y-4">
+                          {subjects.flatMap((subj) => {
+                            const lectures = getClassesFor(
+                              subj.name,
+                              safeDailyDate
+                            );
+                            if (lectures.length === 0) return [];
+                            return (
+                              <Card
+                                key={subj.name}
+                                className="bg-card border-border hover:shadow-md transition-shadow duration-200"
+                              >
+                                <CardHeader className="py-3 px-4 bg-muted/30 border-b border-border">
+                                  <CardTitle className="text-foreground flex items-center gap-2 text-sm md:text-base">
+                                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                    {subj.name}
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                  <div className="divide-y divide-border">
+                                    {lectures.map((cls, i) => (
+                                      <div key={i} className="flex items-center justify-between p-3 md:p-4 hover:bg-accent/5 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                          <Badge
+                                            className={`px-2 py-0.5 text-xs font-bold border-none ${cls.present === "Present"
+                                              ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                                              : "bg-red-500 text-white hover:bg-red-600"
+                                              }`}
+                                          >
+                                            {cls.present}
+                                          </Badge>
+                                          <span className="text-sm text-foreground/80 font-medium">
+                                            {cls.classtype}
+                                          </span>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-xs text-muted-foreground font-mono">
+                                            {cls.datetime
+                                              .split(" ")
+                                              .slice(1)
+                                              .join(" ")
+                                              .slice(1, -1)}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {subjects.every(
+                        (s) => getClassesFor(s.name, safeDailyDate).length === 0
+                      ) &&
+                        subjects.length > 0 && (
+                          <div className="flex justify-center mt-12">
+                            <Alert className="max-w-md bg-card border-border">
+                              <Calendar className="h-4 w-4" />
+                              <AlertDescription className="text-center">
+                                <div className="font-medium text-foreground mb-1">
+                                  No classes scheduled
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {safeDailyDate.toLocaleDateString("en-US", {
+                                    weekday: "long",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </div>
+                              </AlertDescription>
+                            </Alert>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
-
-                <div className="lg:col-span-2 order-1 lg:order-2">
-                  <div className="min-h-[400px]">
-                    {isAttendanceDataLoading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="text-center">
-                          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
-                          <p className="text-gray-400 dark:text-gray-600">
-                            Loading attendance data...
-                          </p>
-                        </div>
-                      </div>
-                    ) : subjects.length === 0 ? (
-                      <div className="text-center py-12">
-                        <p className="text-gray-400 dark:text-gray-600 text-lg">
-                          No subjects found.
-                        </p>
-                        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
-                          Please select a semester first.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {subjects.flatMap((subj) => {
-                          const lectures = getClassesFor(
-                            subj.name,
-                            safeDailyDate
-                          );
-                          if (lectures.length === 0) return [];
-                          return (
-                            <div
-                              key={subj.name}
-                              className="bg-[#0B0D0D] dark:bg-gray-50 rounded-lg p-4 border border-gray-800 dark:border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
-                            >
-                              <h3 className="font-semibold mb-3 text-white dark:text-black flex items-center gap-2">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                                {subj.name}
-                              </h3>
-                              <div className="space-y-2">
-                                {lectures.map((cls, i) => (
-                                  <div
-                                    key={i}
-                                    className={`flex justify-between items-center p-3 rounded-md text-sm ${
-                                      cls.present === "Present"
-                                        ? "bg-green-900/20 dark:bg-green-100 border border-green-700 dark:border-green-300"
-                                        : "bg-red-900/20 dark:bg-red-100 border border-red-700 dark:border-red-300"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        className={`w-2 h-2 rounded-full ${
-                                          cls.present === "Present"
-                                            ? "bg-green-400"
-                                            : "bg-red-400"
-                                        }`}
-                                      ></div>
-                                      <span
-                                        className={
-                                          cls.present === "Present"
-                                            ? "text-green-400 dark:text-green-700"
-                                            : "text-red-400 dark:text-red-700"
-                                        }
-                                      >
-                                        {cls.classtype}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span
-                                        className={`font-medium ${
-                                          cls.present === "Present"
-                                            ? "text-green-400 dark:text-green-700"
-                                            : "text-red-400 dark:text-red-700"
-                                        }`}
-                                      >
-                                        {cls.present}
-                                      </span>
-                                      <span className="text-gray-400 dark:text-gray-600 text-xs">
-                                        {cls.datetime
-                                          .split(" ")
-                                          .slice(1)
-                                          .join(" ")
-                                          .slice(1, -1)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {subjects.every(
-                      (s) => getClassesFor(s.name, safeDailyDate).length === 0
-                    ) &&
-                      subjects.length > 0 && (
-                        <div className="text-center py-12">
-                          <div className="text-4xl mb-4">
-                            <Calendar className="w-10 h-10 mx-auto text-blue-400" />
-                          </div>
-                          <p className="text-gray-400 dark:text-gray-600 text-lg font-medium">
-                            No classes scheduled
-                          </p>
-                          <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
-                            {safeDailyDate.toLocaleDateString("en-US", {
-                              weekday: "long",
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
-                          </p>
-                        </div>
-                      )}
-                  </div>
-                </div>
               </div>
-            </div>
 
-            {subjects.length > 0 &&
-              subjectCacheStatus &&
-              typeof subjectCacheStatus === "object" &&
-              Object.values(subjectCacheStatus).some((s) => s !== "cached") && (
-                <div className="mb-6 p-4 bg-[#0B0D0D] dark:bg-gray-50 rounded-lg border border-gray-800 dark:border-gray-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-white dark:text-black flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4" />
-                      Fetching Daily Attendance
-                    </h4>
-                    <span className="text-xs text-gray-400 dark:text-gray-600">
-                      {
-                        subjects.filter(
-                          (s) => subjectCacheStatus[s.name] === "cached"
-                        ).length
-                      }{" "}
-                      of {subjects.length} subjects
-                    </span>
-                  </div>
-                  <Progress
-                    value={
-                      (100 *
-                        subjects.filter((s) => subjectCacheStatus[s.name] === "cached").length) /
-                      subjects.length
-                    }
-                  />
-                </div>
-              )}
-          </TabsContent>
-        </Tabs>
-      )}
-      <div className="h-16 md:h-20" />
-    </div>
+            </TabsContent>
+          </Tabs>
+        )}
+        <div className="h-16 md:h-20" />
+      </div>
     </>
   );
 };

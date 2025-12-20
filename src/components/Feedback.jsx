@@ -71,7 +71,7 @@ const Feedback = ({ w }) => {
     }
 
     try {
-      
+
       const SEMESTER_ENDPOINT = "/feedbackformcontroller/getFeedbackEvent";
       const payload = {
         instituteid: w.session.instituteid
@@ -86,7 +86,7 @@ const Feedback = ({ w }) => {
       let latest_semester = semesters[semesters.length - 1];
       setEventData(latest_semester);
 
-      
+
       const GRID_ENDPOINT = "/feedbackformcontroller/getGriddataForFeedback";
       const grid_payload = await serialize_payload({
         instituteid: w.session.instituteid,
@@ -100,7 +100,7 @@ const Feedback = ({ w }) => {
       }
       setGridData(grid_data);
 
-      
+
       const GET_QUESTIONS_ENDPOINT = "/feedbackformcontroller/getIemQuestion";
       const questionsMap = {};
 
@@ -141,7 +141,7 @@ const Feedback = ({ w }) => {
 
       setQuestionsData(questionsMap);
 
-      
+
       const defaultRatings = {};
       Object.entries(questionsMap).forEach(([key, data]) => {
         const { subject, questions, ratings: ratingOptions } = data;
@@ -213,7 +213,7 @@ const Feedback = ({ w }) => {
     if (!data) return null;
 
     const firstRating = ratings[`${subjectId}-${facultyId}-${data.questions[0].questionid}`];
-    const allSame = data.questions.every(question => 
+    const allSame = data.questions.every(question =>
       ratings[`${subjectId}-${facultyId}-${question.questionid}`] === firstRating
     );
 
@@ -227,10 +227,10 @@ const Feedback = ({ w }) => {
     const firstQuestion = firstSubject.questions[0];
     const firstRating = ratings[`${firstSubject.subject.subjectid}-${firstSubject.subject.employeeid}-${firstQuestion.questionid}`];
 
-    
+
     const allSame = Object.entries(questionsData).every(([key, data]) => {
       const { subject, questions } = data;
-      return questions.every(question => 
+      return questions.every(question =>
         ratings[`${subject.subjectid}-${subject.employeeid}-${question.questionid}`] === firstRating
       );
     });
@@ -272,7 +272,7 @@ const Feedback = ({ w }) => {
         const questions_to_submit = questions.map(q => {
           const ratingKey = `${subject.subjectid}-${subject.employeeid}-${q.questionid}`;
           const selectedRating = ratings[ratingKey];
-          
+
           if (!selectedRating) {
             throw new Error(`Please select rating for all questions in ${subject.subjectdesc}`);
           }
@@ -309,22 +309,22 @@ const Feedback = ({ w }) => {
       console.log('Error status:', err.status);
       console.log('Error responseStatus:', err.responseStatus);
       console.log('Error errors:', err.errors);
-      
-      const isAlreadySubmitted = 
+
+      const isAlreadySubmitted =
         (err.message && (
-          err.message.includes('Feedback already Submit!') || 
-          err.message.includes('Feedback already Sumbit!') || 
+          err.message.includes('Feedback already Submit!') ||
+          err.message.includes('Feedback already Sumbit!') ||
           err.message.includes('"responseStatus": "Failure"') ||
           err.message.includes('responseStatus') ||
           err.message.includes('errors')
         )) ||
         (err.status === 417) ||
         (err.responseStatus === 'Failure' && err.errors && (
-          err.errors.includes('Feedback already Submit!') || 
+          err.errors.includes('Feedback already Submit!') ||
           err.errors.includes('Feedback already Sumbit!')
         )) ||
         (err.responseStatus === 'Failure');
-      
+
       if (isAlreadySubmitted) {
         setFeedbackSubmitted(true);
         setMessage('Your feedback has already been submitted for this semester.');
@@ -347,14 +347,14 @@ const Feedback = ({ w }) => {
         <meta name="description" content="Submit feedback and suggestions for JP Portal, the unofficial student portal for Jaypee Institute of Information Technology (JIIT)." />
         <meta name="keywords" content="feedback, suggestions, JIIT feedback, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
       </Helmet>
-      <div className="min-h-screen bg-black dark:bg-white text-white dark:text-black p-4 pb-24 md:p-8 md:pb-8 lg:px-12 xl:px-16">
+      <div className="min-h-screen bg-background text-foreground p-4 pb-24 md:p-8 md:pb-8 lg:px-12 xl:px-16">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center gap-4 mb-6">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="rounded-full hover:bg-gray-800 dark:hover:bg-gray-200"
+              className="rounded-full hover:bg-accent"
             >
               <ArrowLeft className="w-6 h-6" />
             </Button>
@@ -368,14 +368,14 @@ const Feedback = ({ w }) => {
             </div>
           ) : message && !eventData && Object.keys(questionsData).length === 0 ? (
             <div className="text-center py-12">
-              <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-8 max-w-md mx-auto">
+              <div className="bg-card border border-border rounded-xl p-8 max-w-md mx-auto">
                 <AlertCircle className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
-                <h2 className="text-xl font-semibold text-white dark:text-black mb-2">Feedback Unavailable</h2>
-                <p className="text-gray-400 dark:text-gray-600 mb-6">{message}</p>
+                <h2 className="text-xl font-semibold text-foreground mb-2">Feedback Unavailable</h2>
+                <p className="text-muted-foreground mb-6">{message}</p>
                 <div className="flex justify-center">
-                  <Button 
+                  <Button
                     onClick={() => navigate(-1)}
-                    className="bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-800 flex items-center gap-2"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Go Back
@@ -384,19 +384,19 @@ const Feedback = ({ w }) => {
               </div>
             </div>
           ) : feedbackSubmitted ? (
-            
+
             <div className="text-center py-12">
-              <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-8 max-w-md mx-auto">
+              <div className="bg-card border border-border rounded-xl p-8 max-w-md mx-auto">
                 <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-                <h2 className="text-xl font-semibold text-white dark:text-black mb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-2">
                   Feedback Already Submitted
                 </h2>
-                <p className="text-gray-400 dark:text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   You have already submitted feedback for this semester.
                 </p>
-                <Button 
+                <Button
                   onClick={() => navigate(-1)}
-                  className="mt-6 bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 flex items-center gap-2"
+                  className="mt-6 bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Go Back
@@ -406,7 +406,7 @@ const Feedback = ({ w }) => {
           ) : (
             <>
               {eventData && (
-                <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6">
+                <div className="bg-card border border-border rounded-xl p-6">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold flex items-center gap-2">
                       <MessageSquare className="w-5 h-5" />
@@ -416,17 +416,17 @@ const Feedback = ({ w }) => {
                 </div>
               )}
 
-              
+
               {Object.keys(questionsData).length > 0 && (
-                <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-4">
+                <div className="bg-card border border-border rounded-xl p-4">
                   <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 flex-shrink-0" />
                       <div>
-                        <h3 className="text-lg font-semibold text-white dark:text-black">
+                        <h3 className="text-lg font-semibold text-foreground">
                           Quick Global Rating
                         </h3>
-                        <p className="text-gray-400 dark:text-gray-600 text-sm">
+                        <p className="text-muted-foreground text-sm">
                           Apply to all {Object.keys(questionsData).length} subject{Object.keys(questionsData).length !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -436,7 +436,7 @@ const Feedback = ({ w }) => {
                         value={getGlobalRating() || ""}
                         onValueChange={handleGlobalRatingChange}
                       >
-                        <SelectTrigger className="w-full lg:w-64 bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+                        <SelectTrigger className="w-full lg:w-64 bg-background text-foreground border-border">
                           <SelectValue placeholder={randomized ? "Random rating" : "Choose rating"} />
                         </SelectTrigger>
                         <SelectContent>
@@ -455,7 +455,7 @@ const Feedback = ({ w }) => {
                         variant="outline"
                         size="sm"
                         onClick={randomizeRatings}
-                        className="ml-2 text-black dark:text-white border-gray-600 dark:border-gray-300 hover:dark:bg-gray-800 hover:bg-gray-200 flex items-center gap-2"
+                        className="ml-2 text-foreground border-border hover:bg-accent flex items-center gap-2"
                       >
                         <Shuffle className="w-4 h-4" />
                         Randomize Fill
@@ -469,39 +469,39 @@ const Feedback = ({ w }) => {
                 {Object.entries(questionsData).map(([key, data]) => {
                   const { subject, questions, ratings: ratingOptions } = data;
                   return (
-                    <div key={key} className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6 space-y-4">
-                      <div className="border-b border-gray-700 dark:border-gray-300 pb-4">
+                    <div key={key} className="bg-card border border-border rounded-xl p-6 space-y-4">
+                      <div className="border-b border-border pb-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-white dark:text-black">
+                            <h3 className="text-lg font-semibold text-foreground">
                               {subject.subjectdesc}
                             </h3>
-                            <p className="text-gray-400 dark:text-gray-600 text-sm mt-1">
+                            <p className="text-muted-foreground text-sm mt-1">
                               Faculty: {subject.employeename}
                             </p>
-                            <p className="text-gray-400 dark:text-gray-600 text-sm">
+                            <p className="text-muted-foreground text-sm">
                               Code: {subject.subjectcode}
                             </p>
                           </div>
                           <div className="ml-4">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium dark:bg-black dark:text-white bg-white text-black">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                               {subject.subjectcomponentcode === 'L' ? 'Lecture' : subject.subjectcomponentcode === 'P' ? 'Practical' : subject.subjectcomponentcode}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      
+
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium text-white dark:text-black">
+                          <Label className="text-sm font-medium text-foreground">
                             Quick Rating (applies to all questions)
                           </Label>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleSubjectExpansion(subject.subjectid, subject.employeeid)}
-                            className="text-gray-400 hover:text-white dark:hover:text-black"
+                            className="text-muted-foreground hover:text-foreground"
                           >
                             {expandedSubjects[`${subject.subjectid}-${subject.employeeid}`] ? (
                               <ChevronUp className="w-4 h-4" />
@@ -514,7 +514,7 @@ const Feedback = ({ w }) => {
                           value={getBulkRating(subject.subjectid, subject.employeeid) || ""}
                           onValueChange={(value) => handleBulkRatingChange(subject.subjectid, subject.employeeid, value)}
                         >
-                          <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+                          <SelectTrigger className="w-full bg-background text-foreground border-border">
                             <SelectValue placeholder={randomized ? "Random rating for all questions" : "Choose rating for all questions"} />
                           </SelectTrigger>
                           <SelectContent>
@@ -530,10 +530,10 @@ const Feedback = ({ w }) => {
                         </Select>
                       </div>
 
-                      
+
                       {expandedSubjects[`${subject.subjectid}-${subject.employeeid}`] && (
-                        <div className="space-y-4 border-t border-gray-700 dark:border-gray-300 pt-4">
-                          <Label className="text-sm font-medium text-white dark:text-black">
+                        <div className="space-y-4 border-t border-border pt-4">
+                          <Label className="text-sm font-medium text-foreground">
                             Individual Questions
                           </Label>
                           {questions.map((question) => {
@@ -542,14 +542,14 @@ const Feedback = ({ w }) => {
 
                             return (
                               <div key={question.questionid} className="space-y-2">
-                                <Label className="text-sm font-medium text-white dark:text-black">
+                                <Label className="text-sm font-medium text-foreground">
                                   {question.questionbody}
                                 </Label>
-                              <Select
-                                value={currentRating || ""}
-                                onValueChange={(value) => handleRatingChange(subject.subjectid, subject.employeeid, question.questionid, value)}
-                              >
-                                <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+                                <Select
+                                  value={currentRating || ""}
+                                  onValueChange={(value) => handleRatingChange(subject.subjectid, subject.employeeid, question.questionid, value)}
+                                >
+                                  <SelectTrigger className="w-full bg-background text-foreground border-border">
                                     <SelectValue placeholder={randomized ? "Random rating" : "Choose rating"} />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -574,11 +574,11 @@ const Feedback = ({ w }) => {
               </div>
 
               {Object.keys(questionsData).length > 0 && !feedbackSubmitted && (
-                <div className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-6">
-                  <Button 
-                    onClick={handleFeedbackSubmit} 
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <Button
+                    onClick={handleFeedbackSubmit}
                     disabled={loading}
-                    className="w-full bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-800"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     {loading ? (
                       <>
@@ -596,9 +596,9 @@ const Feedback = ({ w }) => {
         </div>
       </div>
 
-      
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-[#0B0D0D] dark:bg-gray-50 border border-gray-800 dark:border-gray-200 text-white dark:text-black">
+        <DialogContent className="bg-card border border-border text-foreground">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {dialogType === 'success' && <CheckCircle className="w-5 h-5 text-green-500" />}
@@ -608,11 +608,11 @@ const Feedback = ({ w }) => {
               {dialogType === 'already_submitted' && 'Feedback Already Submitted'}
               {dialogType === 'error' && 'Submission Failed'}
             </DialogTitle>
-            <DialogDescription className="text-sm text-gray-400 dark:text-gray-600">{dialogType === 'success' ? 'Your feedback has been submitted.' : dialogType === 'already_submitted' ? 'You have already submitted feedback.' : 'An error occurred while submitting feedback.'}</DialogDescription>
+            <DialogDescription className="text-sm text-muted-foreground">{dialogType === 'success' ? 'Your feedback has been submitted.' : dialogType === 'already_submitted' ? 'You have already submitted feedback.' : 'An error occurred while submitting feedback.'}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {dialogType !== 'already_submitted' && (
-              <p className="text-gray-400 dark:text-gray-600">{message}</p>
+              <p className="text-muted-foreground">{message}</p>
             )}
             {dialogType === 'already_submitted' && (
               <div className="bg-green-500/10 dark:bg-green-500/10 border border-green-500/20 rounded-lg p-4">
@@ -620,7 +620,7 @@ const Feedback = ({ w }) => {
                   <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-green-400 dark:text-green-600 font-medium">Feedback Already Submitted</p>
-                    <p className="text-gray-400 dark:text-gray-600 text-sm mt-1">
+                    <p className="text-muted-foreground text-sm mt-1">
                       You have already submitted feedback for this semester. No further action is required.
                     </p>
                   </div>
@@ -629,18 +629,18 @@ const Feedback = ({ w }) => {
             )}
             <div className="flex justify-end gap-2">
               {dialogType === 'already_submitted' ? (
-                <Button 
+                <Button
                   onClick={() => navigate(-1)}
-                  className="bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 flex items-center gap-2"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Go Back
                 </Button>
               ) : (
-                <Button 
+                <Button
                   onClick={() => setDialogOpen(false)}
                   variant="outline"
-                  className="bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black flex items-center gap-2"
+                  className="bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-foreground flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
                   Close

@@ -5,6 +5,7 @@ import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js"
 import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff, Smartphone } from "lucide-react"
 import MessMenu from "./MessMenu"
@@ -154,10 +155,10 @@ export default function Login({ onLoginSuccess, w }) {
   }
 
   return (
-    <div className="min-h-screen bg-black dark:bg-white text-white dark:text-black flex flex-col">
-      <header className="py-6 px-4 border-b border-white/10 dark:border-gray-300">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <header className="py-6 px-4 border-b border-border">
         <div className="container mx-auto flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tighter text-white dark:text-black">Modern JIIT WebKiosk</h1>
+          <h1 className="text-3xl font-bold tracking-tighter text-foreground">Modern JIIT WebKiosk</h1>
           <ThemeBtn />
         </div>
       </header>
@@ -171,7 +172,7 @@ export default function Login({ onLoginSuccess, w }) {
             <div className="w-full max-w-md mb-4">
               <button
                 onClick={handleInstallClick}
-                className="w-full bg-[#0B0D0D] border border-white/20 text-white py-2 rounded-lg font-semibold hover:bg-[#1A1A1D] transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-primary border border-border text-primary-foreground py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
               >
                 <Smartphone className="w-4 h-4" />
                 Install as an App
@@ -180,12 +181,12 @@ export default function Login({ onLoginSuccess, w }) {
           </>
         )}
         <div className="w-full max-w-md">
-          <div className="bg-white/5 dark:bg-gray-100 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/10 dark:border-gray-300">
-            <h2 className="text-2xl font-bold mb-6">Login to Your WebKiosk  Account</h2>
+          <div className="bg-card backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-border">
+            <h2 className="text-2xl font-bold mb-6 text-card-foreground">Login to Your WebKiosk  Account</h2>
             {loginStatus.error && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
-                {loginStatus.error}
-              </div>
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{loginStatus.error}</AlertDescription>
+              </Alert>
             )}
 
             <Form {...form}>
@@ -195,16 +196,16 @@ export default function Login({ onLoginSuccess, w }) {
                   name="enrollmentNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/80 dark:text-gray-700">Enrollment Number</FormLabel>
+                      <FormLabel className="text-muted-foreground">Enrollment Number</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             placeholder="Enter enrollment number"
-                            className="bg-white/5 dark:bg-gray-100 border-white/10 dark:border-gray-300 text-white dark:text-black pl-10"
+                            className="bg-card border-input text-foreground pl-10"
                             {...field}
                           />
                           <User
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 dark:text-gray-500"
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                             size={18}
                           />
                         </div>
@@ -218,23 +219,23 @@ export default function Login({ onLoginSuccess, w }) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/80 dark:text-gray-700">Password</FormLabel>
+                      <FormLabel className="text-muted-foreground">Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showPassword ? "text" : "password"}
                             placeholder="Enter password"
-                            className="bg-white/5 dark:bg-gray-100 border-white/10 dark:border-gray-300 text-white dark:text-black pl-10 pr-10"
+                            className="bg-card border-input text-foreground pl-10 pr-10"
                             {...field}
                           />
                           <Lock
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 dark:text-gray-500"
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                             size={18}
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 dark:text-gray-500 hover:text-white/60 dark:hover:text-gray-700"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                           >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                           </button>
@@ -246,19 +247,20 @@ export default function Login({ onLoginSuccess, w }) {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-white dark:bg-black text-black dark:text-white hover:bg-white/90 dark:hover:bg-gray-900 transition-colors"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   disabled={loginStatus.isLoading}
                 >
                   {loginStatus.isLoading ? "Signing in..." : "Sign In"}
-                </Button>              </form>
+                </Button>
+              </form>
             </Form>
             <div className="mt-6 space-y-3">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
+                  <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="px-2 text-white/60 dark:text-gray-600 bg-[#0D0D0D] dark:bg-[#F3F4F6]">Or continue without login</span>
+                  <span className="px-2 text-muted-foreground bg-background">Or continue without login</span>
                 </div>
               </div>
               <div className="flex justify-center gap-2">
@@ -275,8 +277,8 @@ export default function Login({ onLoginSuccess, w }) {
                     <UtensilsCrossed size={18} /> Mess Menu
                   </button>
                 </MessMenu>
-                <a 
-                  href="#/academic-calendar" 
+                <a
+                  href="#/academic-calendar"
                   onClick={(e) => {
                     e.preventDefault();
                     window.location.href = '#/academic-calendar';
@@ -291,9 +293,9 @@ export default function Login({ onLoginSuccess, w }) {
         </div>
       </main>
 
-      <footer className="py-6 text-center text-white/40 dark:text-gray-500">
+      <footer className="py-6 text-center text-muted-foreground">
         <p className="flex items-center justify-center gap-1">
-          Created with <Heart className="w-4 h-4 text-red-400 dark:text-red-500" /> for JIIT students only
+          Created with <Heart className="w-4 h-4 text-red-400" /> for JIIT students only
         </p>
         <p className="text-sm mt-2 flex items-center justify-center gap-1">
           Not liable for attendance-related emotional damage <Laugh className="w-4 h-4" />

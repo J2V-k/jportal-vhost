@@ -34,13 +34,13 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
         if (Array.isArray(obj.variants)) setSelectedVariants(obj.variants);
         if (obj.names && typeof obj.names === 'object') setVariantNames(obj.names);
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   useEffect(() => {
     try {
       sessionStorage.setItem('timetable_state', JSON.stringify({ variants: selectedVariants, names: variantNames }));
-    } catch (e) {}
+    } catch (e) { }
   }, [selectedVariants, variantNames]);
 
   const updateUrlFromVariants = (variants, campus = lastCampus, year = lastYear, batch = lastBatch) => {
@@ -132,7 +132,7 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
           subjectsMap = { ...subjectsMap, [semId]: subs };
           setLocalSubjectData(subjectsMap);
           if (setSubjectData) setSubjectData(subjectsMap);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const arr = [];
@@ -190,7 +190,7 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
         const registered = await (w?.get_registered_semesters ? w.get_registered_semesters() : Promise.resolve([]));
         if (registered && registered.length > 0) {
           setLocalSemestersData({ semesters: registered, latest_semester: registered[0] });
-          
+
           const currentYear = new Date().getFullYear().toString();
           const currentYearSemester = registered.find(sem =>
             sem.registration_code && sem.registration_code.includes(currentYear)
@@ -272,7 +272,7 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
             }
           }
 
-          
+
           const generateVariants = (subjectCode) => {
             if (!subjectCode) return [];
             const full = String(subjectCode).trim().toUpperCase();
@@ -315,15 +315,15 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
 
   if (loading) {
     return (
-      <div className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black">
+      <div className="bg-background text-foreground">
         <div className="text-center py-8">
-            <Loader2 className="w-8 h-8 text-white dark:text-black animate-spin mx-auto mb-4" />
-            <p className="text-white dark:text-black">Loading timetable...</p>
-            <div className="mt-4 flex justify-center">
-              <Button size="sm" variant="ghost" onClick={() => navigate(-1)}>
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Button>
+          <Loader2 className="w-8 h-8 text-foreground animate-spin mx-auto mb-4" />
+          <p className="text-foreground">Loading timetable...</p>
+          <div className="mt-4 flex justify-center">
+            <Button size="sm" variant="ghost" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
           </div>
         </div>
       </div>
@@ -335,138 +335,138 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black h-full overflow-hidden"
+      className="bg-background text-foreground h-full overflow-hidden"
     >
-        <Helmet>
-          <title>Timetable - JP Portal | JIIT Student Portal</title>
-          <meta name="description" content="Generate and view your personalized timetable based on registered subjects at JIIT." />
-          <meta property="og:title" content="Timetable - JP Portal | JIIT Student Portal" />
-          <meta property="og:description" content="Generate and view your personalized timetable based on registered subjects at JIIT." />
-          <meta property="og:url" content="https://jportal2-0.vercel.app/#/timetable" />
-          <meta name="keywords" content="timetable, class schedule, JP Portal, JIIT" />
-          <link rel="canonical" href="https://jportal2-0.vercel.app/#/timetable" />
-        </Helmet>
+      <Helmet>
+        <title>Timetable - JP Portal | JIIT Student Portal</title>
+        <meta name="description" content="Generate and view your personalized timetable based on registered subjects at JIIT." />
+        <meta property="og:title" content="Timetable - JP Portal | JIIT Student Portal" />
+        <meta property="og:description" content="Generate and view your personalized timetable based on registered subjects at JIIT." />
+        <meta property="og:url" content="https://jportal2-0.vercel.app/#/timetable" />
+        <meta name="keywords" content="timetable, class schedule, JP Portal, JIIT" />
+        <link rel="canonical" href="https://jportal2-0.vercel.app/#/timetable" />
+      </Helmet>
 
-      <div className="max-w-full mx-auto p-6 rounded-lg bg-[#0B0B0D] text-white dark:bg-white dark:text-black shadow-sm">
+      <div className="max-w-full mx-auto p-6 rounded-lg bg-card text-foreground shadow-sm">
         <h1 className="text-xl font-bold mb-4 text-center">Timetable Generator</h1>
-        <p className="text-sm text-center mb-4 text-gray-600 dark:text-gray-400">Select your semester, generate subject codes, and open your personalized timetable.</p>
+        <p className="text-sm text-center mb-4 text-muted-foreground">Select your semester, generate subject codes, and open your personalized timetable.</p>
         <div className="p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
-        <div className="flex items-start sm:items-center gap-3 w-full">
-          <div className="flex flex-col w-full">
-            <Select value={selectedSemesterId || ""} onValueChange={(val) => setSelectedSemesterId(val)}>
-              <SelectTrigger className="bg-[#0B0B0D] text-white border-gray-200 dark:bg-white dark:text-black dark:border-gray-300 w-full sm:w-56">
-                <SelectValue placeholder="Select semester" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black">
-                {localSemestersData?.semesters?.map((s) => (
-                  <SelectItem key={s.registration_id} value={s.registration_id}>{s.registration_code}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!localSemestersData?.semesters?.length && (
-              <span className="text-gray-600 dark:text-gray-400 text-xs mt-1">No registered semesters available — Generate will use default subjects.</span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button size="sm" className="w-full sm:w-auto bg-white text-black border-white/10 dark:bg-[#0B0B0D] dark:text-white dark:border-gray-300" onClick={async () => {
-              if (!selectedSemesterId && localSemestersData?.semesters?.length) { setError('Please select a semester'); return; }
-              await generateForSemester(selectedSemesterId);
-              if (timetableUrl) {
-                window.open(timetableUrl, '_blank');
-              }
-            }}>Generate</Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-center py-1">
-        <div className="text-center">
-          <div className="mt-4 flex justify-center flex-col items-center gap-3">
-            {selectedVariants && selectedVariants.length > 0 && (
-              <div className="flex flex-wrap gap-2 max-w-full pb-2 align-top justify-center">
-                {selectedVariants.slice(0, 50).map((v, i) => (
-                  <div key={v} className="flex items-center justify-between p-2 rounded-lg bg-white/10 text-white dark:bg-black/10 dark:text-black border border-white/20 dark:border-gray-300">
-                    {editingIndex === i ? (
-                      <input
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            const newArr = [...selectedVariants];
-                            newArr[i] = editingValue.trim();
-                            setSelectedVariants(newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av)));
-                            setEditingIndex(-1);
-                            updateUrlFromVariants(newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av)));
-                          } else if (e.key === 'Escape') {
-                            setEditingIndex(-1);
-                          }
-                        }}
-                        className="bg-transparent outline-none text-sm flex-1"
-                      />
-                    ) : (
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{v}</div>
-                        {variantNames[v] && variantNames[v] !== v && (
-                          <div className="text-xs text-gray-400 dark:text-gray-600 truncate">{variantNames[v]}</div>
-                        )}
-                      </div>
-                    )}
-                    {editingIndex === i ? (
-                      <Button size="icon" variant="ghost" onClick={() => {
-                        const old = selectedVariants[i];
-                        const newVal = editingValue.trim();
-                        const newArr = [...selectedVariants];
-                        newArr[i] = newVal;
-                        const filtered = newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av));
-                        const newNames = { ...variantNames };
-                        if (newVal) newNames[newVal] = newNames[newVal] || newVal;
-                        if (old && old !== newVal) delete newNames[old];
-                        setVariantNames(newNames);
-                        setSelectedVariants(filtered);
-                        setEditingIndex(-1);
-                        updateUrlFromVariants(filtered);
-                      }}><Check className="w-3 h-3" /></Button>
-                    ) : (
-                      <div className="flex gap-0">
-                        <Button size="icon" variant="ghost" onClick={() => { setEditingIndex(i); setEditingValue(v); }}><Edit2 className="w-3 h-3" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => { const old = v; const newArr = selectedVariants.filter((_, idx) => idx !== i); const newNames = { ...variantNames }; delete newNames[old]; setVariantNames(newNames); setSelectedVariants(newArr); updateUrlFromVariants(newArr); }}><Trash2 className="w-3 h-3" /></Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <Button size="sm" className="bg-[#0B0B0D] text-white border-white/10 dark:bg-white dark:text-black dark:border-gray-300" onClick={() => {
-              const v = prompt('Enter new variant (e.g., PH532)');
-              if (v) {
-                const trimmed = v.trim().toUpperCase();
-                if (!trimmed || trimmed.length < 4 || !/^[A-Z]/.test(trimmed)) { alert('Variant must start with a letter and be at least 4 characters'); return; }
-                const newArr = Array.from(new Set([trimmed, ...selectedVariants]));
-                const newNames = { ...variantNames };
-                newNames[trimmed] = newNames[trimmed] || trimmed;
-                setVariantNames(newNames);
-                setSelectedVariants(newArr);
-                updateUrlFromVariants(newArr);
-              }
-            }}>+</Button>
-
-            <div className="flex items-center gap-2">
-              <Button size="sm" className="bg-[#0B0B0D] text-white dark:bg-white dark:text-black" disabled={!timetableUrl} onClick={() => {
-                  if (!timetableUrl) { setError('Timetable URL not ready yet.'); return; }
-                  try { window.open(timetableUrl, '_blank'); openedRef.current = true; } catch (e) {}
-                }}>
-                <ExternalLink className="w-4 h-4" />
-                Open in new tab
-              </Button>
-              <Button size="sm" className="text-white dark:text-black" onClick={() => navigate(-1)}>
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Button>
+          <div className="flex items-start sm:items-center gap-3 w-full">
+            <div className="flex flex-col w-full">
+              <Select value={selectedSemesterId || ""} onValueChange={(val) => setSelectedSemesterId(val)}>
+                <SelectTrigger className="bg-card text-foreground border-border w-full sm:w-56">
+                  <SelectValue placeholder="Select semester" />
+                </SelectTrigger>
+                <SelectContent className="bg-card text-foreground">
+                  {localSemestersData?.semesters?.map((s) => (
+                    <SelectItem key={s.registration_id} value={s.registration_id}>{s.registration_code}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!localSemestersData?.semesters?.length && (
+                <span className="text-muted-foreground text-xs mt-1">No registered semesters available — Generate will use default subjects.</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button size="sm" className="w-full sm:w-auto bg-primary text-primary-foreground border border-primary/20" onClick={async () => {
+                if (!selectedSemesterId && localSemestersData?.semesters?.length) { setError('Please select a semester'); return; }
+                await generateForSemester(selectedSemesterId);
+                if (timetableUrl) {
+                  window.open(timetableUrl, '_blank');
+                }
+              }}>Generate</Button>
             </div>
           </div>
         </div>
-      </div>
+
+        <div className="flex justify-center py-1">
+          <div className="text-center">
+            <div className="mt-4 flex justify-center flex-col items-center gap-3">
+              {selectedVariants && selectedVariants.length > 0 && (
+                <div className="flex flex-wrap gap-2 max-w-full pb-2 align-top justify-center">
+                  {selectedVariants.slice(0, 50).map((v, i) => (
+                    <div key={v} className="flex items-center justify-between p-2 rounded-lg bg-muted/10 text-muted-foreground border border-border">
+                      {editingIndex === i ? (
+                        <input
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const newArr = [...selectedVariants];
+                              newArr[i] = editingValue.trim();
+                              setSelectedVariants(newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av)));
+                              setEditingIndex(-1);
+                              updateUrlFromVariants(newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av)));
+                            } else if (e.key === 'Escape') {
+                              setEditingIndex(-1);
+                            }
+                          }}
+                          className="bg-transparent outline-none text-sm flex-1"
+                        />
+                      ) : (
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{v}</div>
+                          {variantNames[v] && variantNames[v] !== v && (
+                            <div className="text-xs text-muted-foreground truncate">{variantNames[v]}</div>
+                          )}
+                        </div>
+                      )}
+                      {editingIndex === i ? (
+                        <Button size="icon" variant="ghost" onClick={() => {
+                          const old = selectedVariants[i];
+                          const newVal = editingValue.trim();
+                          const newArr = [...selectedVariants];
+                          newArr[i] = newVal;
+                          const filtered = newArr.filter(av => av && av.length >= 4 && /^[A-Z]/.test(av));
+                          const newNames = { ...variantNames };
+                          if (newVal) newNames[newVal] = newNames[newVal] || newVal;
+                          if (old && old !== newVal) delete newNames[old];
+                          setVariantNames(newNames);
+                          setSelectedVariants(filtered);
+                          setEditingIndex(-1);
+                          updateUrlFromVariants(filtered);
+                        }}><Check className="w-3 h-3" /></Button>
+                      ) : (
+                        <div className="flex gap-0">
+                          <Button size="icon" variant="ghost" onClick={() => { setEditingIndex(i); setEditingValue(v); }}><Edit2 className="w-3 h-3" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => { const old = v; const newArr = selectedVariants.filter((_, idx) => idx !== i); const newNames = { ...variantNames }; delete newNames[old]; setVariantNames(newNames); setSelectedVariants(newArr); updateUrlFromVariants(newArr); }}><Trash2 className="w-3 h-3" /></Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Button size="sm" className="bg-card text-foreground border border-border" onClick={() => {
+                const v = prompt('Enter new variant (e.g., PH532)');
+                if (v) {
+                  const trimmed = v.trim().toUpperCase();
+                  if (!trimmed || trimmed.length < 4 || !/^[A-Z]/.test(trimmed)) { alert('Variant must start with a letter and be at least 4 characters'); return; }
+                  const newArr = Array.from(new Set([trimmed, ...selectedVariants]));
+                  const newNames = { ...variantNames };
+                  newNames[trimmed] = newNames[trimmed] || trimmed;
+                  setVariantNames(newNames);
+                  setSelectedVariants(newArr);
+                  updateUrlFromVariants(newArr);
+                }
+              }}>+</Button>
+
+              <div className="flex items-center gap-2">
+                <Button size="sm" className="bg-card text-foreground" disabled={!timetableUrl} onClick={() => {
+                  if (!timetableUrl) { setError('Timetable URL not ready yet.'); return; }
+                  try { window.open(timetableUrl, '_blank'); openedRef.current = true; } catch (e) { }
+                }}>
+                  <ExternalLink className="w-4 h-4" />
+                  Open in new tab
+                </Button>
+                <Button size="sm" className="text-foreground" onClick={() => navigate(-1)}>
+                  <ArrowLeft className="w-4 h-4" />
+                  Back
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

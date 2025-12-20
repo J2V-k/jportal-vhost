@@ -13,8 +13,9 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Settings, LogOut, Trash2, Sun, Moon, X, Smartphone } from 'lucide-react';
+import ThemeDialog from './ui/ThemeDialog'
 
 const TABS = [
   { key: '/attendance', label: 'Attendance' },
@@ -32,6 +33,7 @@ const MESS_MENU_VIEWS = [
 
 export default function SettingsDialog({ onLogout, attendanceGoal, setAttendanceGoal }) {
   const { themeMode, darkTheme, lightTheme } = useTheme();
+  const [themeDialogOpen, setThemeDialogOpen] = useState(false)
   const [open, setOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(() => {
     return localStorage.getItem('defaultTheme') || 'light';
@@ -102,25 +104,6 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
     }
   }
 
-  function handleClearExpiredCache() {
-    clearExpiredCache();
-    setCacheStats(getCacheStats());
-  }
-
-  function handleClearAllCache() {
-    if (window.confirm('Are you sure you want to clear all cached data? This will remove all offline data.')) {
-      clearAllCache();
-      setCacheStats(getCacheStats());
-    }
-  }
-
-  function handleClearSpecificCache(dataType) {
-    if (window.confirm(`Are you sure you want to clear ${dataType} cache?`)) {
-      clearSpecificCache(dataType);
-      setCacheStats(getCacheStats());
-    }
-  }
-
   function handleLogout() {
     setOpen(false);
     if (typeof onLogout === 'function') onLogout();
@@ -129,67 +112,45 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
   return (
     <Dialog open={open} onOpenChange={(val) => setOpen(val)}>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon"
-          className="p-2 rounded-full focus:outline-none focus:ring-2 transition-colors duration-300 ease-in-out dark:text-gray-700 dark:hover:bg-gray-200 text-gray-300 hover:text-gray-400 hover:bg-[#0A0A0C]"
+          className="p-2 rounded-full focus:outline-none focus:ring-2 transition-colors duration-300 ease-in-out text-muted-foreground hover:bg-accent/50"
         >
           <Settings className="w-6 h-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="dark:bg-gray-50 bg-[#0B0D0D] border border-gray-800 dark:border-gray-200 text-white dark:text-black p-6 rounded-lg w-[calc(100vw-2rem)] max-w-md mx-auto shadow-2xl">
+      <DialogContent className="bg-card border border-border text-foreground p-6 rounded-lg w-[calc(100vw-2rem)] max-w-md mx-auto shadow-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-white dark:text-black flex items-center gap-2">
+          <DialogTitle className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Settings className="w-5 h-5" />
             Settings
           </DialogTitle>
-          <DialogDescription className="text-sm text-gray-400 dark:text-gray-600">Manage preferences such as theme, default tabs, and cache settings.</DialogDescription>
+          <DialogDescription className="text-sm text-muted-foreground">Manage preferences such as theme, default tabs, and cache settings.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
-          <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
-              <TabsTrigger value="general" className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black">
-                General
-              </TabsTrigger>
-               
-            </TabsList>
-
-            <TabsContent value="general" className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4 items-center">
-                <Label className="text-sm font-medium text-white dark:text-black">Default theme</Label>
-                <Tabs value={selectedTheme} onValueChange={handleThemeChange} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-[#0D0D0D] dark:bg-gray-50 border border-gray-700 dark:border-gray-300">
-                    <TabsTrigger 
-                      value="dark" 
-                      className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
-                    >
-                      <Sun className="w-3 h-3" />
-                      Light
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="light" 
-                      className="text-gray-300 dark:text-gray-700 data-[state=active]:text-black data-[state=active]:bg-white dark:data-[state=active]:text-white dark:data-[state=active]:bg-black flex items-center gap-1"
-                    >
-                      <Moon className="w-3 h-3" />
-                      Dark
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-foreground">Theme</Label>
+              <div>
+                <Button onClick={() => setThemeDialogOpen(true)} className="w-full">Customize Theme</Button>
               </div>
+              <ThemeDialog open={themeDialogOpen} onClose={() => setThemeDialogOpen(false)} />
+            </div>
 
-              <div className="grid grid-cols-2 gap-4 items-center">
-                <Label className="text-sm font-medium text-white dark:text-black">Default tab on login</Label>
-                <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
-                <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-foreground">Default tab on login</Label>
+              <Select value={defaultTab} onValueChange={handleDefaultTabChange}>
+                <SelectTrigger className="w-full bg-muted text-foreground border border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300">
+                <SelectContent className="bg-muted border border-border">
                   {TABS.map((t) => (
-                    <SelectItem 
-                      key={t.key} 
+                    <SelectItem
+                      key={t.key}
                       value={t.key}
-                      className="text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 focus:bg-gray-800 dark:focus:bg-gray-200"
+                      className="text-foreground hover:bg-accent/50 focus:bg-accent/50"
                     >
                       {t.label}
                     </SelectItem>
@@ -199,35 +160,36 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             </div>
 
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">Enable swipe navigation</Label>
-              <Switch 
+              <Label className="text-sm font-medium text-foreground">Enable swipe navigation</Label>
+              <Switch
                 checked={swipeEnabled}
                 onCheckedChange={handleSwipeEnabledChange}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">Default mess menu view</Label>
-              <Select value={defaultMessMenuView} onValueChange={handleMessMenuViewChange}>
-                <SelectTrigger className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0D0D0D] dark:bg-gray-50 border-gray-700 dark:border-gray-300">
-                  {MESS_MENU_VIEWS.map((view) => (
-                    <SelectItem 
-                      key={view.key} 
+            <div className="grid grid-cols-2 gap-4 items-start">
+              <Label className="text-sm font-medium text-foreground pt-2">Default mess menu view</Label>
+              <RadioGroup value={defaultMessMenuView} onValueChange={handleMessMenuViewChange} className="flex flex-col gap-2">
+                {MESS_MENU_VIEWS.map((view) => (
+                  <div key={view.key} className="flex items-center space-x-2">
+                    <RadioGroupItem
                       value={view.key}
-                      className="text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 focus:bg-gray-800 dark:focus:bg-gray-200"
+                      id={`mess-view-${view.key}`}
+                      className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                    <Label
+                      htmlFor={`mess-view-${view.key}`}
+                      className="text-sm font-normal text-foreground cursor-pointer"
                     >
                       {view.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
 
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">
+              <Label className="text-sm font-medium text-foreground">
                 Target attendance %
               </Label>
               <Input
@@ -236,26 +198,23 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
                 onChange={handleTargetAttendanceChange}
                 min="0"
                 max="100"
-                className="w-full bg-[#0D0D0D] dark:bg-gray-50 text-white dark:text-black border-gray-700 dark:border-gray-300"
+                className="w-full bg-muted text-foreground border border-border"
                 placeholder="75"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-white dark:text-black">Clear all cached data</Label>
+              <Label className="text-sm font-medium text-foreground">Clear all cached data</Label>
               <Button
                 variant="destructive"
                 onClick={handleClearCache}
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 bg-destructive text-destructive-foreground"
               >
                 <Trash2 className="w-4 h-4" />
                 Clear All Cache
               </Button>
             </div>
-            </TabsContent>
-
-            
-          </Tabs>
+          </div>
         </div>
 
         <div className="mt-8 space-y-0">
@@ -265,36 +224,36 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
             const image = profileData?.imagepath;
 
             return (
-              <div className="relative mx-4 -mb-2 pt-4 pb-6 px-4 bg-[#0D0D0D] dark:bg-gray-100 rounded-t-lg border-x border-t border-gray-800 dark:border-gray-300 flex items-center gap-4 z-0 shadow-sm">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-700 dark:border-gray-300 flex-shrink-0">
+              <div className="relative mx-4 -mb-2 pt-4 pb-6 px-4 bg-card rounded-t-lg border-x border-t border-border flex items-center gap-4 z-0 shadow-sm">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
                   {image ? (
                     <img src={`data:image/jpeg;base64,${image}`} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gray-800 dark:bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-400 dark:text-gray-600">
+                    <div className="w-full h-full bg-muted flex items-center justify-center text-lg font-bold text-muted-foreground">
                       {name.charAt(0)}
                     </div>
                   )}
                 </div>
-                <h3 className="text-base font-semibold text-white dark:text-black truncate">{name}</h3>
+                <h3 className="text-base font-semibold text-foreground truncate">{name}</h3>
               </div>
             );
           })()}
 
-          <div className="border-t border-gray-700 dark:border-gray-300 mx-4"></div>
+          <div className="border-t border-border mx-4"></div>
 
           <div className="px-4 space-y-3">
-            <Button 
-              onClick={handleLogout} 
+            <Button
+              onClick={handleLogout}
               variant="destructive"
-              className="relative z-10 w-full bg-red-600 hover:bg-red-700 text-white border-red-600 rounded-lg shadow-lg transition-all duration-200"
+              className="relative z-10 w-full bg-destructive text-destructive-foreground"
             >
-              <LogOut className="w-4 h-4 mr-2" /> 
+              <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
-            <Button 
-              onClick={() => setOpen(false)} 
+            <Button
+              onClick={() => setOpen(false)}
               variant="outline"
-              className="w-full bg-transparent text-gray-300 dark:text-gray-700 border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-black rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full bg-transparent text-muted-foreground border border-border hover:bg-accent/50 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
             >
               <X className="w-4 h-4" />
               Close

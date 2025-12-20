@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { motion } from "framer-motion";
-import { Sunrise, Sun, Sunset, Calendar, ChefHat, History } from "lucide-react";
+import { Sunrise, Sun, Sunset, Calendar, ChefHat, History, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const dayMapping = [
   "Sunday",
@@ -39,60 +40,6 @@ const extractDateFromKey = (key) => {
   }
 
   return null;
-};
-
-const getTodayDayName = () => {
-  return dayMapping[new Date().getDay()];
-};
-
-const getCurrentWeekDates = () => {
-  const now = new Date();
-  const currentDay = now.getDay();
-  
-  let startDate = new Date(now);
-  startDate.setDate(now.getDate() - currentDay);
-  
-  let endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 6);
-  
-  if (currentDay >= 1 && currentDay <= 6) {
-    const mondayStart = new Date(now);
-    mondayStart.setDate(now.getDate() - currentDay + 1);
-    
-    const sundayEnd = new Date(mondayStart);
-    sundayEnd.setDate(mondayStart.getDate() + 6);
-    
-    startDate = mondayStart;
-    endDate = sundayEnd;
-  }
-  
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
-  };
-  
-  return {
-    startDate: formatDate(startDate),
-    endDate: formatDate(endDate)
-  };
-};
-
-const transformNewApiData = (apiData) => {
-  const menuData = {};
-  
-  apiData.forEach(item => {
-    const date = new Date(item.dayDate);
-    const day = item.day;
-    const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear().toString().slice(-2)}`;
-    const key = `${day} ${formattedDate}`;
-    
-    menuData[key] = {
-      Breakfast: item.meals.breakfast.join(", "),
-      Lunch: item.meals.lunch.join(", "),
-      Dinner: item.meals.dinner.join(", ")
-    };
-  });
-  
-  return menuData;
 };
 
 const mealTimeLabel = (dayName, meal) => {
@@ -122,7 +69,6 @@ const isMenuCurrent = (menuData) => {
   });
 
   const lastEntry = allDates[allDates.length - 1];
-
   if (!lastEntry.date) return true;
 
   const today = new Date();
@@ -132,21 +78,21 @@ const isMenuCurrent = (menuData) => {
 };
 
 const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
-  <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-    <div className="bg-[#0B0B0D] dark:bg-[#F9FAFB] p-6 rounded-lg border border-gray-700 dark:border-gray-300 shadow-lg">
-      <ChefHat size={50} className="text-white dark:text-black mx-auto mb-4 opacity-25" />
-      <h3 className="text-xl sm:text-2xl font-semibold text-white dark:text-black mb-2">
-        Menu Currently Unavailable
+  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+    <div className="bg-muted/30 p-8 rounded-2xl border border-dashed border-border max-w-sm">
+      <ChefHat size={48} className="text-muted-foreground mx-auto mb-4 opacity-50" />
+      <h3 className="text-xl font-bold text-foreground mb-2">
+        Menu Unavailable
       </h3>
-      <p className="text-gray-400 dark:text-gray-600 mb-6">
-        The current menu information is outdated. Please check back later for updated menu details.
+      <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+        The mess menu is currently outdated or unavailable. Check back later!
       </p>
       <button
         onClick={onViewOldMenu}
-        className="px-4 py-2 bg-[#1A1A1D] dark:bg-[#EDF2F7] text-white dark:text-black rounded-md hover:bg-[#2D2D30] dark:hover:bg-[#E2E8F0] transition-colors flex items-center gap-2"
+        className="text-sm px-4 py-2 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors flex items-center gap-2 mx-auto font-medium"
       >
         <History className="w-4 h-4" />
-        View Old Menu Anyway
+        View Previous Menu
       </button>
     </div>
   </div>
@@ -172,7 +118,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
       try {
         let response = await fetch('/api/messmenu');
         if (cancelled) return;
-        
+
         const data = await response.json();
         let parsed = null;
         if (data && data.menu) {
@@ -206,13 +152,14 @@ const MessMenu = ({ children, open, onOpenChange }) => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
-  
+
   const handleViewOldMenu = useCallback(() => {
     setForceShowMenu(true);
   }, []);
 
   const handleViewChange = useCallback((newView) => {
     setView(newView);
+    localStorage.setItem('defaultMessMenuView', newView);
   }, []);
 
   const shouldShowMenu = useMemo(() => menuAvailable || forceShowMenu, [menuAvailable, forceShowMenu]);
@@ -220,7 +167,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
 
   const DailyView = useMemo(() => {
     let daysToDisplay;
-    
+
     if (showTodayLabel) {
       const todayIndex = new Date().getDay();
       daysToDisplay = [
@@ -233,11 +180,14 @@ const MessMenu = ({ children, open, onOpenChange }) => {
 
     if (!menuLoaded) {
       return (
-        <div className="py-6 text-center text-gray-400 dark:text-gray-600">Loading menu…</div>
+        <div className="py-12 text-center text-muted-foreground flex flex-col items-center">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+          <span className="text-sm">Loading today's menu...</span>
+        </div>
       );
     }
     return (
-      <div className="space-y-3 sm:space-y-4 py-1 sm:py-2">
+      <div className="space-y-6 py-2">
         {daysToDisplay.map((dayName, idx) => {
           const menuKey = Object.keys(menuData).find((k) =>
             k.startsWith(dayName)
@@ -250,84 +200,56 @@ const MessMenu = ({ children, open, onOpenChange }) => {
           return (
             <motion.div
               key={menuKey}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05, duration: 0.3 }}
-              className={`relative p-3 sm:p-4 bg-[#0B0B0D] dark:bg-[#F9FAFB] rounded-lg border-2 ${
-                isToday 
-                  ? "border-white dark:border-black" 
-                  : "border-gray-600 dark:border-gray-300 hover:border-gray-500 dark:hover:border-gray-400"
-              } shadow-lg hover:shadow-xl transition-all duration-300`}
+              className={`group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 ${isToday
+                ? "border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.2)] ring-1 ring-amber-400/50"
+                : "border-border hover:border-primary/30 hover:shadow-sm"
+                }`}
             >
               {isToday && (
-                <div className="absolute -top-1 -right-1 bg-white dark:bg-black text-black dark:text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
-                  Today
+                <div className="absolute top-0 right-0">
+                  <div className="bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg shadow-sm">
+                    Running Today
+                  </div>
                 </div>
               )}
-              <h3
-                className={`text-base sm:text-lg font-bold text-center mb-3 sm:mb-4 text-white dark:text-black`}
-              >
-                {menuKey}
-              </h3>
-              <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sunrise size={16} className="text-white dark:text-black" />
-                    <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
-                      Breakfast
-                      <span className="text-xs text-gray-400 dark:text-gray-600 ml-2">{mealTimeLabel(dayName, 'Breakfast')}</span>
-                    </h4>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {dayMenu.Breakfast.split(", ").map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-block bg-[#0B0B0D] dark:bg-white text-xs sm:text-sm text-gray-300 dark:text-gray-700 rounded-md px-3 py-1 border border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-50 transition-colors"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
 
-                <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sun size={16} className="text-white dark:text-black" />
-                    <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
-                      Lunch
-                      <span className="text-xs text-gray-400 dark:text-gray-600 ml-2">{mealTimeLabel(dayName, 'Lunch')}</span>
-                    </h4>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {dayMenu.Lunch.split(", ").map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-block bg-[#0B0B0D] dark:bg-white text-xs sm:text-sm text-gray-300 dark:text-gray-700 rounded-md px-3 py-1 border border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-50 transition-colors"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              <div className="p-4 sm:p-5">
+                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                  {dayName}
+                  <span className="text-sm font-normal text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                    {menuKey.replace(dayName, "").trim()}
+                  </span>
+                </h3>
 
-                <div className="group bg-[#161618] dark:bg-[#F0F4F8] p-3 rounded-lg border border-gray-600 dark:border-gray-200 hover:border-white dark:hover:border-black transition-all duration-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sunset size={16} className="text-white dark:text-black" />
-                    <h4 className="font-bold text-sm sm:text-base text-white dark:text-black">
-                      Dinner
-                      <span className="text-xs text-gray-400 dark:text-gray-600 ml-2">{mealTimeLabel(dayName, 'Dinner')}</span>
-                    </h4>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {dayMenu.Dinner.split(", ").map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-block bg-[#0B0B0D] dark:bg-white text-xs sm:text-sm text-gray-300 dark:text-gray-700 rounded-md px-3 py-1 border border-gray-600 dark:border-gray-300 hover:bg-gray-800 dark:hover:bg-gray-50 transition-colors"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { label: 'Breakfast', icon: Sunrise, items: dayMenu.Breakfast, color: 'text-orange-500' },
+                    { label: 'Lunch', icon: Sun, items: dayMenu.Lunch, color: 'text-yellow-500' },
+                    { label: 'Dinner', icon: Sunset, items: dayMenu.Dinner, color: 'text-indigo-500' }
+                  ].map((meal) => (
+                    <div key={meal.label} className="bg-muted/20 rounded-lg p-3 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <meal.icon size={16} className={meal.color} />
+                        <span className="font-semibold text-sm">{meal.label}</span>
+                        <span className="text-[10px] text-muted-foreground ml-auto bg-background px-1.5 py-0.5 rounded border border-border">
+                          {mealTimeLabel(dayName, meal.label).replace("Till ", "< ")}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {meal.items.split(", ").map((item, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-background border border-border/60 text-foreground/80"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </motion.div>
@@ -335,110 +257,59 @@ const MessMenu = ({ children, open, onOpenChange }) => {
         })}
       </div>
     );
-  }, [menuData, showTodayLabel]);
+  }, [menuData, showTodayLabel, menuLoaded]);
 
   const WeeklyView = useMemo(() => (
-    <div className="overflow-x-auto">
-      <Table className="border-collapse">
-        <TableHeader>
-          <TableRow className="bg-[#0B0B0D] dark:bg-[#F9FAFB]">
-            <TableHead className="font-bold text-white dark:text-black w-[120px]">
-              Day
-            </TableHead>
-            <TableHead className="font-bold text-white dark:text-black">
-              <div className="flex items-center gap-2">
-                <Sunrise size={16} className="text-white dark:text-black" />
-                <span>Breakfast</span>
-                  <div className="text-xs text-gray-400 ml-2">Till 9 AM (9:30 Sun)</div>
-              </div>
-            </TableHead>
-            <TableHead className="font-bold text-white dark:text-black">
-              <div className="flex items-center gap-2">
-                <Sun size={16} className="text-white dark:text-black" />
-                <span>Lunch</span>
-                  <div className="text-xs text-gray-400 ml-2">12:00 - 14:00</div>
-              </div>
-            </TableHead>
-            <TableHead className="font-bold text-white dark:text-black">
-              <div className="flex items-center gap-2">
-                <Sunset size={16} className="text-white dark:text-black" />
-                <span>Dinner</span>
-                  <div className="text-xs text-gray-400 ml-2">From 19:30</div>
-              </div>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Object.entries(menuData).map(([day, meals], idx) => {
-            const isToday = showTodayLabel && day.startsWith(dayMapping[new Date().getDay()]);
-
-            return (
-              <TableRow
-                key={day}
-                className={`${
-                  isToday
-                    ? "bg-[#1A1A1D] dark:bg-[#EDF2F7] border-l-2 border-l-primary"
-                    : ""
-                } hover:bg-[#0B0B0D] dark:hover:bg-[#F9FAFB] transition-colors`}
-              >
-                <TableCell
-                  className={`font-medium ${
-                    isToday
-                      ? "text-white dark:text-black font-bold"
-                      : "text-white dark:text-black"
-                  }`}
+    <div className="w-full rounded-xl border border-border overflow-hidden bg-card">
+      <div className="overflow-x-auto">
+        <Table className="min-w-[800px]">
+          <TableHeader>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="w-[120px] font-bold">Day</TableHead>
+              {['Breakfast', 'Lunch', 'Dinner'].map(meal => (
+                <TableHead key={meal} className="min-w-[200px]">
+                  <div className="flex items-center gap-2 font-semibold text-foreground">
+                    {meal === 'Breakfast' && <Sunrise size={14} className="text-orange-500" />}
+                    {meal === 'Lunch' && <Sun size={14} className="text-yellow-500" />}
+                    {meal === 'Dinner' && <Sunset size={14} className="text-indigo-500" />}
+                    {meal}
+                  </div>
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Object.entries(menuData).map(([day, meals], idx) => {
+              const isToday = showTodayLabel && day.startsWith(dayMapping[new Date().getDay()]);
+              return (
+                <TableRow
+                  key={day}
+                  className={isToday ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-4 border-l-amber-500" : "hover:bg-muted/30"}
                 >
-                  {isToday ? (
-                    <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2"></div>
-                      <span>{day}</span>
+                  <TableCell className="font-medium align-top py-3">
+                    <div className="flex flex-col">
+                      <span className={isToday ? "text-amber-600 dark:text-amber-400 font-bold" : ""}>{day.split(" ")[0]}</span>
+                      <span className="text-xs text-muted-foreground">{day.split(" ")[1]}</span>
+                      {isToday && <Badge variant="outline" className="w-fit mt-1 text-[10px] bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 h-5">Today</Badge>}
                     </div>
-                  ) : (
-                    <span>{day}</span>
-                  )}
-                </TableCell>
-                
-                <TableCell className="text-gray-400 dark:text-gray-600 p-3">
-                  <div className="min-w-[200px] space-y-1">
-                    {meals.Breakfast.split(", ").map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-block bg-[#0B0B0D] dark:bg-[#F9FAFB] text-xs text-white dark:text-black rounded px-1.5 py-0.5 mr-1.5 mb-1.5 border border-gray-700 dark:border-gray-300"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-400 dark:text-gray-600 p-3">
-                  <div className="min-w-[250px] space-y-1">
-                    {meals.Lunch.split(", ").map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-block bg-[#0B0B0D] dark:bg-[#F9FAFB] text-xs text-white dark:text-black rounded px-1.5 py-0.5 mr-1.5 mb-1.5 border border-gray-700 dark:border-gray-300"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-400 dark:text-gray-600 p-3">
-                  <div className="min-w-[250px] space-y-1">
-                    {meals.Dinner.split(", ").map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-block bg-[#0B0B0D] dark:bg-[#F9FAFB] text-xs text-white dark:text-black rounded px-1.5 py-0.5 mr-1.5 mb-1.5 border border-gray-700 dark:border-gray-300"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                  </TableCell>
+                  {['Breakfast', 'Lunch', 'Dinner'].map(meal => (
+                    <TableCell key={meal} className="align-top py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {meals[meal].split(", ").map((item, i) => (
+                          <span key={i} className={`text-xs px-2 py-1 rounded border ${isToday ? 'bg-amber-500/5 border-amber-500/20 text-foreground' : 'bg-muted/30 border-border text-foreground/90'}`}>
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   ), [menuData, showTodayLabel]);
 
@@ -453,75 +324,55 @@ const MessMenu = ({ children, open, onOpenChange }) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="w-[85vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-y-auto bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black rounded-lg mx-auto border border-gray-700 dark:border-gray-300 shadow-lg p-3 sm:p-4">
-        <DialogHeader className="border-b border-gray-700 dark:border-gray-300 pb-2">
-          <DialogTitle className="text-white dark:text-black flex items-center gap-2 text-base sm:text-lg">
-            <ChefHat size={18} className="text-white dark:text-black" />
-            Mess Menu
-            {!menuAvailable && forceShowMenu && (
-              <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Outdated</span>
-            )}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-gray-300 dark:text-gray-600">View the daily/weekly menu and related details for the mess.</DialogDescription>
-        </DialogHeader>
-
-        {shouldShowMenu ? (
-          <>
-            {!menuAvailable && (
-              <></>
-            )}
-            
-            <div className="flex items-center justify-center my-3 sm:my-4">
-              <div className="flex items-center bg-[#0B0B0D] dark:bg-[#F9FAFB] p-1 rounded-full shadow-inner border border-gray-800 dark:border-gray-200">
-                <div
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-200 ${
-                    view === "weekly"
-                      ? "bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black shadow-sm"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                  onClick={() => handleViewChange("weekly")}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <Calendar
-                    size={16}
-                    className={
-                      view === "weekly"
-                        ? "text-white dark:text-black"
-                        : "text-gray-400 dark:text-gray-600"
-                    }
-                  />
-                  <span className="text-xs sm:text-sm font-medium">Weekly</span>
-                </div>
-
-                <div
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-200 ${
-                    view === "daily"
-                      ? "bg-[#000000] dark:bg-[#FFFFFF] text-white dark:text-black shadow-sm"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                  onClick={() => handleViewChange("daily")}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <span className="text-xs sm:text-sm font-medium">Daily</span>
-                  <Calendar
-                    size={16}
-                    className={
-                      view === "daily"
-                        ? "text-white dark:text-black"
-                        : "text-gray-400 dark:text-gray-600"
-                    }
-                  />
-                </div>
-              </div>
+      <DialogContent className="w-[95vw] sm:max-w-lg md:max-w-3xl lg:max-w-4xl max-h-[85vh] p-0 gap-0 overflow-hidden flex flex-col bg-card border-border shadow-2xl rounded-lg">
+        <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border bg-muted/10 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <ChefHat className="w-5 h-5 text-primary" />
+                Mess Menu
+              </DialogTitle>
+              <DialogDescription>
+                Weekly menu schedule and timings
+              </DialogDescription>
             </div>
 
-            {view === "daily" ? DailyView : WeeklyView}
-          </>
-        ) : (
-          <MenuUnavailable onViewOldMenu={handleViewOldMenu} />
-        )}
+            {shouldShowMenu && (
+              <div className="flex bg-muted/50 p-1 rounded-lg border border-border">
+                <button
+                  onClick={() => handleViewChange("daily")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  <span className="flex items-center gap-1"><Calendar size={12} /> Daily</span>
+                </button>
+                <button
+                  onClick={() => handleViewChange("weekly")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  <span className="hidden sm:inline">Weekly View</span>
+                  <span className="sm:hidden">Weekly</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {!menuAvailable && forceShowMenu && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 px-3 py-2 rounded-md border border-amber-200 dark:border-amber-900/50">
+              <Info size={14} className="text-amber-600 dark:text-amber-400" />
+              <span>You are viewing an old menu. Dates might not match current week.</span>
+            </div>
+          )}
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
+          {shouldShowMenu ? (
+            view === "daily" ? DailyView : WeeklyView
+          ) : (
+            <MenuUnavailable onViewOldMenu={handleViewOldMenu} />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

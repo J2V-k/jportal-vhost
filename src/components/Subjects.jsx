@@ -6,6 +6,8 @@ import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Empty } from "@/components/ui/empty";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks } from "lucide-react"
 import { getRegisteredSubjectsFromCache, saveRegisteredSubjectsToCache, getSubjectChoicesFromCache, saveSubjectChoicesToCache } from '@/components/scripts/cache'
 
@@ -27,6 +29,11 @@ export default function Subjects({
   const [choicesLoading, setChoicesLoading] = useState(false)
   const [nextSemChoices, setNextSemChoices] = useState(null)
   const [nextSemChoicesLoading, setNextSemChoicesLoading] = useState(false)
+  const [componentFilters, setComponentFilters] = useState({
+    L: true,
+    T: true,
+    P: true,
+  })
 
   useEffect(() => {
     const fetchSemesters = async () => {
@@ -128,7 +135,7 @@ export default function Subjects({
             ...prev,
             [selectedSem.registration_id]: choicesData,
           }))
-          try { await saveSubjectChoicesToCache(choicesData, username, selectedSem); } catch(e) {}
+          try { await saveSubjectChoicesToCache(choicesData, username, selectedSem); } catch (e) { }
         } catch (err) {
           console.error("Error fetching subject choices:", err)
         } finally {
@@ -155,6 +162,13 @@ export default function Subjects({
     }
   }, [activeTab, searchParams, setSearchParams]);
 
+  const handleComponentFilterChange = (componentType, checked) => {
+    setComponentFilters(prev => ({
+      ...prev,
+      [componentType]: checked
+    }))
+  }
+
   const handleSemesterChange = async (value) => {
     setSubjectsLoading(true)
     try {
@@ -180,7 +194,7 @@ export default function Subjects({
           ...prev,
           [semester.registration_id]: data,
         }))
-        try { await saveRegisteredSubjectsToCache(data, username, semester); } catch(e) {}
+        try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) { }
       }
     } catch (err) {
       setSubjectData((prev) => ({
@@ -221,7 +235,7 @@ export default function Subjects({
         semester: nextSem,
         choices: choicesData
       })
-      try { await saveSubjectChoicesToCache(choicesData, username, nextSem); } catch(e) {}
+      try { await saveSubjectChoicesToCache(choicesData, username, nextSem); } catch (e) { }
     } catch (err) {
       console.error("Error fetching next semester choices:", err)
       setNextSemChoices(null)
@@ -268,7 +282,7 @@ export default function Subjects({
       if (full.length >= 6) variants.add(full.slice(-6));
 
       return Array.from(variants).filter(v => v && v.length >= 4 && /^[A-Z]/.test(v));
-    };  
+    };
 
     let selectedSubjectsArr = [];
     const semId = semester?.registration_id || (selectedSem && selectedSem.registration_id);
@@ -314,7 +328,7 @@ export default function Subjects({
     return (
       <button
         onClick={handleClick}
-        className="inline-flex items-center gap-3 px-6 py-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white rounded-lg hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-200 text-lg font-medium shadow-lg"
+        className="inline-flex items-center gap-3 px-6 py-2 bg-primary text-primary-foreground border border-primary/20 rounded-lg hover:bg-primary/90 transition-all duration-200 text-lg font-medium shadow-lg"
       >
         <Calendar size={20} />
         Create personalized Timetable
@@ -334,158 +348,205 @@ export default function Subjects({
         <link rel="canonical" href="https://jportal2-0.vercel.app/#/subjects" />
       </Helmet>
       <div className="relative pb-16 md:pb-20">
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="top-14 dark:bg-white bg-[black] z-20 border-b border-white/10 dark:border-black/10"
-      >
-        <div className="py-2 px-3 max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <Select onValueChange={handleSemesterChange} value={selectedSem?.registration_id} disabled={loading}>
-            <SelectTrigger className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white md:w-[320px]">
-              <SelectValue placeholder={loading ? "Loading semesters..." : "Select semester"}>
-                {selectedSem?.registration_code}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="dark:bg-white bg-[black] dark:text-black text-white dark:border-black border-white">
-              {semestersData?.semesters?.map((sem) => (
-                <SelectItem key={sem.registration_id} value={sem.registration_id}>
-                  {sem.registration_code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <motion.div className="flex items-center space-x-2 mt-2 md:mt-0">
-            <span className="text-sm font-medium text-gray-300 dark:text-gray-600">Total Credits</span>
-            <span className="text-lg font-semibold text-white dark:text-black">{currentSubjects?.total_credits || 0}</span>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="px-3 max-w-[1440px] mx-auto">
-        <TabsList className="grid grid-cols-2 bg-[#0B0B0D] dark:bg-gray-100 gap-3 mt-4">
-          <TabsTrigger
-            value="registered"
-            className="cursor-pointer text-gray-400 dark:text-gray-600 bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:text-black dark:data-[state=active]:text-white transition-colors flex items-center gap-2"
-          >
-            <BookOpen className="w-4 h-4" />
-            Registered
-          </TabsTrigger>
-          <TabsTrigger
-            value="choices"
-            className="cursor-pointer text-gray-400 dark:text-gray-600 bg-transparent data-[state=active]:bg-white dark:data-[state=active]:bg-black data-[state=active]:text-black dark:data-[state=active]:text-white transition-colors flex items-center gap-2"
-          >
-            <ListChecks className="w-4 h-4" />
-            Choices
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="registered" className="mt-4">
-          {subjectsLoading ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]"
-            >
-              <Loader2 className="w-8 h-8 animate-spin text-white dark:text-black" />
-              <span className="ml-2 text-white dark:text-black">Loading subjects...</span>
-            </motion.div>
-          ) : currentSubjectsError ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center justify-center py-8"
-            >
-              <div className="text-center bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-6 max-w-md">
-                <p className="text-xl text-red-400 mb-2">Subjects Unavailable</p>
-                <p className="text-gray-400 dark:text-gray-600">{currentSubjectsError}</p>
-              </div>
-            </motion.div>
-          ) : Object.keys(groupedSubjects).length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center justify-center py-8"
-            >
-              <div className="text-center bg-[#0B0B0D] dark:bg-gray-50 rounded-lg p-6 max-w-md">
-                <p className="text-gray-400 dark:text-gray-600">No subjects found for this semester.</p>
-              </div>
-            </motion.div>
-          ) : (
-            <AnimatePresence>
-              <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(() => {
-                  let subjects = Object.values(groupedSubjects);
-                  subjects = subjects.sort((a, b) => (b.credits || 0) - (a.credits || 0));
-
-                  return subjects.map((subject, index) => (
-                    <motion.div
-                      key={subject.code}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                    >
-                      <SubjectInfoCard subject={subject} />
-                    </motion.div>
-                  ));
-                })()}
-              </motion.div>
-            </AnimatePresence>
-          )}
-          
-          {currentSubjects && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex justify-center mt-4"
-            >
-              <TimetableButton />
-            </motion.div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="choices" className="mt-4">
-          <div className="flex justify-center mb-4">
-            {nextSemChoices ? (
-              <button
-                onClick={handleBackToCurrent}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B0B0D] dark:bg-gray-100 text-white dark:text-black border border-white/20 dark:border-black/20 rounded-lg hover:bg-[#1A1A1D] dark:hover:bg-gray-200 transition-colors text-sm font-medium"
-              >
-                <ArrowLeft size={14} /> Back to {selectedSem?.registration_code}
-              </button>
-            ) : (
-              <button
-                onClick={handleViewNextSemElectives}
-                disabled={nextSemChoicesLoading || !getNextSemester()}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B0B0D] dark:bg-gray-100 text-white dark:text-black border border-white/20 dark:border-black/20 rounded-lg hover:bg-[#1A1A1D] dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                {nextSemChoicesLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-                {nextSemChoicesLoading ? 'Loading...' : `View ${getNextSemester()?.registration_code || ''} Electives`}
-              </button>
-            )}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="top-14 bg-background z-20 border-b border-border"
+        >
+          <div className="py-2 px-3 max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <Select onValueChange={handleSemesterChange} value={selectedSem?.registration_id} disabled={loading}>
+              <SelectTrigger className="bg-card text-foreground border-border md:w-[320px]">
+                <SelectValue placeholder={loading ? "Loading semesters..." : "Select semester"}>
+                  {selectedSem?.registration_code}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-card text-foreground border-border">
+                {semestersData?.semesters?.map((sem) => (
+                  <SelectItem key={sem.registration_id} value={sem.registration_id}>
+                    {sem.registration_code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <SubjectChoices 
-            currentChoices={nextSemChoices ? nextSemChoices.choices : currentChoices} 
-            choicesLoading={nextSemChoices ? nextSemChoicesLoading : choicesLoading}
-            semesterName={nextSemChoices ? nextSemChoices.semester.registration_code : selectedSem?.registration_code}
-          />
-        </TabsContent>
-      </Tabs>
-      
-      <div className="h-8 md:h-12" />
-    </div>
+        </motion.div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="px-3 max-w-[1440px] mx-auto">
+          <TabsList className="grid grid-cols-2 bg-card gap-3 mt-4">
+            <TabsTrigger
+              value="registered"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              Registered
+            </TabsTrigger>
+            <TabsTrigger
+              value="choices"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
+            >
+              <ListChecks className="w-4 h-4" />
+              Choices
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="registered" className="mt-4">
+            {!subjectsLoading && currentSubjects && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-4 flex justify-center"
+              >
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-muted/5 text-muted-foreground border border-border rounded-full text-sm font-medium">
+                  <BookOpen className="w-4 h-4" />
+                  Total Credits: {currentSubjects?.total_credits || 0}
+                </div>
+              </motion.div>
+            )}
+            {subjectsLoading ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]"
+              >
+                <Loader2 className="w-8 h-8 animate-spin text-foreground" />
+                <span className="ml-2 text-foreground">Loading subjects...</span>
+              </motion.div>
+            ) : currentSubjectsError ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center justify-center py-8"
+              >
+                <div className="text-center bg-card rounded-lg p-6 max-w-md border border-border">
+                  <p className="text-xl text-destructive mb-2">Subjects Unavailable</p>
+                  <p className="text-muted-foreground">{currentSubjectsError}</p>
+                </div>
+              </motion.div>
+            ) : Object.keys(groupedSubjects).length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center justify-center py-8"
+              >
+                <Empty description="No subjects found for this semester." />
+              </motion.div>
+            ) : (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-4 p-4 bg-card rounded-lg border border-border"
+                >
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-sm font-medium text-foreground">Filter by Component:</span>
+                    <div className="flex items-center space-x-4">
+                      {Object.entries(componentFilters).map(([component, isChecked]) => (
+                        <div key={component} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`filter-${component}`}
+                            checked={isChecked}
+                            onCheckedChange={(checked) => handleComponentFilterChange(component, checked)}
+                            className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                          <label
+                            htmlFor={`filter-${component}`}
+                            className="text-sm font-medium text-foreground cursor-pointer"
+                          >
+                            {component === 'L' ? 'Lectures' : component === 'T' ? 'Tutorials' : 'Practicals'}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+
+                <AnimatePresence>
+                  <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(() => {
+                      let subjects = Object.values(groupedSubjects);
+                      subjects = subjects.sort((a, b) => (b.credits || 0) - (a.credits || 0));
+
+                      if (!componentFilters.L || !componentFilters.T || !componentFilters.P) {
+                        subjects = subjects.filter(subject => {
+                          const hasL = componentFilters.L && subject.components.some(comp => comp.type === 'L');
+                          const hasT = componentFilters.T && subject.components.some(comp => comp.type === 'T');
+                          const hasP = componentFilters.P && subject.components.some(comp => comp.type === 'P');
+                          return hasL || hasT || hasP;
+                        });
+                      }
+
+                      return subjects.map((subject, index) => (
+                        <motion.div
+                          key={subject.code}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.5, delay: index * 0.1 }}
+                        >
+                          <SubjectInfoCard subject={subject} />
+                        </motion.div>
+                      ));
+                    })()}
+                  </motion.div>
+                </AnimatePresence>
+              </>
+            )}
+
+            {currentSubjects && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex justify-center mt-4"
+              >
+                <TimetableButton />
+              </motion.div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="choices" className="mt-4">
+            <div className="flex justify-center mb-4">
+              {nextSemChoices ? (
+                <button
+                  onClick={handleBackToCurrent}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-card text-foreground border border-border rounded-lg hover:bg-muted/5 transition-colors text-sm font-medium"
+                >
+                  <ArrowLeft size={14} /> Back to {selectedSem?.registration_code}
+                </button>
+              ) : (
+                <button
+                  onClick={handleViewNextSemElectives}
+                  disabled={nextSemChoicesLoading || !getNextSemester()}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-card text-foreground border border-border rounded-lg hover:bg-muted/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  {nextSemChoicesLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                  {nextSemChoicesLoading ? 'Loading...' : `View ${getNextSemester()?.registration_code || ''} Electives`}
+                </button>
+              )}
+            </div>
+            <SubjectChoices
+              currentChoices={nextSemChoices ? nextSemChoices.choices : currentChoices}
+              choicesLoading={nextSemChoices ? nextSemChoicesLoading : choicesLoading}
+              semesterName={nextSemChoices ? nextSemChoices.semester.registration_code : selectedSem?.registration_code}
+            />
+          </TabsContent>
+        </Tabs>
+
+        <div className="h-8 md:h-12" />
+      </div>
     </>
   )
 }
