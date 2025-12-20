@@ -1,0 +1,88 @@
+---
+title: Welcome to JP Portal
+description: Complete documentation for the modern JIIT WebKiosk client - built with React, Vite, and Progressive Web App capabilities.
+head: []
+---
+
+# JP Portal
+
+Modern, mobile-first client for JIIT WebKiosk. Built with Vite + React, Tailwind, and PWA, featuring fast navigation, offline fallback using cached data, and focused student utilities.
+
+## Highlights
+
+- **Progressive Web App** - Install on any device, works offline
+- **Lightning Fast** - Vite-powered build with instant page loads
+- **Beautiful UI** - Dark/light themes with smooth animations
+- **Secure** - Client-side encryption, local-only storage
+- **Comprehensive** - Attendance, grades, exams, subjects, and more
+- **Smart Tools** - CGPA calculator, attendance tracker, timetable generator
+
+## Documentation Guide
+
+### Getting Started
+- **[Setup Guide](/setup)** - Installation and configuration steps
+- **[Architecture](/architecture)** - System design and structure overview
+
+### Core Concepts
+- **[Code Map](/code-map)** - Project structure and file organization
+- **[Calculations & Logic](/calculations-logic)** - Algorithm implementations explained
+
+### Features & Capabilities
+- **[Feature Guide](/features)** - Complete feature documentation
+- **[PWA & Offline](/pwa-offline)** - Progressive Web App capabilities
+- **[API Integration](/api-integration)** - Data layer and caching strategies
+
+### Development
+- **[UI Components](/ui-components)** - Component library reference
+- **[Contributing](/contributing)** - How to contribute to the project
+- **[Troubleshooting](/troubleshooting)** - Common issues and solutions
+
+## Tech Stack
+
+Built with cutting-edge technologies:
+
+| Technology | Purpose |
+|------------|---------|
+| React 18 | Component-based UI framework |
+| Vite 7 | Lightning-fast build tool |
+| Tailwind CSS | Utility-first styling |
+| Framer Motion | Smooth animations |
+| Workbox | Service worker & PWA |
+| Pyodide | Python in browser |
+| shadcn/ui | Beautiful components |
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/J2V-k/jportal-vhost.git
+cd jportal-vhost
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+Visit the local URL and log in with your JIIT credentials to get started!
+
+## Key Files & Resources
+
+### Core Application
+- [src/main.jsx](https://github.com/J2V-k/jportal-vhost/blob/main/src/main.jsx) - Application entry point
+- [src/App.jsx](https://github.com/J2V-k/jportal-vhost/blob/main/src/App.jsx) - Router configuration and layout
+- [vite.config.js](https://github.com/J2V-k/jportal-vhost/blob/main/vite.config.js) - Build and PWA configuration
+- [tailwind.config.js](https://github.com/J2V-k/jportal-vhost/blob/main/tailwind.config.js) - Theme tokens and styling
+
+### Utilities & Scripts
+- [cache.js](https://github.com/J2V-k/jportal-vhost/blob/main/src/components/scripts/cache.js) - Local storage cache management
+- [artificialW.js](https://github.com/J2V-k/jportal-vhost/blob/main/src/components/scripts/artificialW.js) - Offline mode implementation
+
+## Contributing
+
+We welcome contributions from the community! Please read our [Contributing Guide](/contributing) to learn about our development process and how to propose bugfixes and improvements.
+
+## License
+
+This project is open source and available under the [MIT License](https://github.com/J2V-k/jportal-vhost/blob/main/LICENSE).

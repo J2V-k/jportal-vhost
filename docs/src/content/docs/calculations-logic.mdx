@@ -1,0 +1,29 @@
+---
+title: Calculations & Logic
+description: Key calculation algorithms and business logic.
+head: []
+---
+
+## CGPA Target Calculator Logic
+The CGPA Target Calculator computes SGPA using credit-weighted formula: SGPA = sum(grade_points x credits) / sum(credits). It supports two modes: SGPA calculation for current semester and CGPA target planning. Projected CGPA is calculated by combining current SGPA with previous semesters. Required SGPA for target CGPA uses backward calculation.
+
+## Attendance Tracking Calculations
+Attendance percentage = (attended_classes / total_classes) x 100. Color coding: red &lt;65%, yellow 65-75%, green &gt;75%. Classes needed = ceil((target% x total - attended x 100) / (100 - target%)). Classes can miss = floor((attended x 100 - target% x total) / target%).
+
+## Feedback Rating Encryption
+Feedback uses the same AES-CBC encryption as fee system. Date-based key generation with prefix "qa8y" + date sequence + "ty1pn". Randomization option for question order. Prevents duplicate submissions.
+
+## Attendance Subject Sorting Logic
+Three sorting modes: default (API order), alphabetical (by subject name), percentage (lowest to highest attendance).
+
+## Cache Expiration and Management Logic
+Cache entries have timestamp and TTL (24h default). Expired entries are deleted on retrieval. Selective clearing by data type. Cache statistics show usage.
+
+## Timetable Subject Variant Matching
+Extracts subject variants from codes (e.g., "EC611" from longer codes). Allows manual editing. Passes variants to external timetable service with campus/year/batch.
+
+## Subject Choice Status Determination
+Status logic: mandatory subjects are allotted if running. Electives: allotted if finalized, tentative if running but not finalized, pending if not running.
+
+## Marks PDF Download Workflow
+Uses Pyodide to run Python in browser. Loads PyMuPDF and jiit_marks. Fetches PDF, processes with Python, returns processed PDF as Blob for download.

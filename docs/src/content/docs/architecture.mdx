@@ -1,0 +1,272 @@
+---
+title: Architecture
+description: Comprehensive architectural design and system overview.
+head: []
+---
+
+## Application Bootstrap
+
+### Entry Points
+- **src/main.jsx**: Application initialization point
+  - Mounts React app to DOM
+  - Wraps app in `ThemeProvider` for global theme state
+  - Wraps app in `HelmetProvider` for SEO meta tag management
+  - Initializes `HashRouter` for routing
+  - Sets up React 18 concurrent features
+
+- **src/App.jsx**: Main application component
+  - Manages authentication flow and state
+  - Handles route configuration and navigation
+  - Implements offline fallback detection
+  - Coordinates global state (attendance goals, selected semesters, etc.)
+  - Manages page transitions with React Transition Group
+  - Implements swipe navigation (configurable)
+
+## Routing Architecture
+
+### Router Choice
+- Uses `HashRouter` instead of `BrowserRouter` for static hosting compatibility
+- All routes prefixed with `#/` (e.g., `#/attendance`, `#/grades`)
+- Enables deployment on static hosts like GitHub Pages, Vercel, etc.
+
+### Route Structure
+```
+/ (root)
+├── /login (unauthenticated only)
+└── (authenticated routes)
+    ├── /attendance
+    ├── /grades
+    ├── /exams
+    ├── /subjects
+    ├── /profile
+    ├── /academic-calendar
+    ├── /timetable
+    ├── /fee
+    ├── /feedback
+    └── /gpa-calculator
+```
+
+### Route Protection
+- Authentication guard checks `isAuthenticated` state
+- Redirects to `/login` when not authenticated
+- Auto-login attempt on app load using stored credentials
+- Fallback to offline mode if cache exists but login fails
+
+## State Management
+
+### Global State (App.jsx)
+- **Authentication State**: `isAuthenticated`, `w` (WebPortal instance)
+- **User Data**: Profile, semesters, attendance, grades, exams, subjects
+- **UI State**: Selected semesters, active tabs, dialog states
+- **Settings**: Attendance goals, theme preferences, default tab
+
+### Local Component State
+- Each feature component manages its own loading, error, and view states
+- Data fetched from global state or API calls
+- State lifted when shared between components
+
+### Theme State
+- Managed via `ThemeContext` ([src/context/ThemeContext.jsx](../../../../src/context/ThemeContext.jsx))
+- Provides `themeMode`, `darkTheme()`, `lightTheme()` functions
+- Persists to `localStorage.defaultTheme`
+- Applies CSS classes to document element
+
+## Data Layer Architecture
+
+### Online Mode
+- Uses `WebPortal` class from jsjiit library (CDN import)
+- ESM module: `https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js`
+- Handles authentication and API calls to JIIT WebKiosk
+- Session management with cookies and tokens
+
+### Offline Mode
+- `ArtificialWebPortal` class ([artificialW.js](../../../../src/components/scripts/artificialW.js))
+- Mimics WebPortal API structure
+- Reads from localStorage cache using cache helpers
+- Returns cached data with same structure as online API
+- Activated when login fails but sufficient cache exists
+
+### Cache Layer
+- Implemented in [cache.js](../../../../src/components/scripts/cache.js)
+- Key-based caching with structured keys:
+  - `attendance-{username}-{semesterId}`
+  - `subjects-{username}-{semesterId}`
+  - `grades-{username}-{semesterId}`
+  - `profile-{username}`
+  - `examSchedule-{username}-{semesterId}`
+- TTL-aware with expiration timestamps
+- Typed getter/setter functions for each data type
+- Cache statistics and management utilities
+- Automatic cleanup of expired entries
+
+## PWA & Service Worker
+
+### Configuration
+- Powered by `vite-plugin-pwa` in [vite.config.js](../../../../vite.config.js)
+- Workbox strategies for different resource types
+- Precaching of critical assets
+- Runtime caching with custom strategies
+
+### Caching Strategies
+1. **CacheFirst**: Pyodide WASM, Python wheels, static assets
+2. **StaleWhileRevalidate**: JavaScript bundles, CSS, API responses
+3. **NetworkFirst**: HTML documents
+4. **CacheOnly**: Offline fallback pages
+
+### Service Worker Registration
+- Auto-registered via Vite plugin
+- Update prompts when new version available
+- Skip waiting for immediate activation
+- Claims clients for instant control
+
+## Pyodide Integration
+
+### Purpose
+- Client-side Python execution for PDF processing
+- Used for marks card download and manipulation
+- Enables offline PDF generation
+
+### Implementation
+- Loader in [src/lib/pyodide.js](../../../../src/lib/pyodide.js)
+- Lazy loading - only when needed (marks download)
+- Python packages:
+  - `jiit_marks`: Custom marks processing package
+  - `PyMuPDF`: PDF manipulation library
+- Wheels stored in `public/artifact/` and precached
+- CDN fallback for Pyodide core: `https://cdn.jsdelivr.net/pyodide/v0.24.1/full/`
+
+### Workflow
+1. User requests marks download
+2. Load Pyodide if not already loaded
+3. Install required wheel packages
+4. Run Python code for PDF processing
+5. Return processed PDF to user
+
+## Security Architecture
+
+### Credential Storage
+- Username and password stored in `localStorage`
+- Used for auto-login on app start
+- **Security Note**: Only suitable for personal devices
+- Can be disabled by removing auto-login logic
+
+### Fee Payload Encryption
+- AES-CBC encryption in [src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js)
+- Date-based key generation using `generate_key()`
+- IV (Initialization Vector): Fixed 16-byte value
+- Payload serialization before API submission
+- Base64 encoding of encrypted data
+
+### Key Generation Algorithm
+```javascript
+function generate_date_seq(date) {
+  // Generates: day[0] + month[0] + year[0] + weekday + day[1] + month[1] + year[1]
+}
+
+async function generate_key(date) {
+  const dateSeq = generate_date_seq(date);
+  const keyData = "qa8y" + dateSeq + "ty1pn";
+  return crypto.subtle.importKey("raw", keyData, "AES-CBC", false, ["encrypt"]);
+}
+```
+
+### HTTPS & CORS
+- App must be served over HTTPS in production
+- JIIT API requires secure connections
+- CORS handled by WebPortal library
+
+## Component Architecture
+
+### Component Hierarchy
+```
+App
+├── ThemeProvider
+│   ├── Header
+│   │   ├── MessMenu
+│   │   ├── ThemeBtn
+│   │   └── SettingsDialog
+│   ├── Router
+│   │   ├── Login
+│   │   └── Authenticated Routes
+│   │       ├── Attendance
+│   │       │   └── AttendanceCard
+│   │       │       ├── CircleProgress
+│   │       │       └── Sheet (detail view)
+│   │       ├── Grades
+│   │       │   ├── GradeCard
+│   │       │   └── MarksCard
+│   │       ├── Subjects
+│   │       │   ├── SubjectInfoCard
+│   │       │   └── SubjectChoices
+│   │       └── Other Routes...
+│   └── Navbar
+│       └── InstallPWA
+```
+
+### Component Communication
+- Props for parent-child data flow
+- Callbacks for child-to-parent events
+- Context for deeply nested shared state (theme)
+- State lifting for sibling communication
+
+### Component Patterns
+1. **Container/Presentational**: Feature pages fetch data, sub-components display
+2. **Compound Components**: Dialog, Sheet, Tabs use composition
+3. **Render Props**: Calendar, Charts accept render functions
+4. **Hooks**: Custom hooks for theme, cache, and data fetching
+
+## Animation & Transitions
+
+### Page Transitions
+- React Transition Group for route changes
+- CSS transitions in `src/styles/transitions.css`
+- Fade and slide effects
+
+### Component Animations
+- Framer Motion for micro-interactions
+- Hover, tap, and entrance animations
+- Layout animations for dynamic lists
+- Gesture recognition for swipe navigation
+
+### Performance Considerations
+- CSS transforms for smooth animations (GPU-accelerated)
+- `will-change` hints for frequently animated elements
+- Reduced motion support via media queries
+
+## Build & Deployment
+
+### Build Process
+1. Vite builds and bundles JavaScript/CSS
+2. PWA plugin generates service worker
+3. Assets hashed for cache busting
+4. Code splitting for optimal loading
+5. Tree shaking removes unused code
+
+### Deployment Targets
+- **Vercel**: Recommended (see [vercel.json](../../../../vercel.json))
+- **GitHub Pages**: Works with HashRouter
+- **Netlify**: Compatible
+- **Static Hosting**: Any static host works
+
+### Environment Variables
+- No environment variables required
+- All configuration in code or localStorage
+- API endpoints hardcoded (JIIT WebKiosk)
+
+## Error Handling
+
+### Error Boundaries
+- Top-level error boundary catches component errors
+- Fallback UI shown on critical errors
+- Logs errors to console for debugging
+
+### API Error Handling
+- Try-catch blocks around all API calls
+- User-friendly error messages
+- Offline fallback when API fails
+- Retry mechanisms for transient failures
+
+### Validation
+- Form validation with error messages
+- Input sanitization before API calls
+- Type checking with PropTypes (some components)
