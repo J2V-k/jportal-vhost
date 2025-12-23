@@ -29,7 +29,7 @@ import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
 import { HelmetProvider } from 'react-helmet-async';
-
+import { Analytics } from "@vercel/analytics/next";
 import { WebPortal, LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import { serialize_payload } from "@/lib/jiitCrypto";
 
@@ -701,6 +701,7 @@ function App() {
           </div>
         </Router>
       </ThemeProvider>
+</Analytics>
     </HelmetProvider>
   );
 }
