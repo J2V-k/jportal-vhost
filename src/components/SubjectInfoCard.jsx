@@ -1,67 +1,84 @@
 import React from 'react'
-import { Book, Users, Beaker } from 'lucide-react'
+import { Book, Users, Beaker, Hash } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { motion } from 'framer-motion'
 
 export function SubjectInfoCard({ subject }) {
-  const getComponentIconWithName = (type) => {
+  const getComponentInfo = (type) => {
     switch (type) {
-      case 'L':
-        return (
-          <span className="inline-flex items-center gap-1">
-            <Book className="w-4 h-4" />
-            <span>Lecture</span>
-          </span>
-        )
-      case 'T':
-        return (
-          <span className="inline-flex items-center gap-1">
-            <Users className="w-4 h-4" />
-            <span>Tutorial</span>
-          </span>
-        )
-      case 'P':
-        return (
-          <span className="inline-flex items-center gap-1">
-            <Beaker className="w-4 h-4" />
-            <span>Practical</span>
-          </span>
-        )
-      default:
-        return null
+      case 'L': return { icon: <Book className="w-3.5 h-3.5" />, label: 'Lec', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' }
+      case 'T': return { icon: <Users className="w-3.5 h-3.5" />, label: 'Tut', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' }
+      case 'P': return { icon: <Beaker className="w-3.5 h-3.5" />, label: 'Prac', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' }
+      default: return null
     }
   }
 
   return (
-    <Card className="bg-card border border-border transition-all hover:shadow-lg">
-      <CardContent className="p-4 md:p-6">
-        <div className="flex justify-between items-start">
-          <div className="flex-1 mr-4">
-            <h2 className="text-sm md:text-lg font-semibold text-foreground mb-1">{subject.name}</h2>
-            <div className="flex items-center space-x-2 mb-1">
-              <span className="text-sm max-[390px]:text-xs text-muted-foreground">{subject.code}</span>
-              {subject.isAudit && (
-                <Badge>Audit</Badge>
-              )}
+    <motion.div
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card className="overflow-hidden bg-card border-border/60 hover:border-primary/40 transition-all shadow-sm">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex gap-4">
+            
+            {/* Left Section: Main Info */}
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
+              {/* Title */}
+              <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight tracking-tight">
+                {subject.name}
+              </h2>
+
+              {/* Sub-header: Code + Audit */}
+              <div className="flex items-center gap-2">
+                <span className="flex items-center text-xs font-mono font-bold text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded">
+                  <Hash className="w-3 h-3 mr-1" />
+                  {subject.code}
+                </span>
+                {subject.isAudit && (
+                  <Badge variant="outline" className="text-[10px] h-5 uppercase font-black border-indigo-500/30 text-indigo-500 bg-indigo-500/5">
+                    Audit
+                  </Badge>
+                )}
+              </div>
+
+              {/* Teachers List */}
+              <div className="mt-2 space-y-2">
+                {subject.components.map((component, idx) => {
+                  const info = getComponentInfo(component.type);
+                  return (
+                    <div key={idx} className="flex items-center gap-2.5">
+                      <div className={`flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-md border ${info.color}`}>
+                        {info.icon}
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                          {info.label}
+                        </span>
+                      </div>
+                      <span className="text-xs sm:text-sm font-medium text-foreground/80 truncate">
+                        {component.teacher}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="space-y-1">
-              {subject.components.map((component, idx) => (
-                <div key={idx} className="flex items-center text-sm max-[390px]:text-xs text-muted-foreground">
-                  {getComponentIconWithName(component.type)}
-                  <span className="ml-1"> - {component.teacher}</span>
-                </div>
-              ))}
+
+            <div className="flex-shrink-0 flex flex-col items-center justify-center bg-primary/5 border border-primary/20 rounded-2xl px-4 py-4 min-w-[60px] h-fit self-start sm:self-center shadow-inner">
+              <span className="text-xl font-black text-primary leading-none">
+                {subject.credits.toFixed(1)}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-primary/60 mt-1">
+                Credits
+              </span>
             </div>
+
           </div>
-          <div className="flex flex-col items-end">
-            <span className="text-lg md:text-xl font-bold text-foreground">
-              {subject.credits.toFixed(1)}
-            </span>
-            <span className="text-xs text-muted-foreground">Credits</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
 

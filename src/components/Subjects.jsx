@@ -36,6 +36,22 @@ export default function Subjects({
   })
 
   useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['registered', 'choices'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, []);
+
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set('tab', value);
+      return params;
+    }, { replace: true });
+  }
+
+  useEffect(() => {
     const fetchSemesters = async () => {
       if (semestersData) {
         if (semestersData.semesters.length > 0 && !selectedSem) {
@@ -76,8 +92,7 @@ export default function Subjects({
               if (cachedRegSubjects) {
                 setSubjectData((prev) => ({ ...prev, [semester.registration_id]: cachedRegSubjects }));
               }
-            } catch (e) {
-            }
+            } catch (e) {}
           }
 
           if (subjectData?.[semester.registration_id]) {
@@ -93,7 +108,7 @@ export default function Subjects({
             ...prev,
             [semester.registration_id]: data,
           }));
-          try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) { }
+          try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) {}
 
           if (data?.subjects && data.subjects.length > 0) {
             setSelectedSem(semester);
@@ -113,7 +128,7 @@ export default function Subjects({
     }
 
     fetchSemesters()
-  }, [w, setSubjectData, semestersData, setSemestersData, selectedSem, subjectData])
+  }, [w, setSubjectData, semestersData, setSemestersData])
 
   useEffect(() => {
     const fetchChoicesForSelectedSemester = async () => {
@@ -135,7 +150,7 @@ export default function Subjects({
             ...prev,
             [selectedSem.registration_id]: choicesData,
           }))
-          try { await saveSubjectChoicesToCache(choicesData, username, selectedSem); } catch (e) { }
+          try { await saveSubjectChoicesToCache(choicesData, username, selectedSem); } catch (e) {}
         } catch (err) {
           console.error("Error fetching subject choices:", err)
         } finally {
@@ -146,28 +161,6 @@ export default function Subjects({
 
     fetchChoicesForSelectedSemester()
   }, [selectedSem, subjectChoices, w])
-
-  useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && ['registered', 'choices'].includes(tabFromUrl)) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (activeTab) {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('tab', activeTab);
-      setSearchParams(newSearchParams, { replace: true });
-    }
-  }, [activeTab, searchParams, setSearchParams]);
-
-  const handleComponentFilterChange = (componentType, checked) => {
-    setComponentFilters(prev => ({
-      ...prev,
-      [componentType]: checked
-    }))
-  }
 
   const handleSemesterChange = async (value) => {
     setSubjectsLoading(true)
@@ -194,7 +187,7 @@ export default function Subjects({
           ...prev,
           [semester.registration_id]: data,
         }))
-        try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) { }
+        try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) {}
       }
     } catch (err) {
       setSubjectData((prev) => ({
@@ -235,7 +228,7 @@ export default function Subjects({
         semester: nextSem,
         choices: choicesData
       })
-      try { await saveSubjectChoicesToCache(choicesData, username, nextSem); } catch (e) { }
+      try { await saveSubjectChoicesToCache(choicesData, username, nextSem); } catch (e) {}
     } catch (err) {
       console.error("Error fetching next semester choices:", err)
       setNextSemChoices(null)
@@ -264,58 +257,16 @@ export default function Subjects({
         type: subject.subject_component_code,
         teacher: subject.employee_name,
       })
+
+      const order = { 'L': 1, 'T': 2, 'P': 3 };
+      acc[baseCode].components.sort((a, b) => 
+        (order[a.type] || 99) - (order[b.type] || 99)
+      );
+
       return acc
     }, {}) || {}
 
   const navigate = useNavigate();
-
-  const buildTimetableUrlFromSubjects = (semester) => {
-    const generateVariants = (subjectCode) => {
-      if (!subjectCode) return [];
-      const full = String(subjectCode).trim().toUpperCase();
-      const variants = new Set();
-
-      const matches = full.match(/[A-Z]+\d+/g);
-      if (matches) matches.forEach(m => variants.add(m));
-
-      if (full.length >= 5) variants.add(full.slice(-5));
-      if (full.length >= 6) variants.add(full.slice(-6));
-
-      return Array.from(variants).filter(v => v && v.length >= 4 && /^[A-Z]/.test(v));
-    };
-
-    let selectedSubjectsArr = [];
-    const semId = semester?.registration_id || (selectedSem && selectedSem.registration_id);
-
-    const pushVariantsFromList = (list) => {
-      list.forEach((s) => {
-        const variants = generateVariants(s.subject_code);
-        variants.forEach(v => selectedSubjectsArr.push(v));
-      });
-    };
-
-    if (semId && subjectData?.[semId]?.subjects) {
-      pushVariantsFromList(subjectData[semId].subjects);
-    } else if (currentSubjects?.subjects) {
-      pushVariantsFromList(currentSubjects.subjects);
-    }
-
-    const unique = Array.from(new Set(selectedSubjectsArr.filter(v => v && v.length >= 4)));
-    let selectedSubjects = unique.join(',');
-
-    if (!selectedSubjects) selectedSubjects = 'EC611,EC671,EC691';
-
-    const baseUrl = 'https://simple-timetable.tashif.codes/';
-    const params = new URLSearchParams({
-      campus: '62',
-      year: '4',
-      batch: '2026',
-      selectedSubjects: selectedSubjects,
-      isGenerating: 'true'
-    });
-
-    return `${baseUrl}?${params.toString()}`;
-  }
 
   const TimetableButton = ({ semester = selectedSem }) => {
     const handleClick = (e) => {
@@ -340,12 +291,6 @@ export default function Subjects({
     <>
       <Helmet>
         <title>Subjects - JP Portal | JIIT Student Portal</title>
-        <meta name="description" content="View your registered subjects and subject choices for each semester at JIIT." />
-        <meta property="og:title" content="Subjects - JP Portal | JIIT Student Portal" />
-        <meta property="og:description" content="View your registered subjects and subject choices for each semester at JIIT." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/#/subjects" />
-        <meta name="keywords" content="JIIT subjects, subject choices, student subjects" />
-        <link rel="canonical" href="https://jportal2-0.vercel.app/#/subjects" />
       </Helmet>
       <div className="relative pb-16 md:pb-20">
         <motion.div
@@ -372,18 +317,18 @@ export default function Subjects({
           </div>
         </motion.div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="px-3 max-w-[1440px] mx-auto">
-          <TabsList className="grid grid-cols-2 gap-3 mt-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="px-3 max-w-[1440px] mx-auto">
+          <TabsList className="grid grid-cols-2 bg-card gap-3 mt-4">
             <TabsTrigger
               value="registered"
-              className="flex items-center gap-2"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
             >
               <BookOpen className="w-4 h-4" />
               Registered
             </TabsTrigger>
             <TabsTrigger
               value="choices"
-              className="flex items-center gap-2"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
             >
               <ListChecks className="w-4 h-4" />
               Choices
@@ -405,92 +350,60 @@ export default function Subjects({
               </motion.div>
             )}
             {subjectsLoading ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]"
-              >
+              <div className="flex items-center justify-center py-4 h-[400px]">
                 <Loader2 className="w-8 h-8 animate-spin text-foreground" />
-                <span className="ml-2 text-foreground">Loading subjects...</span>
-              </motion.div>
+                <span className="ml-2 text-foreground">Loading...</span>
+              </div>
             ) : currentSubjectsError ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center justify-center py-8"
-              >
+              <div className="flex items-center justify-center py-8">
                 <div className="text-center bg-card rounded-lg p-6 max-w-md border border-border">
                   <p className="text-xl text-destructive mb-2">Subjects Unavailable</p>
                   <p className="text-muted-foreground">{currentSubjectsError}</p>
                 </div>
-              </motion.div>
+              </div>
             ) : Object.keys(groupedSubjects).length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center justify-center py-8"
-              >
+              <div className="flex items-center justify-center py-8">
                 <Empty description="No subjects found for this semester." />
-              </motion.div>
+              </div>
             ) : (
               <>
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mb-4 p-4 bg-card rounded-lg border border-border"
-                >
-                  <div className="flex flex-wrap items-center gap-4">
-                    <span className="text-sm font-medium text-foreground">Filter by Component:</span>
-                    <div className="flex items-center space-x-4">
-                      {Object.entries(componentFilters).map(([component, isChecked]) => (
-                        <div key={component} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`filter-${component}`}
-                            checked={isChecked}
-                            onCheckedChange={(checked) => handleComponentFilterChange(component, checked)}
-                            className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                          />
-                          <label
-                            htmlFor={`filter-${component}`}
-                            className="text-sm font-medium text-foreground cursor-pointer"
-                          >
-                            {component === 'L' ? 'Lectures' : component === 'T' ? 'Tutorials' : 'Practicals'}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+                <div className="mb-4 p-4 bg-card rounded-lg border border-border flex flex-wrap items-center gap-4">
+                  <span className="text-sm font-medium text-foreground">Filter by Component:</span>
+                  <div className="flex items-center space-x-4">
+                    {['L', 'T', 'P'].map((comp) => (
+                      <div key={comp} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`filter-${comp}`}
+                          checked={componentFilters[comp]}
+                          onCheckedChange={(checked) => setComponentFilters(prev => ({ ...prev, [comp]: checked }))}
+                        />
+                        <label htmlFor={`filter-${comp}`} className="text-sm font-medium cursor-pointer">
+                          {comp === 'L' ? 'Lectures' : comp === 'T' ? 'Tutorials' : 'Practicals'}
+                        </label>
+                      </div>
+                    ))}
                   </div>
-                </motion.div>
+                </div>
 
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(() => {
                       let subjects = Object.values(groupedSubjects);
                       subjects = subjects.sort((a, b) => (b.credits || 0) - (a.credits || 0));
 
-                      if (!componentFilters.L || !componentFilters.T || !componentFilters.P) {
-                        subjects = subjects.filter(subject => {
-                          const hasL = componentFilters.L && subject.components.some(comp => comp.type === 'L');
-                          const hasT = componentFilters.T && subject.components.some(comp => comp.type === 'T');
-                          const hasP = componentFilters.P && subject.components.some(comp => comp.type === 'P');
-                          return hasL || hasT || hasP;
-                        });
-                      }
+                      subjects = subjects.filter(subject => {
+                        const hasL = componentFilters.L && subject.components.some(comp => comp.type === 'L');
+                        const hasT = componentFilters.T && subject.components.some(comp => comp.type === 'T');
+                        const hasP = componentFilters.P && subject.components.some(comp => comp.type === 'P');
+                        return hasL || hasT || hasP;
+                      });
 
                       return subjects.map((subject, index) => (
                         <motion.div
                           key={subject.code}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.5, delay: index * 0.1 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
                         >
                           <SubjectInfoCard subject={subject} />
                         </motion.div>
@@ -502,14 +415,9 @@ export default function Subjects({
             )}
 
             {currentSubjects && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex justify-center mt-4"
-              >
+              <div className="flex justify-center mt-6">
                 <TimetableButton />
-              </motion.div>
+              </div>
             )}
           </TabsContent>
 
@@ -528,11 +436,7 @@ export default function Subjects({
                   disabled={nextSemChoicesLoading || !getNextSemester()}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-card text-foreground border border-border rounded-lg hover:bg-muted/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
                 >
-                  {nextSemChoicesLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {nextSemChoicesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                   {nextSemChoicesLoading ? 'Loading...' : `View ${getNextSemester()?.registration_code || ''} Electives`}
                 </button>
               )}
@@ -544,7 +448,6 @@ export default function Subjects({
             />
           </TabsContent>
         </Tabs>
-
         <div className="h-8 md:h-12" />
       </div>
     </>

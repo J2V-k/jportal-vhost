@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { applyTheme, saveTheme, loadSavedTheme, getThemeCategories, getPresetsByCategory } from '@/lib/theme'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './dialog'
-import { Palette } from 'lucide-react'
+import { applyTheme, saveTheme, loadSavedTheme } from '@/lib/theme'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './dialog'
+import { Palette, Check, Settings2, Moon, Sun, LayoutGrid } from 'lucide-react'
+import { Button } from './button'
+import { Separator } from './separator'
 
 export default function ThemeDialog({ open, onClose }) {
   const [primary, setPrimary] = useState('#0b0d0d')
@@ -10,248 +12,163 @@ export default function ThemeDialog({ open, onClose }) {
   const [foreground, setForeground] = useState('#f3f4f6')
   const [font, setFont] = useState('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
   const [selectedPalette, setSelectedPalette] = useState(null)
-
-  const [customTheme, setCustomTheme] = useState(() => {
-    try {
-      const saved = localStorage.getItem('jp-custom-theme')
-      return saved ? JSON.parse(saved) : null
-    } catch { return null }
-  })
-
-  const [presets, setPresets] = useState({})
-  const [categories, setCategories] = useState({})
+  
+  const [themeData, setThemeData] = useState({ presets: {}, categories: {} })
   const [loading, setLoading] = useState(true)
+  const [showAdjust, setShowAdjust] = useState(false)
 
   useEffect(() => {
-    const loadPresets = async () => {
+    const initThemes = async () => {
       try {
-        const cats = await getThemeCategories()
-        setCategories(cats)
-        
-        const presetData = {}
-        for (const cat of Object.keys(cats)) {
-          presetData[cat] = await getPresetsByCategory(cat)
-        }
-        setPresets(presetData)
+        const response = await fetch('/theme-presets.json')
+        const data = await response.json()
+        setThemeData(data)
       } catch (error) {
-        console.error('Error loading presets:', error)
+        console.error('Error loading themes:', error)
       } finally {
         setLoading(false)
       }
     }
-    
-    loadPresets()
-  }, [])
+    if (open) initThemes()
+  }, [open])
 
   useEffect(() => {
     if (loading) return
-    
     const saved = loadSavedTheme()
-
-    const savedCustom = localStorage.getItem('jp-custom-theme')
-    if (savedCustom) {
-      try {
-        setCustomTheme(JSON.parse(savedCustom))
-      } catch (e) { }
-    }
-
     if (saved) {
       setPrimary(saved.primary)
       setSecondary(saved.secondary)
       setBackground(saved.background)
       setForeground(saved.foreground)
-      if (saved.font) {
-        setFont(saved.font)
-      }
-
-      let foundPreset = null
-      for (const cat in presets) {
-        const catPresets = presets[cat]
-        const preset = catPresets.find(p =>
-          p.primary === saved.primary &&
-          p.secondary === saved.secondary &&
-          p.background === saved.background &&
-          p.foreground === saved.foreground
+      setFont(saved.font || font)
+      
+      let matchedId = 'custom-mod'
+      Object.values(themeData.presets).forEach(category => {
+        const found = category.find(p => 
+          p.primary.toLowerCase() === saved.primary.toLowerCase() && 
+          p.background.toLowerCase() === saved.background.toLowerCase()
         )
-        if (preset) {
-          foundPreset = preset.id
-          break
-        }
-      }
-
-      if (foundPreset) {
-        setSelectedPalette(foundPreset)
-      } else {
-        setSelectedPalette('custom')
-      }
-    } else {
-      setSelectedPalette(null) // No default selection
+        if (found) matchedId = found.id
+      })
+      setSelectedPalette(matchedId)
     }
-  }, [loading, presets])
+  }, [loading, themeData])
 
-  function handleColorChange(key, value) {
-    let newPrimary = primary;
-    let newSecondary = secondary;
-    let newBackground = background;
-    let newForeground = foreground;
-
-    if (key === 'primary') { setPrimary(value); newPrimary = value; }
-    if (key === 'secondary') { setSecondary(value); newSecondary = value; }
-    if (key === 'background') { setBackground(value); newBackground = value; }
-    if (key === 'foreground') { setForeground(value); newForeground = value; }
-
-    const newCustom = {
-      primary: newPrimary,
-      secondary: newSecondary,
-      background: newBackground,
-      foreground: newForeground,
-      font: font
-    }
-    setSelectedPalette('custom')
-    setCustomTheme(newCustom)
-    localStorage.setItem('jp-custom-theme', JSON.stringify(newCustom))
-
-    applyTheme(newCustom)
+  const handleColorChange = (key, value) => {
+    const newTheme = { primary, secondary, background, foreground, font, [key]: value }
+    if (key === 'primary') setPrimary(value)
+    if (key === 'secondary') setSecondary(value)
+    if (key === 'background') setBackground(value)
+    if (key === 'foreground') setForeground(value)
+    setSelectedPalette('custom-mod')
+    applyTheme(newTheme)
   }
 
-  function handleSave() {
-    const theme = { primary, secondary, background, foreground, font }
-    applyTheme(theme)
-    saveTheme(theme)
-    onClose?.()
-  }
-
-  function selectPalette(presetId) {
-    for (const cat in presets) {
-      const catPresets = presets[cat]
-      const preset = catPresets.find(p => p.id === presetId)
-      if (preset) {
-        setSelectedPalette(presetId)
-        setPrimary(preset.primary)
-        setSecondary(preset.secondary)
-        setBackground(preset.background)
-        setForeground(preset.foreground)
-        setFont(preset.font)
-        applyTheme({ ...preset })
-        saveTheme({ ...preset })
-        return
-      }
-    }
-  }
-
-  function selectCustom() {
-    if (!customTheme) return
-    setSelectedPalette('custom')
-    setPrimary(customTheme.primary)
-    setSecondary(customTheme.secondary)
-    setBackground(customTheme.background)
-    setForeground(customTheme.foreground)
-    if (customTheme.font) {
-      setFont(customTheme.font)
-    }
-    applyTheme({ ...customTheme })
-    saveTheme({ ...customTheme })
-  }
+  const CompactSwatch = ({ colors, active }) => (
+    <div className="relative w-full h-10 rounded-lg overflow-hidden flex border border-border/40 group-hover:border-primary/40 transition-all shadow-sm">
+      <div style={{ background: colors.background }} className="w-[45%]" />
+      <div style={{ background: colors.foreground }} className="w-[25%]" />
+      <div style={{ background: colors.primary }} className="w-[20%]" />
+      <div style={{ background: colors.secondary }} className="w-[10%]" />
+      <div className="absolute top-1 right-1 opacity-40 group-hover:opacity-100 transition-opacity">
+        {colors.mode === 'dark' ? <Moon size={8} className="text-white" /> : <Sun size={8} className="text-black" />}
+      </div>
+      {active && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
+          <div className="bg-primary rounded-full p-0.5 shadow-lg">
+            <Check size={10} className="text-primary-foreground" strokeWidth={4} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose?.() }}>
-      <DialogContent className="w-[95vw] sm:max-w-lg max-h-[85vh] rounded-lg flex flex-col overflow-hidden p-0 gap-0">
-        <div className="p-6 pb-2">
-          <DialogHeader>
-            <DialogTitle>Customize Theme</DialogTitle>
-            <DialogDescription>Select a preset or create your own custom style.</DialogDescription>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
+      <DialogContent className="sm:max-w-4xl p-0 gap-0 overflow-hidden border-none shadow-2xl bg-card h-[90vh] sm:h-auto">
+        <div className="px-4 py-3 bg-muted/20 border-b flex items-center justify-between">
+          <div className="flex items-center gap-2 text-primary">
+            <Palette size={18} strokeWidth={2.5} />
+            <DialogTitle className="text-sm font-bold uppercase tracking-widest">Theme Gallery</DialogTitle>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`h-7 px-3 gap-1.5 rounded-md transition-colors ${showAdjust ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-primary/10 hover:text-primary'}`}
+            onClick={() => setShowAdjust(!showAdjust)}
+          >
+            <Settings2 size={12} />
+            <span className="text-[10px] font-bold uppercase">Manual Adjust</span>
+          </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-2">
-          {selectedPalette === 'custom' && (
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <label className="flex flex-col text-sm">Primary Text
-                <input aria-label="Primary Text Color" type="color" value={primary} onChange={e => handleColorChange('primary', e.target.value)} className="w-full h-10 mt-1 cursor-pointer" />
-                <span className="text-xs text-muted-foreground mt-1">{primary}</span>
-              </label>
-              <label className="flex flex-col text-sm">Secondary Text
-                <input aria-label="Secondary Text Color" type="color" value={secondary} onChange={e => handleColorChange('secondary', e.target.value)} className="w-full h-10 mt-1 cursor-pointer" />
-                <span className="text-xs text-muted-foreground mt-1">{secondary}</span>
-              </label>
-              <label className="flex flex-col text-sm">Main Background
-                <input aria-label="Main Background Color" type="color" value={background} onChange={e => handleColorChange('background', e.target.value)} className="w-full h-10 mt-1 cursor-pointer" />
-                <span className="text-xs text-muted-foreground mt-1">{background}</span>
-              </label>
-              <label className="flex flex-col text-sm">Second Background (Cards)
-                <input aria-label="Second Background Color" type="color" value={foreground} onChange={e => handleColorChange('foreground', e.target.value)} className="w-full h-10 mt-1 cursor-pointer" />
-                <span className="text-xs text-muted-foreground mt-1">{foreground}</span>
-              </label>
+        <div className="flex-1 overflow-y-auto max-h-[70vh] p-4 custom-scrollbar space-y-6">
+          {showAdjust && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-muted/40 p-3 rounded-xl border border-border/50 animate-in fade-in slide-in-from-top-1 duration-200">
+              {[
+                { label: 'Primary', key: 'primary', val: primary },
+                { label: 'Secondary', key: 'secondary', val: secondary },
+                { label: 'Base Bg', key: 'background', val: background },
+                { label: 'Card Bg', key: 'foreground', val: foreground },
+              ].map((color) => (
+                <div key={color.key} className="space-y-1">
+                  <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block">{color.label}</span>
+                  <div className="flex items-center gap-2 bg-background p-1 rounded-md border border-border/50">
+                    <input type="color" value={color.val} onChange={e => handleColorChange(color.key, e.target.value)} 
+                      className="w-5 h-5 rounded-sm cursor-pointer border-none p-0 bg-transparent" />
+                    <span className="text-[10px] font-mono font-bold text-foreground/70 uppercase select-all">{color.val}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          <div className="mt-2">
-            <div className="text-sm text-muted-foreground mb-2">Presets</div>
-            {loading ? (
-              <div className="text-center py-4 text-muted-foreground">Loading presets...</div>
-            ) : (
-              Object.entries(categories).map(([catKey, catInfo]) => (
-                <div key={catKey} className="mb-4">
-                  <div className="text-sm font-medium mb-2">{catInfo.label}</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {presets[catKey]?.map((p) => (
-                      <button 
-                        key={p.id} 
-                        onClick={() => selectPalette(p.id)} 
-                        className={`flex items-center gap-2 p-2 rounded border transition-all ${selectedPalette === p.id ? 'border-primary ring-1 ring-primary bg-primary/5' : 'border-border bg-card hover:bg-muted/50'} text-card-foreground`}
-                      >
-                        <div className="w-16 h-6 rounded overflow-hidden flex border border-gray-200 dark:border-gray-700 shrink-0">
-                          <div style={{ background: p.background }} className="flex-1" />
-                          <div style={{ background: p.foreground }} className="flex-1" />
-                          <div style={{ background: p.primary }} className="flex-1" />
-                          <div style={{ background: p.secondary }} className="flex-1" />
-                        </div>
-                        <div className="text-xs font-medium truncate flex-1 text-left">{p.name}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-
-            <div className="mt-4">
-              <div className="text-sm font-medium mb-2">Custom</div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={selectCustom}
-                  disabled={!customTheme}
-                  className={`flex items-center gap-2 p-2 rounded border transition-all ${selectedPalette === 'custom' ? 'border-primary ring-1 ring-primary bg-primary/5' : 'border-border bg-card hover:bg-muted/50'} text-card-foreground disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <div className="w-16 h-6 rounded overflow-hidden flex border border-gray-200 dark:border-gray-700 shrink-0">
-                    {customTheme ? (
-                      <>
-                        <div style={{ background: customTheme.background }} className="flex-1" />
-                        <div style={{ background: customTheme.foreground }} className="flex-1" />
-                        <div style={{ background: customTheme.primary }} className="flex-1" />
-                        <div style={{ background: customTheme.secondary }} className="flex-1" />
-                      </>
-                    ) : (
-                      <div className="flex-1 bg-muted flex items-center justify-center text-[10px] text-muted-foreground">None</div>
-                    )}
-                  </div>
-                  <div className="text-xs font-medium truncate flex-1 text-left">My Custom Theme</div>
-                  {selectedPalette === 'custom' && <Palette size={14} className="text-primary shrink-0" />}
-                </button>
+          {Object.entries(themeData.categories).map(([key, cat]) => (
+            <div key={key} className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <LayoutGrid size={12} className="text-muted-foreground" />
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">{cat.label}</h4>
+                <Separator className="flex-1 opacity-50" />
+              </div>
+              
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {themeData.presets[key]?.map((p) => (
+                  <button 
+                    key={p.id} 
+                    onClick={() => {
+                      setSelectedPalette(p.id); setPrimary(p.primary); setSecondary(p.secondary);
+                      setBackground(p.background); setForeground(p.foreground); setFont(p.font);
+                      applyTheme({ ...p });
+                    }} 
+                    className={`group flex flex-col gap-1.5 p-1.5 rounded-xl border transition-all text-left ${
+                      selectedPalette === p.id 
+                      ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' 
+                      : 'border-transparent hover:bg-muted/50 hover:border-border/50'
+                    }`}
+                  >
+                    <CompactSwatch colors={p} active={selectedPalette === p.id} />
+                    <span className="text-[10px] font-bold truncate tracking-tight text-foreground/90 px-0.5">{p.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
+          ))}
+        </div>
+
+        <div className="px-4 py-3 bg-muted/10 border-t flex items-center justify-between">
+          <div className="hidden sm:block">
+            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-60">
+              {Object.values(themeData.presets).flat().length} Presets Loaded
+            </span>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-8 text-[10px] font-bold uppercase tracking-wider px-4" onClick={onClose}>Discard</Button>
+            <Button size="sm" className="flex-1 sm:flex-none h-8 text-[10px] font-bold uppercase tracking-wider px-8 shadow-md shadow-primary/20" 
+              onClick={() => { saveTheme({ primary, secondary, background, foreground, font }); onClose?.() }}>
+              Confirm Selection
+            </Button>
           </div>
         </div>
-
-        <div className="p-6 pt-2">
-          <DialogFooter>
-            <div className="flex w-full justify-end gap-2">
-              <button className="px-4 py-2 text-sm rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={onClose}>Close</button>
-              <button className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleSave}>Save Changes</button>
-            </div>
-          </DialogFooter>
-        </div>
-
-        <DialogClose className="top-4 right-4" />
       </DialogContent>
     </Dialog>
   )

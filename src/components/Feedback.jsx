@@ -369,7 +369,7 @@ const Feedback = ({ w }) => {
           ) : message && !eventData && Object.keys(questionsData).length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-card border border-border rounded-xl p-8 max-w-md mx-auto">
-                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
+                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-foreground" />
                 <h2 className="text-xl font-semibold text-foreground mb-2">Feedback Unavailable</h2>
                 <p className="text-muted-foreground mb-6">{message}</p>
                 <div className="flex justify-center">

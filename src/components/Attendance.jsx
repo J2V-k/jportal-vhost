@@ -85,21 +85,34 @@ const Attendance = ({
   const getRelativeTime = (timestamp) => {
     const now = new Date();
     const timeDiff = now - new Date(timestamp);
-
     const minutes = Math.floor(timeDiff / (1000 * 60));
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
     const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
     if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
     if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
-
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['overview', 'daily'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, []);
+
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set('tab', value);
+      return params;
+    }, { replace: true });
   };
 
   useEffect(() => {
@@ -114,7 +127,6 @@ const Attendance = ({
         }
         return;
       }
-
       setIsAttendanceMetaLoading(true);
       setIsAttendanceDataLoading(true);
       try {
@@ -130,8 +142,7 @@ const Attendance = ({
           setIsAttendanceMetaLoading(false);
           setIsAttendanceDataLoading(false);
         }
-      } catch (e) {
-      }
+      } catch (e) {}
       try {
         const meta = await w.get_attendance_meta();
         if (!meta) {
@@ -142,7 +153,6 @@ const Attendance = ({
         }
         const header = (meta.latest_header && meta.latest_header()) || null;
         const latestSem = (meta.latest_semester && meta.latest_semester()) || null;
-
         setSemestersData({
           semesters: meta.semesters,
           latest_header: header,
@@ -151,15 +161,12 @@ const Attendance = ({
         try {
           const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
           await saveSemestersToCache(meta.semesters, username);
-        } catch (e) {
-        }
-
+        } catch (e) {}
         const currentYear = new Date().getFullYear().toString();
         const currentYearSemester = meta.semesters.find(sem =>
           sem.registration_code && sem.registration_code.includes(currentYear)
         );
         const semesterToLoad = currentYearSemester || latestSem;
-
         const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
         const cached = await getAttendanceFromCache(username, semesterToLoad);
         if (cached) {
@@ -201,7 +208,6 @@ const Attendance = ({
           setIsRefreshing(false);
           return;
         }
-
         try {
           const data = await w.get_attendance(header, semesterToLoad);
           setAttendanceData((prev) => ({
@@ -228,7 +234,6 @@ const Attendance = ({
         setIsRefreshing(false);
       }
     };
-
     fetchSemesters();
   }, [w, setAttendanceData, semestersData, setSemestersData]);
 
@@ -237,14 +242,12 @@ const Attendance = ({
       (sem) => sem.registration_id === value
     );
     setSelectedSem(semester);
-
     if (attendanceData[value]) {
       setIsFromCache(false);
       setCacheTimestamp(null);
       setIsRefreshing(false);
       return;
     }
-
     setIsAttendanceDataLoading(true);
     const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
     const cached = await getAttendanceFromCache(username, semester);
@@ -307,8 +310,7 @@ const Attendance = ({
     }
   };
 
-  const safeDailyDate =
-    dailyDate instanceof Date && !isNaN(dailyDate) ? dailyDate : new Date();
+  const safeDailyDate = dailyDate instanceof Date && !isNaN(dailyDate) ? dailyDate : new Date();
 
   const subjects = useMemo(() => {
     const mappedSubjects = (selectedSem &&
@@ -316,63 +318,34 @@ const Attendance = ({
         (item) => {
           const {
             subjectcode,
-            Ltotalclass,
-            Ltotalpres,
-            Lpercentage,
-            Ttotalclass,
-            Ttotalpres,
-            Tpercentage,
-            Ptotalclass,
-            Ptotalpres,
-            Ppercentage,
+            Ltotalclass, Ltotalpres, Lpercentage,
+            Ttotalclass, Ttotalpres, Tpercentage,
+            Ptotalclass, Ptotalpres, Ppercentage,
             LTpercantage,
           } = item;
-
           const { attended, total } = {
             attended: (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0),
             total: (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0),
           };
-
-          const currentPercentage = (attended / total) * 100;
           const classesNeeded = attendanceGoal
-            ? Math.ceil(
-              (attendanceGoal * total - 100 * attended) /
-              (100 - attendanceGoal)
-            )
+            ? Math.ceil((attendanceGoal * total - 100 * attended) / (100 - attendanceGoal))
             : null;
           const classesCanMiss = attendanceGoal
-            ? Math.floor(
-              (100 * attended - attendanceGoal * total) / attendanceGoal
-            )
+            ? Math.floor((100 * attended - attendanceGoal * total) / attendanceGoal)
             : null;
-
           return {
             name: subjectcode,
-            attendance: {
-              attended,
-              total,
-            },
+            attendance: { attended, total },
             combined: LTpercantage,
-            lecture:
-              Lpercentage !== undefined && Lpercentage !== null
-                ? String(Lpercentage)
-                : "",
-            tutorial:
-              Tpercentage !== undefined && Tpercentage !== null
-                ? String(Tpercentage)
-                : "",
-            practical:
-              Ppercentage !== undefined && Ppercentage !== null
-                ? String(Ppercentage)
-                : "",
+            lecture: Lpercentage !== undefined && Lpercentage !== null ? String(Lpercentage) : "",
+            tutorial: Tpercentage !== undefined && Tpercentage !== null ? String(Tpercentage) : "",
+            practical: Ppercentage !== undefined && Ppercentage !== null ? String(Ppercentage) : "",
             classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
             classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
             hasPractical: (Ptotalclass || 0) > 0,
           };
         }
-      )) ||
-      [];
-
+      )) || [];
     if (sortOrder === 'default') {
       const isDesktop = window.innerWidth > 768;
       if (isDesktop) {
@@ -396,13 +369,11 @@ const Attendance = ({
     try {
       const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
       const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
-
       if (cached) {
         setSubjectAttendanceData((prev) => ({
           ...prev,
           [subject.name]: cached.data || cached,
         }));
-
         await fetchFreshSubjectData(subject, username);
         return;
       }
@@ -418,34 +389,24 @@ const Attendance = ({
       const subjectData = attendance.studentattendancelist.find(
         (s) => s.subjectcode === subject.name
       );
-
       if (!subjectData) return;
-
       const subjectcomponentids = [
         "Lsubjectcomponentid",
         "Psubjectcomponentid",
         "Tsubjectcomponentid",
-      ]
-        .filter((id) => subjectData[id])
-        .map((id) => subjectData[id]);
-
+      ].filter((id) => subjectData[id]).map((id) => subjectData[id]);
       const data = await w.get_subject_daily_attendance(
         selectedSem,
         subjectData.subjectid,
         subjectData.individualsubjectcode,
         subjectcomponentids
       );
-
-      if (!data || !data.studentAttdsummarylist) {
-        return;
-      }
+      if (!data || !data.studentAttdsummarylist) return;
       const freshData = data.studentAttdsummarylist;
-
       setSubjectAttendanceData((prev) => ({
         ...prev,
         [subject.name]: freshData,
       }));
-
       await saveSubjectDataToCache(freshData, subject.name, username, selectedSem);
     } catch (error) {
       console.error("Failed to fetch fresh subject attendance:", error);
@@ -454,7 +415,6 @@ const Attendance = ({
 
   useEffect(() => {
     if (activeTab !== "daily") return;
-
     const loadAllSubjects = async () => {
       await Promise.all(
         subjects.map(async (subj) => {
@@ -469,22 +429,7 @@ const Attendance = ({
       );
     };
     loadAllSubjects();
-  }, [activeTab]);
-
-  useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && ['overview', 'daily'].includes(tabFromUrl)) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [searchParams, setActiveTab]);
-
-  useEffect(() => {
-    if (activeTab) {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('tab', activeTab);
-      setSearchParams(newSearchParams, { replace: true });
-    }
-  }, [activeTab, searchParams, setSearchParams]);
+  }, [activeTab, subjects]);
 
   const getClassesFor = (subjectName, date) => {
     const all = subjectAttendanceData[subjectName];
@@ -501,38 +446,19 @@ const Attendance = ({
     <>
       <Helmet>
         <title>Attendance - JP Portal | JIIT Student Portal</title>
-        <meta name="description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
-        <meta name="keywords" content="attendance records, subject-wise attendance, daily attendance, JIIT attendance, JP Portal, JIIT, student portal, jportal, jpportal, jp_portal, jp portal" />
-        <meta property="og:title" content="Attendance - JP Portal | JIIT Student Portal" />
-        <meta property="og:description" content="Track your attendance records, view subject-wise attendance percentages, and monitor your daily class attendance at Jaypee Institute of Information Technology (JIIT)." />
-        <meta property="og:url" content="https://jportal2-0.vercel.app/#/attendance" />
-        <link rel="canonical" href="https://jportal2-0.vercel.app/#/attendance" />
       </Helmet>
       <div className="text-foreground font-sans">
         <div className="top-14 left-0 right-0 bg-background z-10">
           <div className="flex gap-2 py-2 px-3 max-w-[1440px] mx-auto">
-            <Select
-              onValueChange={handleSemesterChange}
-              value={selectedSem?.registration_id}
-            >
+            <Select onValueChange={handleSemesterChange} value={selectedSem?.registration_id}>
               <SelectTrigger className="bg-background text-foreground border-border">
-                <SelectValue
-                  placeholder={
-                    isAttendanceMetaLoading
-                      ? "Loading semesters..."
-                      : "Select semester"
-                  }
-                >
+                <SelectValue placeholder={isAttendanceMetaLoading ? "Loading semesters..." : "Select semester"}>
                   {selectedSem?.registration_code}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-background text-foreground border-border">
                 {semestersData?.semesters?.map((sem) => (
-                  <SelectItem
-                    key={sem.registration_id}
-                    value={sem.registration_id}
-                    className="text-foreground hover:bg-accent"
-                  >
+                  <SelectItem key={sem.registration_id} value={sem.registration_id} className="text-foreground hover:bg-accent">
                     {sem.registration_code}
                   </SelectItem>
                 ))}
@@ -551,7 +477,6 @@ const Attendance = ({
               onClick={cycleSortOrder}
               variant="outline"
               className="bg-background border-border text-foreground hover:bg-accent"
-              title={`Sort: ${sortOrder === 'default' ? 'Default' : sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
             >
               {sortOrder === 'default' && <ArrowUpDown className="w-4 h-4 mr-1" />}
               {sortOrder === 'asc' && <ChevronUp className="w-4 h-4 mr-1" />}
@@ -568,52 +493,36 @@ const Attendance = ({
             <span>
               {cacheTimestamp && isFromCache ? (
                 <span className="flex items-center gap-1">
-                  <Archive size={12} />
-                  Cached: {getRelativeTime(cacheTimestamp)}
+                  <Archive size={12} /> Cached: {getRelativeTime(cacheTimestamp)}
                 </span>
-              ) : (
-                ''
-              )}
+              ) : ''}
             </span>
             {isRefreshing && (
               <span className="ml-2 flex items-center gap-1">
-                <Loader2 className="animate-spin w-4 h-4" />
-                Refreshing...
+                <Loader2 className="animate-spin w-4 h-4" /> Refreshing...
               </span>
             )}
           </div>
         )}
+
         {isAttendanceMetaLoading || isAttendanceDataLoading ? (
-          <div className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)]">
+          <div className="flex items-center justify-center py-4 h-[calc(100vh-200px)]">
             <Loader2 className="animate-spin text-foreground w-6 h-6 mr-2" />
             Loading attendance...
           </div>
         ) : (
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="px-3 pb-4 max-w-[1440px] mx-auto"
-          >
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="px-3 pb-4 max-w-[1440px] mx-auto">
             <TabsList className="grid grid-cols-2 bg-background relative z-30">
-              <TabsTrigger
-                value="overview"
-                className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2"
-              >
-                <BarChart3 className="w-4 h-4" />
-                Overview
+              <TabsTrigger value="overview" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" /> Overview
               </TabsTrigger>
-              <TabsTrigger
-                value="daily"
-                className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2"
-              >
-                <CalendarDays className="w-4 h-4" />
-                Day‑to‑Day
+              <TabsTrigger value="daily" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
+                <CalendarDays className="w-4 h-4" /> Day‑to‑Day
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
-              {selectedSem &&
-                attendanceData[selectedSem.registration_id]?.error ? (
+              {selectedSem && attendanceData[selectedSem.registration_id]?.error ? (
                 <div className="flex items-center justify-center py-4">
                   {attendanceData[selectedSem.registration_id].error}
                 </div>
@@ -641,27 +550,17 @@ const Attendance = ({
                     <Card className="bg-card border-border max-w-fit">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-center text-foreground flex items-center justify-center gap-2">
-                          <Calendar className="w-5 h-5" />
-                          Select Date
+                          <Calendar className="w-5 h-5" /> Select Date
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <CalendarComponent
                           mode="single"
                           selected={safeDailyDate}
-                          onSelect={(d) => {
-                            if (d) {
-                              setDailyDate(d);
-                            }
-                          }}
+                          onSelect={(d) => d && setDailyDate(d)}
                           modifiers={{
-                            hasActivity: (date) =>
-                              subjects.some(
-                                (s) => getClassesFor(s.name, date).length > 0
-                              ),
-                            selected: (date) =>
-                              date.toDateString() ===
-                              safeDailyDate.toDateString(),
+                            hasActivity: (date) => subjects.some((s) => getClassesFor(s.name, date).length > 0),
+                            selected: (date) => date.toDateString() === safeDailyDate.toDateString(),
                           }}
                           modifiersStyles={{
                             hasActivity: {
@@ -671,91 +570,39 @@ const Attendance = ({
                               fontWeight: "bold",
                             },
                           }}
-                          classNames={{
-                            caption_label: "text-sm font-medium text-foreground",
-                            head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                            day: "text-foreground h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent",
-                            day_selected:
-                              "bg-primary text-primary-foreground border-2 border-primary hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-md",
-                            day_today:
-                              "aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:border-primary bg-accent text-accent-foreground",
-                            day_outside:
-                              "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-                            nav_button: "text-foreground hover:bg-accent",
-                          }}
                           className="bg-card text-card-foreground rounded-md border-0"
                         />
-                        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full border border-blue-300"></div>
-                            <span className="text-muted-foreground">Has Classes</span>
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
                   </div>
-
                   <div className="flex-1 w-full min-w-0">
                     <div className="min-h-[400px]">
-                      {isAttendanceDataLoading ? (
-                        <div className="space-y-4">
-                          {[...Array(5)].map((_, i) => (
-                            <div key={i} className="flex items-center space-x-4">
-                              <Skeleton className="h-12 w-12 rounded-full" />
-                              <div className="space-y-2 flex-1">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                              </div>
-                              <Skeleton className="h-8 w-16" />
-                            </div>
-                          ))}
-                        </div>
-                      ) : subjects.length === 0 ? (
-                        <Empty description="No subjects found. Please select a semester first." />
+                      {subjects.length === 0 ? (
+                        <Empty description="No subjects found." />
                       ) : (
                         <div className="space-y-4">
                           {subjects.flatMap((subj) => {
-                            const lectures = getClassesFor(
-                              subj.name,
-                              safeDailyDate
-                            );
+                            const lectures = getClassesFor(subj.name, safeDailyDate);
                             if (lectures.length === 0) return [];
                             return (
-                              <Card
-                                key={subj.name}
-                                className="bg-card border-border hover:shadow-md transition-shadow duration-200"
-                              >
+                              <Card key={subj.name} className="bg-card border-border hover:shadow-md transition-shadow">
                                 <CardHeader className="py-3 px-4 bg-muted/30 border-b border-border">
                                   <CardTitle className="text-foreground flex items-center gap-2 text-sm md:text-base">
-                                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                                    {subj.name}
+                                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div> {subj.name}
                                   </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                   <div className="divide-y divide-border">
                                     {lectures.map((cls, i) => (
-                                      <div key={i} className="flex items-center justify-between p-3 md:p-4 hover:bg-accent/5 transition-colors">
+                                      <div key={i} className="flex items-center justify-between p-3 md:p-4 hover:bg-accent/5">
                                         <div className="flex items-center gap-3">
-                                          <Badge
-                                            className={`px-2 py-0.5 text-xs font-bold border-none ${cls.present === "Present"
-                                              ? "bg-emerald-500 text-white hover:bg-emerald-600"
-                                              : "bg-red-500 text-white hover:bg-red-600"
-                                              }`}
-                                          >
+                                          <Badge className={`px-2 py-0.5 text-xs font-bold border-none ${cls.present === "Present" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
                                             {cls.present}
                                           </Badge>
-                                          <span className="text-sm text-foreground/80 font-medium">
-                                            {cls.classtype}
-                                          </span>
+                                          <span className="text-sm text-foreground/80 font-medium">{cls.classtype}</span>
                                         </div>
-                                        <div className="text-right">
-                                          <div className="text-xs text-muted-foreground font-mono">
-                                            {cls.datetime
-                                              .split(" ")
-                                              .slice(1)
-                                              .join(" ")
-                                              .slice(1, -1)}
-                                          </div>
+                                        <div className="text-xs text-muted-foreground font-mono">
+                                          {cls.datetime.split(" ").slice(1).join(" ").slice(1, -1)}
                                         </div>
                                       </div>
                                     ))}
@@ -766,35 +613,10 @@ const Attendance = ({
                           })}
                         </div>
                       )}
-
-                      {subjects.every(
-                        (s) => getClassesFor(s.name, safeDailyDate).length === 0
-                      ) &&
-                        subjects.length > 0 && (
-                          <div className="flex justify-center mt-12">
-                            <Alert className="max-w-md bg-card border-border">
-                              <Calendar className="h-4 w-4" />
-                              <AlertDescription className="text-center">
-                                <div className="font-medium text-foreground mb-1">
-                                  No classes scheduled
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {safeDailyDate.toLocaleDateString("en-US", {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  })}
-                                </div>
-                              </AlertDescription>
-                            </Alert>
-                          </div>
-                        )}
                     </div>
                   </div>
                 </div>
               </div>
-
             </TabsContent>
           </Tabs>
         )}
