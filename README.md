@@ -1,4 +1,4 @@
-JP Portal (JIIT Student Portal)
+# JP Portal (JIIT Student Portal)
 
 Modern, mobile-first web client for JIIT WebKiosk built with Vite + React, Tailwind, and PWA capabilities. It supports fast navigation, offline fallback from cached data, exam-focused views, and utilities like a CGPA target calculator.
 
