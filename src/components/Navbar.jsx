@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { Calendar, User, Book, FileCheck, BarChart3, MessageSquare, Calculator, DollarSign } from "lucide-react"
 import InstallPWA from "./InstallPWA"
 import { ArtificialWebPortal } from "./scripts/artificialW"
+import { useState, useEffect } from 'react'
 
 const navItems = [
   { name: "Attendance", path: "/attendance", icon: CheckSquare },
@@ -32,8 +33,37 @@ const desktopNavItemsWithFeedback = showFeedbackButton
 
 export default function Navbar({ w }) {
   const location = useLocation()
+  const [showTimetableInNavbar, setShowTimetableInNavbar] = useState(() => {
+    try { return localStorage.getItem('showTimetableInNavbar') === 'true'; } catch (e) { return false; }
+  });
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'showTimetableInNavbar') {
+        setShowTimetableInNavbar(e.newValue === 'true');
+      }
+    };
+    const onCustom = (e) => {
+      try {
+        if (e && e.detail && typeof e.detail.showTimetableInNavbar !== 'undefined') {
+          setShowTimetableInNavbar(Boolean(e.detail.showTimetableInNavbar));
+        }
+      } catch (err) {}
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('jp:settingsChange', onCustom);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('jp:settingsChange', onCustom);
+    };
+  }, []);
   const isOffline = w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal'))
   const mobileNavItemsFiltered = isOffline ? navItems.filter(item => item.name !== 'Fee' && item.name !== 'Faculty Feedback' && item.name !== 'Grades' && item.name !== 'Exams') : navItems
+  const mobileItems = [...mobileNavItemsFiltered];
+  if (showTimetableInNavbar) {
+    if (!mobileItems.find(i => i.path === '/timetable')) {
+      mobileItems.push({ name: 'Timetable', path: '/timetable', icon: Calendar });
+    }
+  }
   const desktopNavItemsFiltered = isOffline ? desktopNavItemsWithFeedback.filter(item => item.name !== 'Fee' && item.name !== 'Faculty Feedback' && item.name !== 'Grades' && item.name !== 'Exams') : desktopNavItemsWithFeedback
 
   return (
@@ -46,7 +76,7 @@ export default function Navbar({ w }) {
       >
         <ul className="flex items-center justify-between max-w-screen-lg mx-auto">
           <InstallPWA />
-          {mobileNavItemsFiltered.map((item) => {
+          {mobileItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
             return (

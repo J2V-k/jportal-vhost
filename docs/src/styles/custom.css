@@ -1,20 +1,16 @@
-/* Justify paragraph text for better readability */
 .prose p {
   text-align: justify;
 }
 
-/* Improve spacing and readability */
 .prose {
   line-height: 1.7;
 }
 
-/* Ensure headings have proper spacing */
 .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
   margin-top: 2rem;
   margin-bottom: 1rem;
 }
 
-/* Better list spacing */
 .prose ul, .prose ol {
   margin: 1rem 0;
   padding-left: 1.5rem;
@@ -24,14 +20,12 @@
   margin: 0.5rem 0;
 }
 
-/* Code blocks styling */
 .prose pre {
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
 }
 
-/* Links styling */
 .prose a {
   color: var(--sl-color-accent);
   text-decoration: none;

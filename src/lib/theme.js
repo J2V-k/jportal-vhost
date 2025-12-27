@@ -53,7 +53,7 @@ function adjustLightness(hsl, delta) {
 export function applyTheme(theme) {
   const root = document.documentElement
   const style = root.style
-  let { primary, secondary, background, foreground, mode } = theme || {}
+  let { primary, secondary, background, foreground, mode, font } = theme || {}
 
   if (!mode && background) {
     const [r, g, b] = hexToRgb(background)
@@ -67,6 +67,11 @@ export function applyTheme(theme) {
     root.classList.add('dark')
   } else {
     root.classList.remove('dark')
+  }
+
+  if (font) {
+    style.setProperty('--font-family', font)
+    document.body.style.fontFamily = font
   }
 
   if (background && primary && secondary && foreground) {
@@ -116,4 +121,66 @@ export function loadSavedTheme() {
 
 export function saveTheme(theme) {
   try { localStorage.setItem('jp-theme', JSON.stringify(theme)) } catch (e) { }
+}
+
+
+let themePresetsData = null
+
+async function loadThemePresetsFromFile() {
+  if (themePresetsData) return themePresetsData
+  
+  try {
+    const response = await fetch('/theme-presets.json')
+    if (!response.ok) throw new Error('Failed to load theme-presets.json')
+    themePresetsData = await response.json()
+    return themePresetsData
+  } catch (error) {
+    console.error('Error loading theme presets:', error)
+    return null
+  }
+}
+
+/**
+ * Get all theme presets organized by category
+ */
+export async function getAllThemePresets() {
+  const data = await loadThemePresetsFromFile()
+  if (!data || !data.presets) return {}
+  
+  const allPresets = {}
+  Object.values(data.presets).forEach(categoryPresets => {
+    if (Array.isArray(categoryPresets)) {
+      categoryPresets.forEach(preset => {
+        allPresets[preset.id] = preset
+      })
+    }
+  })
+  
+  return allPresets
+}
+
+/**
+ * Get presets by category
+ */
+export async function getPresetsByCategory(category) {
+  const data = await loadThemePresetsFromFile()
+  if (!data || !data.presets || !data.presets[category]) return []
+  return data.presets[category]
+}
+
+/**
+ * Get all preset categories
+ */
+export async function getThemeCategories() {
+  const data = await loadThemePresetsFromFile()
+  if (!data || !data.categories) return {}
+  return data.categories
+}
+
+/**
+ * Get a specific preset by ID
+ */
+export async function getPresetById(id) {
+  const allPresets = await getAllThemePresets()
+  return allPresets[id] || null
 }

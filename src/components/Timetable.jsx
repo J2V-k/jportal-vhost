@@ -54,6 +54,9 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
   const [localProfileData, setLocalProfileData] = useState(profileData || null);
   const [localSubjectData, setLocalSubjectData] = useState(subjectData || {});
   const [localSemestersData, setLocalSemestersData] = useState(subjectSemestersData || null);
+  const fileInputRef = useRef(null);
+  const [icsText, setIcsText] = useState(null);
+  const [icalEvents, setIcalEvents] = useState([]);
 
   useEffect(() => {
     if (profileData && !localProfileData) setLocalProfileData(profileData);
@@ -68,6 +71,110 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
   useEffect(() => {
     if (subjectSemestersData && !localSemestersData) setLocalSemestersData(subjectSemestersData);
   }, [subjectSemestersData]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('timetable_ics');
+      if (saved) {
+        setIcsText(saved);
+        const parsed = parseIcs(saved);
+        setIcalEvents(parsed);
+      }
+    } catch (e) { }
+  }, []);
+
+  const saveIcsToStorage = (text) => {
+    try { localStorage.setItem('timetable_ics', text); } catch (e) { }
+  };
+
+  const clearIcs = () => {
+    try { localStorage.removeItem('timetable_ics'); } catch (e) { }
+    setIcsText(null);
+    setIcalEvents([]);
+  };
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    const text = await file.text();
+    setIcsText(text);
+    saveIcsToStorage(text);
+    const parsed = parseIcs(text);
+    setIcalEvents(parsed);
+  };
+
+  function parseIcs(text) {
+    if (!text) return [];
+    const unfolded = text.replace(/\r?\n[ \t]/g, '');
+    const parts = unfolded.split(/BEGIN:VEVENT/).slice(1);
+    const out = [];
+    for (const p of parts) {
+      const body = p.split(/END:VEVENT/)[0];
+      const lines = body.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const ev = {};
+      for (const line of lines) {
+        const idx = line.indexOf(':');
+        if (idx === -1) continue;
+        const key = line.substring(0, idx);
+        const val = line.substring(idx + 1);
+        if (key.startsWith('DTSTART')) ev.dtstart = val;
+        else if (key.startsWith('DTEND')) ev.dtend = val;
+        else if (key === 'SUMMARY') ev.summary = val;
+        else if (key === 'DESCRIPTION') ev.description = val;
+        else if (key === 'LOCATION') ev.location = val;
+        else if (key === 'RRULE') ev.rrule = val;
+        else if (key === 'UID') ev.uid = val;
+      }
+
+      if (!ev.dtstart) continue;
+
+      const parseDate = (s) => {
+        const clean = (s || '').replace(/Z$/, '');
+        const m = clean.match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?/);
+        if (!m) return null;
+        const y = parseInt(m[1], 10);
+        const mo = parseInt(m[2], 10) - 1;
+        const d = parseInt(m[3], 10);
+        const hh = parseInt(m[4], 10);
+        const mm = parseInt(m[5], 10);
+        return new Date(y, mo, d, hh, mm);
+      };
+
+      const start = parseDate(ev.dtstart.split(':').pop());
+      const end = ev.dtend ? parseDate(ev.dtend.split(':').pop()) : null;
+      if (ev.rrule && /FREQ=WEEKLY/i.test(ev.rrule)) {
+        let untilMatch = ev.rrule.match(/UNTIL=([0-9TZ]+)/i);
+        let until = null;
+        if (untilMatch) until = parseDate(untilMatch[1]);
+        const occurrences = [];
+        const maxWeeks = 26;
+        let cur = new Date(start);
+        let weeks = 0;
+        while (cur && weeks < maxWeeks) {
+          if (!until || cur <= until) {
+            occurrences.push({ start: new Date(cur), end: end ? new Date(cur.getTime() + (end.getTime() - start.getTime())) : null, summary: ev.summary || '', description: ev.description || '', location: ev.location || '', uid: ev.uid });
+          }
+          weeks += 1;
+          cur = new Date(cur.getTime() + 7 * 24 * 60 * 60 * 1000);
+          if (until && cur > until) break;
+        }
+        out.push(...occurrences);
+      } else {
+        out.push({ start, end, summary: ev.summary || '', description: ev.description || '', location: ev.location || '', uid: ev.uid });
+      }
+    }
+    out.sort((a, b) => (a.start || 0) - (b.start || 0));
+    try { localStorage.setItem('timetable_events', JSON.stringify(out)); } catch (e) { }
+    return out;
+  }
+
+  const formatTime = (d) => {
+    if (!d) return '';
+    try {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    } catch (e) { return ''; }
+  };
 
   const generateForSemester = async (semId) => {
     setLoading(true);
@@ -452,6 +559,18 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
               }}>+</Button>
 
               <div className="flex items-center gap-2">
+                <input ref={fileInputRef} type="file" accept=".ics,text/calendar" className="hidden" onChange={(e) => { if (e.target.files && e.target.files[0]) { handleFile(e.target.files[0]); } e.target.value = ''; }} />
+
+                <Button size="sm" className="bg-card text-foreground" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Import iCal
+                </Button>
+                {icsText && (
+                  <Button size="sm" className="bg-card text-foreground" onClick={() => clearIcs()}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear iCal
+                  </Button>
+                )}
                 <Button size="sm" className="bg-card text-foreground" disabled={!timetableUrl} onClick={() => {
                   if (!timetableUrl) { setError('Timetable URL not ready yet.'); return; }
                   try { window.open(timetableUrl, '_blank'); openedRef.current = true; } catch (e) { }
@@ -467,6 +586,26 @@ const Timetable = ({ w, profileData, setProfileData, subjectData, setSubjectData
             </div>
           </div>
         </div>
+        {icalEvents && icalEvents.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-3">Imported Timetable</h2>
+            <div className="grid grid-cols-7 gap-3 text-sm">
+              {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, di) => (
+                <div key={d} className="bg-card p-2 rounded-lg border border-border">
+                  <div className="font-medium mb-2">{d}</div>
+                  <div className="flex flex-col gap-2">
+                    {icalEvents.filter(ev => ev.start && ev.start.getDay() === di).map((ev, i) => (
+                      <div key={(ev.uid||i)+String(ev.start)} className="p-2 rounded-md bg-muted/10 border border-border">
+                        <div className="font-medium">{ev.summary}</div>
+                        <div className="text-xs text-muted-foreground">{formatTime(ev.start)}{ev.end ? ` - ${formatTime(ev.end)}` : ''} • {ev.location || '-'}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

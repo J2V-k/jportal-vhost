@@ -373,17 +373,17 @@ export default function Subjects({
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="px-3 max-w-[1440px] mx-auto">
-          <TabsList className="grid grid-cols-2 bg-card gap-3 mt-4">
+          <TabsList className="grid grid-cols-2 gap-3 mt-4">
             <TabsTrigger
               value="registered"
-              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <BookOpen className="w-4 h-4" />
               Registered
             </TabsTrigger>
             <TabsTrigger
               value="choices"
-              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <ListChecks className="w-4 h-4" />
               Choices

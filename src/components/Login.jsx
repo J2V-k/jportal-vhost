@@ -7,7 +7,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js"
-import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff, Smartphone } from "lucide-react"
+import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff } from "lucide-react"
+import InstallPWA from './InstallPWA'
 import MessMenu from "./MessMenu"
 import ThemeBtn from "./ui/ThemeBtn"
 import { ArtificialWebPortal } from "./scripts/artificialW"
@@ -29,8 +30,6 @@ export default function Login({ onLoginSuccess, w }) {
     canFallbackOffline: false,
   })
   const [isFeatureOpen, setIsFeatureOpen] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState(null)
-  const [showInstall, setShowInstall] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm({
@@ -94,22 +93,6 @@ export default function Login({ onLoginSuccess, w }) {
   }, [loginStatus.credentials, onLoginSuccess, w])
 
   useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault()
-      setDeferredPrompt(e)
-      setShowInstall(true)
-    }
-    window.addEventListener("beforeinstallprompt", handler)
-    return () => window.removeEventListener("beforeinstallprompt", handler)
-  }, [])
-
-  useEffect(() => {
-    const handler = () => setShowInstall(false)
-    window.addEventListener("appinstalled", handler)
-    return () => window.removeEventListener("appinstalled", handler)
-  }, [])
-
-  useEffect(() => {
     const username = localStorage.getItem("username")
     const password = localStorage.getItem("password")
     if (username && password) {
@@ -118,16 +101,6 @@ export default function Login({ onLoginSuccess, w }) {
       setLoginStatus(prev => ({ ...prev, credentials: { enrollmentNumber: username, password } }))
     }
   }, [])
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === "accepted") {
-      setShowInstall(false)
-    }
-    setDeferredPrompt(null)
-  }
 
   function onSubmit(values) {
     setLoginStatus((prev) => ({
@@ -164,22 +137,12 @@ export default function Login({ onLoginSuccess, w }) {
       </header>
 
       <main className="flex-grow container mx-auto px-4 py-12 flex flex-col items-center justify-center gap-12">
-        {showInstall && (
-          <>
-            <div className="hidden md:flex justify-center mb-4">
-              <img src="/pwa-icons/wheel.svg" alt="JP Portal Logo" className="w-16 h-16 rounded-lg shadow-lg" />
-            </div>
-            <div className="w-full max-w-md mb-4">
-              <button
-                onClick={handleInstallClick}
-                className="w-full bg-primary border border-border text-primary-foreground py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-              >
-                <Smartphone className="w-4 h-4" />
-                Install as an App
-              </button>
-            </div>
-          </>
-        )}
+        <div className="hidden md:flex justify-center mb-4">
+          <img src="/pwa-icons/wheel.svg" alt="JP Portal Logo" className="w-16 h-16 rounded-lg shadow-lg" />
+        </div>
+        <ul className="flex justify-center mb-4">
+          <InstallPWA />
+        </ul>
         <div className="w-full max-w-md">
           <div className="bg-card backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-border">
             <h2 className="text-2xl font-bold mb-6 text-card-foreground">Login to Your WebKiosk  Account</h2>

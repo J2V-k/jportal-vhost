@@ -20,37 +20,6 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    {
-      name: "dev-messmenu-endpoint",
-      configureServer(server) {
-        server.middlewares.use("/api/messmenu", (req, res) => {
-          try {
-            const filePath = path.join(server.config.root, "data", "mess_menu.json");
-            const data = fs.readFileSync(filePath, "utf-8");
-            res.setHeader("Content-Type", "application/json");
-            res.statusCode = 200;
-            res.end(data);
-          } catch (err) {
-            res.statusCode = 500;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "Failed to load mess menu" }));
-          }
-        });
-        server.middlewares.use("/api/devmessjson", (req, res) => {
-          try {
-            const filePath = path.join(server.config.root, "data", "mess.json");
-            const data = fs.readFileSync(filePath, "utf-8");
-            res.setHeader("Content-Type", "application/json");
-            res.statusCode = 200;
-            res.end(data);
-          } catch (err) {
-            res.statusCode = 500;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "Failed to load dev mess json" }));
-          }
-        });
-      }
-    },
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",

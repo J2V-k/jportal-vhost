@@ -289,8 +289,8 @@ export default function Profile({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={`flex-none min-w-[88px] py-2 px-3 text-center text-sm font-medium flex items-center justify-center gap-2 ${activeTab === tab.name
-                      ? "text-foreground border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                    ? "text-foreground border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground"
                     }`}
                   onClick={() => setActiveTab(tab.name)}
                 >

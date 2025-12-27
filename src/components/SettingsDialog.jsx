@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import useTheme from '../context/ThemeContext';
+import { applyTheme, saveTheme } from '@/lib/theme';
 import {
   Dialog,
   DialogTrigger,
@@ -14,8 +15,8 @@ import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Settings, LogOut, Trash2, Sun, Moon, X, Smartphone } from 'lucide-react';
-import ThemeDialog from './ui/ThemeDialog'
+import { Settings, LogOut, Trash2, Sun, Moon, X } from 'lucide-react';
+import InstallPWA from './InstallPWA';
 
 const TABS = [
   { key: '/attendance', label: 'Attendance' },
@@ -47,6 +48,46 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
   const [defaultMessMenuView, setDefaultMessMenuView] = useState(() => {
     return localStorage.getItem('defaultMessMenuView') || 'daily';
   });
+  const [themePresets, setThemePresets] = useState([]);
+  const [selectedPresetId, setSelectedPresetId] = useState(() => {
+    const saved = localStorage.getItem('jp-theme');
+    if (saved) {
+      try {
+        const theme = JSON.parse(saved);
+        return theme.id || '';
+      } catch (e) {
+        return '';
+      }
+    }
+    return '';
+  });
+  const [showTimetableInNavbar, setShowTimetableInNavbar] = useState(() => {
+    return localStorage.getItem('showTimetableInNavbar') === 'true';
+  });
+
+  useEffect(() => {
+    const loadPresets = async () => {
+      try {
+        const response = await fetch('/theme-presets.json');
+        if (response.ok) {
+          const data = await response.json();
+          const allPresets = [];
+          
+          Object.entries(data.presets).forEach(([categoryKey, presets]) => {
+            if (categoryKey !== 'custom' && Array.isArray(presets)) {
+              allPresets.push(...presets);
+            }
+          });
+          
+          setThemePresets(allPresets);
+        }
+      } catch (error) {
+        console.error('Error loading theme presets:', error);
+      }
+    };
+
+    loadPresets();
+  }, []);
 
   useEffect(() => {
     setSelectedTheme(themeMode);
@@ -57,14 +98,11 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
     }
   }, [open]);
 
-
-
-  function applyTheme(theme) {
-    if (theme === 'dark') {
-      darkTheme();
-    } else {
-      lightTheme();
-    }
+  function applyThemePreset(preset) {
+    applyTheme(preset);
+    saveTheme(preset);
+    setSelectedPresetId(preset.id);
+    localStorage.setItem('selectedPreset', preset.id);
   }
 
   function handleThemeChange(theme) {
@@ -132,11 +170,58 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
         <div className="space-y-6 mt-4">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label className="text-sm font-medium text-foreground">Theme</Label>
-              <div>
-                <Button onClick={() => setThemeDialogOpen(true)} className="w-full">Customize Theme</Button>
+              <Label className="text-sm font-medium text-foreground">Theme Presets</Label>
+              <Select value={selectedPresetId} onValueChange={(id) => {
+                const preset = themePresets.find(p => p.id === id);
+                if (preset) {
+                  applyThemePreset(preset);
+                }
+              }}>
+                <SelectTrigger className="w-full bg-muted text-foreground border border-border">
+                  <SelectValue placeholder="Select a theme preset" />
+                </SelectTrigger>
+                <SelectContent className="bg-muted border border-border max-h-96">
+                  {themePresets.map((preset) => (
+                    <SelectItem
+                      key={preset.id}
+                      value={preset.id}
+                      className="text-foreground hover:bg-accent/50 focus:bg-accent/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-1">
+                          <div
+                            className="w-4 h-4 rounded border border-border"
+                            style={{ backgroundColor: preset.primary }}
+                            title="Primary Color"
+                          />
+                          <div
+                            className="w-4 h-4 rounded border border-border"
+                            style={{ backgroundColor: preset.secondary }}
+                            title="Secondary Color"
+                          />
+                          <div
+                            className="w-4 h-4 rounded border border-border"
+                            style={{ backgroundColor: preset.background }}
+                            title="Background"
+                          />
+                        </div>
+                        <span>{preset.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="block sm:hidden grid grid-cols-2 gap-4 items-center">
+              <Label className="text-sm font-medium text-foreground">Show timetable in navbar</Label>
+              <div className="flex items-center">
+                <Switch checked={showTimetableInNavbar} onCheckedChange={(val) => {
+                  setShowTimetableInNavbar(val);
+                  try { localStorage.setItem('showTimetableInNavbar', val ? 'true' : 'false'); } catch (e) {}
+                  try { window.dispatchEvent(new CustomEvent('jp:settingsChange', { detail: { showTimetableInNavbar: val } })); } catch (e) {}
+                }} />
               </div>
-              <ThemeDialog open={themeDialogOpen} onClose={() => setThemeDialogOpen(false)} />
             </div>
 
             <div className="grid grid-cols-2 gap-4 items-center">
@@ -242,6 +327,10 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
           <div className="border-t border-border mx-4"></div>
 
           <div className="px-4 space-y-3">
+            <ul className="flex justify-center mb-2">
+              <InstallPWA />
+            </ul>
+
             <Button
               onClick={handleLogout}
               variant="destructive"

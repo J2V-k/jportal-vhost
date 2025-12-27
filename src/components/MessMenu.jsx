@@ -116,7 +116,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
     let cancelled = false;
     const fetchMenuData = async () => {
       try {
-        let response = await fetch('/api/messmenu');
+        let response = await fetch('https://raw.githubusercontent.com/J2V-k/data/refs/heads/main/mess_menu.json');
         if (cancelled) return;
 
         const data = await response.json();

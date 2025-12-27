@@ -637,8 +637,6 @@ const Attendance = ({
             <TabsContent value="daily">
               <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row gap-6 items-start">
-
-                  {/* Left Column: Calendar (Sticky on desktop) */}
                   <div className="w-full md:w-auto md:sticky md:top-24 flex-shrink-0 flex justify-center md:justify-start">
                     <Card className="bg-card border-border max-w-fit">
                       <CardHeader className="pb-3">

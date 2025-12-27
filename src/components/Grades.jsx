@@ -457,10 +457,10 @@ export default function Grades({
     return (
       <motion.div
         {...fadeInUp}
-        className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)] text-white"
+        className="flex items-center justify-center py-4 h-[calc(100vh-<header_height>-<navbar_height>)] text-foreground"
       >
-        <Loader2 className="w-8 h-8 animate-spin mr-2" />
-        <span className="text-lg">Loading grades...</span>
+        <Loader2 className="w-8 h-8 animate-spin mr-2 text-foreground" />
+        <span className="text-lg text-foreground">Loading grades...</span>
       </motion.div>
     );
   }
@@ -501,7 +501,7 @@ export default function Grades({
           className="w-full max-w-7xl mx-auto"
         >
           <div className="md:hidden">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 bg-muted/50 rounded-lg p-1">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-4 rounded-lg p-1">
               {[
                 { name: "overview", icon: BarChart3 },
                 { name: "marks", icon: Download },
@@ -510,7 +510,7 @@ export default function Grades({
                 <TabsTrigger
                   key={tab.name}
                   value={tab.name}
-                  className="bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground text-muted-foreground data-[state=active]:shadow-sm rounded-md transition-all duration-200 flex items-center justify-center gap-1"
+                  className="rounded-md transition-all duration-200 flex items-center justify-center gap-1"
                 >
                   <motion.div
                     initial={{ y: 10, opacity: 0 }}
@@ -828,8 +828,8 @@ export default function Grades({
                           {...fadeInUp}
                           className="flex items-center justify-center py-8 bg-card rounded-lg"
                         >
-                          <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                          <span> Loading subjects... </span>
+                          <Loader2 className="w-6 h-6 animate-spin mr-2 text-foreground" />
+                          <span className="text-foreground"> Loading subjects... </span>
                         </motion.div>
                       ) : gradeCard ? (
                         <motion.div
@@ -949,8 +949,8 @@ export default function Grades({
                           })}
                         </span>
                         {isMarksRefreshing && (
-                          <span className="ml-2 flex items-center gap-1">
-                            <Loader2 className="animate-spin w-4 h-4" />
+                          <span className="ml-2 flex items-center gap-1 text-foreground">
+                            <Loader2 className="animate-spin w-4 h-4 text-foreground" />
                             Refreshing...
                           </span>
                         )}
@@ -964,8 +964,8 @@ export default function Grades({
                           {...fadeInUp}
                           className="flex items-center justify-center py-8 bg-card rounded-lg"
                         >
-                          <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                          <span> Loading marks data... </span>
+                          <Loader2 className="w-6 h-6 animate-spin mr-2 text-foreground" />
+                          <span className="text-foreground"> Loading marks data... </span>
                         </motion.div>
                       ) : marksSemesterData && marksSemesterData.courses ? (
                         <motion.div
@@ -1094,11 +1094,11 @@ export default function Grades({
                         disabled={isDownloading}
                       >
                         {isDownloading ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <Loader2 className="h-5 w-5 animate-spin text-foreground" />
                         ) : (
                           <Download className="h-5 w-5" />
                         )}
-                        {isDownloading ? "Downloading..." : "Download Marks"}
+                        {isDownloading ? <span className="text-foreground">Downloading...</span> : "Download Marks"}
                       </Button>
                     </motion.div>
                   </>

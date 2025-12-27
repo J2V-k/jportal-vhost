@@ -29,7 +29,8 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -55,7 +56,7 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
 }
 @layer base {
@@ -64,10 +65,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-family);
   }
 }
-
-/* Ensure text is selectable */
 * {
   user-select: text;
   -webkit-user-select: text;
@@ -93,8 +93,6 @@
     line-clamp: 2;
   }
 }
-
-/* PWA Splash Screen Optimization */
 @media all and (display-mode: standalone) {
   body {
     -webkit-app-region: drag;
@@ -108,8 +106,6 @@
     user-select: auto;
   }
 }
-
-/* Reduce splash screen duration */
 html, body {
   visibility: visible !important;
   opacity: 1 !important;

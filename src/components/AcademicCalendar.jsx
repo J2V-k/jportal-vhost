@@ -19,10 +19,18 @@ const AcademicCalendar = () => {
 
   useEffect(() => {
     const fetchCalendarData = async () => {
-      const response = await fetch('/AC.json');
-      const data = await response.json();
-      setCalendarData(data);
-      setLoading(false);
+      try {
+        const response = await fetch('https://raw.githubusercontent.com/J2V-k/data/main/AC.json');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        setCalendarData(data);
+      } catch (err) {
+        console.error('Failed to load academic calendar:', err);
+        setCalendarData({ timelineEvents: [] });
+        setError('Unable to load academic calendar.');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchCalendarData();

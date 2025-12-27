@@ -1,0 +1,580 @@
+{
+  "presets": {
+    "custom": [
+      {
+        "id": "midnightOcean",
+        "name": "Midnight Ocean",
+        "primary": "#0ea5e9",
+        "secondary": "#06b6d4",
+        "background": "#0f172a",
+        "foreground": "#1e293b",
+        "mode": "dark",
+        "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "sunsetBliss",
+        "name": "Sunset Bliss",
+        "primary": "#f97316",
+        "secondary": "#ec4899",
+        "background": "#fef2f2",
+        "foreground": "#fafafa",
+        "mode": "light",
+        "font": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "forestWhisper",
+        "name": "Forest Whisper",
+        "primary": "#10b981",
+        "secondary": "#14b8a6",
+        "background": "#0f2f1f",
+        "foreground": "#1a3a2a",
+        "mode": "dark",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "lavenderDream",
+        "name": "Lavender Dream",
+        "primary": "#a78bfa",
+        "secondary": "#d8b4fe",
+        "background": "#faf5ff",
+        "foreground": "#f3e8ff",
+        "mode": "light",
+        "font": "'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "crimsonEdge",
+        "name": "Crimson Edge",
+        "primary": "#dc2626",
+        "secondary": "#f87171",
+        "background": "#1f2937",
+        "foreground": "#111827",
+        "mode": "dark",
+        "font": "'Courier New', monospace"
+      },
+      {
+        "id": "peachCream",
+        "name": "Peach Cream",
+        "primary": "#fb923c",
+        "secondary": "#fbbf24",
+        "background": "#fffbf0",
+        "foreground": "#fef3c7",
+        "mode": "light",
+        "font": "'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "indigoStorm",
+        "name": "Indigo Storm",
+        "primary": "#4f46e5",
+        "secondary": "#6366f1",
+        "background": "#1e1b4b",
+        "foreground": "#312e81",
+        "mode": "dark",
+        "font": "'JetBrains Mono', monospace"
+      },
+      {
+        "id": "mintClarity",
+        "name": "Mint Clarity",
+        "primary": "#06b6d4",
+        "secondary": "#14b8a6",
+        "background": "#f0fdfa",
+        "foreground": "#ccfbf1",
+        "mode": "light",
+        "font": "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "obsidianNight",
+        "name": "Obsidian Night",
+        "primary": "#8b5cf6",
+        "secondary": "#a78bfa",
+        "background": "#0d0d14",
+        "foreground": "#1a1a2e",
+        "mode": "dark",
+        "font": "'IBM Plex Mono', monospace"
+      },
+      {
+        "id": "goldenHour",
+        "name": "Golden Hour",
+        "primary": "#d97706",
+        "secondary": "#f59e0b",
+        "background": "#fffaf0",
+        "foreground": "#fef3c7",
+        "mode": "light",
+        "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      }
+    ],
+    "company": [
+      {
+        "id": "awsOrange",
+        "name": "AWS Orange",
+        "primary": "#FF9900",
+        "secondary": "#146EB4",
+        "background": "#1a1a1a",
+        "foreground": "#232f3e",
+        "mode": "dark",
+        "font": "'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "microsoftBlue",
+        "name": "Microsoft Blue",
+        "primary": "#0078D4",
+        "secondary": "#107C10",
+        "background": "#ffffff",
+        "foreground": "#f3f3f3",
+        "mode": "light",
+        "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
+      },
+      {
+        "id": "githubDark",
+        "name": "GitHub Dark",
+        "primary": "#58a6ff",
+        "secondary": "#79c0ff",
+        "background": "#0d1117",
+        "foreground": "#161b22",
+        "mode": "dark",
+        "font": "'GitHub Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "vscodeTheme",
+        "name": "VS Code",
+        "primary": "#007acc",
+        "secondary": "#646695",
+        "background": "#1e1e1e",
+        "foreground": "#252526",
+        "mode": "dark",
+        "font": "'Consolas', 'Monaco', 'Courier New', monospace"
+      },
+      {
+        "id": "postmanOrange",
+        "name": "Postman Orange",
+        "primary": "#FF6C37",
+        "secondary": "#F27E2D",
+        "background": "#1a1a1a",
+        "foreground": "#2d2d2d",
+        "mode": "dark",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "renderBlue",
+        "name": "Render Blue",
+        "primary": "#46E3B7",
+        "secondary": "#0B3B5D",
+        "background": "#0f1419",
+        "foreground": "#1a1f2e",
+        "mode": "dark",
+        "font": "'Sohne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "slackVariant",
+        "name": "Slack Variant",
+        "primary": "#E01E5A",
+        "secondary": "#36C5F0",
+        "background": "#ffffff",
+        "foreground": "#f8f8f8",
+        "mode": "light",
+        "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "figmaDesign",
+        "name": "Figma Design",
+        "primary": "#F24E1E",
+        "secondary": "#A259FF",
+        "background": "#ffffff",
+        "foreground": "#f5f5f5",
+        "mode": "light",
+        "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "vercelDark",
+        "name": "Vercel Dark",
+        "primary": "#ffffff",
+        "secondary": "#888888",
+        "background": "#000000",
+        "foreground": "#1a1a1a",
+        "mode": "dark",
+        "font": "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "stripeModern",
+        "name": "Stripe Modern",
+        "primary": "#635BFF",
+        "secondary": "#00D4FF",
+        "background": "#0a0e27",
+        "foreground": "#131829",
+        "mode": "dark",
+        "font": "'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      }
+    ],
+    "modern": [
+      {
+        "id": "cyberpunkNeon",
+        "name": "Cyberpunk Neon",
+        "primary": "#00ff88",
+        "secondary": "#ff006e",
+        "background": "#0a0e27",
+        "foreground": "#16213e",
+        "mode": "dark",
+        "font": "'Space Mono', monospace"
+      },
+      {
+        "id": "retroSynthwave",
+        "name": "Retro Synthwave",
+        "primary": "#ff006e",
+        "secondary": "#00f5ff",
+        "background": "#1a0033",
+        "foreground": "#330066",
+        "mode": "dark",
+        "font": "'Orbitron', monospace"
+      },
+      {
+        "id": "minimalLight",
+        "name": "Minimal Light",
+        "primary": "#000000",
+        "secondary": "#666666",
+        "background": "#ffffff",
+        "foreground": "#fafafa",
+        "mode": "light",
+        "font": "'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "warmSunset",
+        "name": "Warm Sunset",
+        "primary": "#FF6B35",
+        "secondary": "#FF8C42",
+        "background": "#1a1410",
+        "foreground": "#2d2219",
+        "mode": "dark",
+        "font": "'Playfair Display', serif"
+      },
+      {
+        "id": "coolGlacier",
+        "name": "Cool Glacier",
+        "primary": "#5dade2",
+        "secondary": "#85c1e2",
+        "background": "#ecf0f1",
+        "foreground": "#f8f9fa",
+        "mode": "light",
+        "font": "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "deepForest",
+        "name": "Deep Forest",
+        "primary": "#2d5016",
+        "secondary": "#4a7c1c",
+        "background": "#0f1b0a",
+        "foreground": "#1a2d12",
+        "mode": "dark",
+        "font": "'Bitter', serif"
+      },
+      {
+        "id": "sunsetGlow",
+        "name": "Sunset Glow",
+        "primary": "#FF8C42",
+        "secondary": "#FFB347",
+        "background": "#FFF8DC",
+        "foreground": "#FFFACD",
+        "mode": "light",
+        "font": "'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "electricPurple",
+        "name": "Electric Purple",
+        "primary": "#8800FF",
+        "secondary": "#BB00FF",
+        "background": "#1a0033",
+        "foreground": "#330066",
+        "mode": "dark",
+        "font": "'Victor Mono', monospace"
+      },
+      {
+        "id": "sageGreen",
+        "name": "Sage Green",
+        "primary": "#9CAF88",
+        "secondary": "#B8C6A1",
+        "background": "#F4F6F1",
+        "foreground": "#FAFBF8",
+        "mode": "light",
+        "font": "'Cormorant Garamond', serif"
+      },
+      {
+        "id": "slateBlue",
+        "name": "Slate Blue",
+        "primary": "#6366F1",
+        "secondary": "#818CF8",
+        "background": "#1E1B4B",
+        "foreground": "#2E2B5F",
+        "mode": "dark",
+        "font": "'Courier Prime', monospace"
+      },
+      {
+        "id": "notionMinimal",
+        "name": "Notion Minimal",
+        "primary": "#000000",
+        "secondary": "#505050",
+        "background": "#ffffff",
+        "foreground": "#f5f5f5",
+        "mode": "light",
+        "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
+      },
+      {
+        "id": "spotifyDark",
+        "name": "Spotify Dark",
+        "primary": "#1DB954",
+        "secondary": "#191414",
+        "background": "#0f0f0f",
+        "foreground": "#181818",
+        "mode": "dark",
+        "font": "'Circular Std', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "dribbblePink",
+        "name": "Dribbble Pink",
+        "primary": "#EA4C89",
+        "secondary": "#DD1C6C",
+        "background": "#f7f2f9",
+        "foreground": "#faf7fc",
+        "mode": "light",
+        "font": "'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "twitchPurple",
+        "name": "Twitch Purple",
+        "primary": "#9146FF",
+        "secondary": "#7B2CBF",
+        "background": "#0e0e10",
+        "foreground": "#18181b",
+        "mode": "dark",
+        "font": "'Roblox Mono', monospace"
+      },
+      {
+        "id": "dropboxBlue",
+        "name": "Dropbox Blue",
+        "primary": "#0061FF",
+        "secondary": "#00A4EF",
+        "background": "#ffffff",
+        "foreground": "#f9fafb",
+        "mode": "light",
+        "font": "'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      }
+    ],
+    "additional": [
+      {
+        "id": "slackDark",
+        "name": "Slack Dark",
+        "primary": "#E01E5A",
+        "secondary": "#36C5F0",
+        "background": "#121212",
+        "foreground": "#1d1d1d",
+        "mode": "dark",
+        "font": "'Slack Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "linearApp",
+        "name": "Linear App",
+        "primary": "#5E51E6",
+        "secondary": "#1D91FF",
+        "background": "#ffffff",
+        "foreground": "#f9fafb",
+        "mode": "light",
+        "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "firebaseOrange",
+        "name": "Firebase Orange",
+        "primary": "#FFCA28",
+        "secondary": "#FF9800",
+        "background": "#1a1a1a",
+        "foreground": "#2d2d2d",
+        "mode": "dark",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "dockerBlue",
+        "name": "Docker Blue",
+        "primary": "#2496ED",
+        "secondary": "#0095D8",
+        "background": "#1e1e1e",
+        "foreground": "#252526",
+        "mode": "dark",
+        "font": "'Monaco', monospace"
+      },
+      {
+        "id": "githubLight",
+        "name": "GitHub Light",
+        "primary": "#1f6feb",
+        "secondary": "#388bfd",
+        "background": "#ffffff",
+        "foreground": "#f6f8fa",
+        "mode": "light",
+        "font": "'GitHub Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "slackPink",
+        "name": "Slack Pink",
+        "primary": "#E01E5A",
+        "secondary": "#F2CC8F",
+        "background": "#ffffff",
+        "foreground": "#f9f9f9",
+        "mode": "light",
+        "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "herokuPurple",
+        "name": "Heroku Purple",
+        "primary": "#430098",
+        "secondary": "#79589f",
+        "background": "#0a0a0a",
+        "foreground": "#1a1a1a",
+        "mode": "dark",
+        "font": "'Source Code Pro', monospace"
+      },
+      {
+        "id": "mongodbGreen",
+        "name": "MongoDB Green",
+        "primary": "#00ED64",
+        "secondary": "#11AA33",
+        "background": "#001d1d",
+        "foreground": "#003333",
+        "mode": "dark",
+        "font": "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "figmaPink",
+        "name": "Figma Pink",
+        "primary": "#F24E1E",
+        "secondary": "#A259FF",
+        "background": "#ffffff",
+        "foreground": "#f5f5f5",
+        "mode": "light",
+        "font": "'Gilroy', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "notionDark",
+        "name": "Notion Dark",
+        "primary": "#FFFFFF",
+        "secondary": "#999999",
+        "background": "#191919",
+        "foreground": "#2d2d2d",
+        "mode": "dark",
+        "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
+      },
+      {
+        "id": "discordDark",
+        "name": "Discord Dark",
+        "primary": "#5865F2",
+        "secondary": "#57F287",
+        "background": "#313338",
+        "foreground": "#2c2f33",
+        "mode": "dark",
+        "font": "'Whitney', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "linkedInBlue",
+        "name": "LinkedIn Blue",
+        "primary": "#0A66C2",
+        "secondary": "#0950BA",
+        "background": "#ffffff",
+        "foreground": "#f5f5f5",
+        "mode": "light",
+        "font": "'Helvetica', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "telegramBlue",
+        "name": "Telegram Blue",
+        "primary": "#0088cc",
+        "secondary": "#31a3f5",
+        "background": "#ffffff",
+        "foreground": "#f5f5f5",
+        "mode": "light",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "gitlabOrange",
+        "name": "GitLab Orange",
+        "primary": "#FC6D26",
+        "secondary": "#E24329",
+        "background": "#1f1f1f",
+        "foreground": "#2d2d2d",
+        "mode": "dark",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "trelloBlue",
+        "name": "Trello Blue",
+        "primary": "#0079BF",
+        "secondary": "#026AA7",
+        "background": "#f8f9fa",
+        "foreground": "#ffffff",
+        "mode": "light",
+        "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
+      },
+      {
+        "id": "slackAqua",
+        "name": "Slack Aqua",
+        "primary": "#36C5F0",
+        "secondary": "#2EB67D",
+        "background": "#f9f9f9",
+        "foreground": "#ffffff",
+        "mode": "light",
+        "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "asanaBlue",
+        "name": "Asana Blue",
+        "primary": "#145FDD",
+        "secondary": "#2B4D6F",
+        "background": "#ffffff",
+        "foreground": "#f5f5f5",
+        "mode": "light",
+        "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
+      },
+      {
+        "id": "mondayBlue",
+        "name": "Monday.com Blue",
+        "primary": "#0073E6",
+        "secondary": "#00D9FF",
+        "background": "#1f2b4a",
+        "foreground": "#2d3e5f",
+        "mode": "dark",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      },
+      {
+        "id": "notionPurple",
+        "name": "Notion Purple",
+        "primary": "#6B46C1",
+        "secondary": "#9F7AEA",
+        "background": "#f9f9f9",
+        "foreground": "#ffffff",
+        "mode": "light",
+        "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
+      },
+      {
+        "id": "canvaGreen",
+        "name": "Canvas Green",
+        "primary": "#00A170",
+        "secondary": "#00D084",
+        "background": "#f0f5f2",
+        "foreground": "#ffffff",
+        "mode": "light",
+        "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      }
+    ]
+  },
+  "categories": {
+    "custom": {
+      "label": "Custom Presets",
+      "count": 10
+    },
+    "company": {
+      "label": "Company Themes",
+      "count": 10
+    },
+    "modern": {
+      "label": "Modern Presets",
+      "count": 15
+    },
+    "additional": {
+      "label": "Additional Themes",
+      "count": 15
+    }
+  }
+}

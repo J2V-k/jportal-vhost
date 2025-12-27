@@ -16,14 +16,14 @@ export function ThemeProvider({ children }){
             applyTheme(saved)
             setThemeMode(saved.mode === 'dark' ? 'dark' : 'light')
         } else {
-            // Apply default dark palette when there's no saved theme
             const defaultDark = {
                 name: 'Default Dark',
                 primary: '#fafafa',
                 secondary: '#a1a1aa',
                 background: '#09090b',
                 foreground: '#18181b',
-                mode: 'dark'
+                mode: 'dark',
+                font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
             }
             applyTheme(defaultDark)
             setThemeMode('dark')

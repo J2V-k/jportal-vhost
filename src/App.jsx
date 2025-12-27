@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -29,7 +29,7 @@ import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
 import { HelmetProvider } from 'react-helmet-async';
-import { Analytics } from "@vercel/analytics/next";
+
 import { WebPortal, LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
 import { serialize_payload } from "@/lib/jiitCrypto";
 
@@ -42,10 +42,10 @@ const w = new WebPortal();
 
 function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal }) {
   const navigate = useNavigate();
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const [touchStartY, setTouchStartY] = useState(null);
-  const [touchEndY, setTouchEndY] = useState(null);
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+  const touchStartY = useRef(null);
+  const touchEndY = useRef(null);
   const [attendanceData, setAttendanceData] = useState({});
   const [attendanceSemestersData, setAttendanceSemestersData] = useState(null);
   const [activeAttendanceTab, setActiveAttendanceTab] = useState("overview");
@@ -117,46 +117,50 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   const minSwipeDistance = 75;
 
   const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.touches[0].clientX);
-    setTouchStartY(e.touches[0].clientY);
+    const tgt = e.target;
+    if (tgt && ['INPUT','TEXTAREA','SELECT','BUTTON'].includes(tgt.tagName)) return;
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+    touchEndX.current = null;
+    touchEndY.current = null;
   };
 
   const onTouchMove = (e) => {
-    setTouchEnd(e.touches[0].clientX);
-    setTouchEndY(e.touches[0].clientY);
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    touchEndX.current = t.clientX;
+    touchEndY.current = t.clientY;
   };
 
   const location = useLocation();
   const [transitionDirection, setTransitionDirection] = useState('forward');
 
-  const onTouchEndWithTransition = () => {
-    if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
-
+  const onTouchEndWithTransition = (e) => {
     const swipeEnabled = localStorage.getItem('swipeEnabled') !== 'false';
     const isDesktop = window.innerWidth >= 768;
-    if (!swipeEnabled || isDesktop) {
-      setTouchStart(null);
-      setTouchEnd(null);
-      setTouchStartY(null);
-      setTouchEndY(null);
-      return;
+    if (!swipeEnabled || isDesktop) return;
+
+    let endX = null, endY = null;
+    if (e && e.changedTouches && e.changedTouches[0]) {
+      endX = e.changedTouches[0].clientX;
+      endY = e.changedTouches[0].clientY;
     }
+    endX = endX || touchEndX.current;
+    endY = endY || touchEndY.current;
+    const startX = touchStartX.current;
+    const startY = touchStartY.current;
+    if (startX == null || endX == null || startY == null || endY == null) return;
 
-    const distanceX = Math.abs(touchStart - touchEnd);
-    const distanceY = Math.abs(touchStartY - touchEndY);
+    const distanceX = Math.abs(startX - endX);
+    const distanceY = Math.abs(startY - endY);
 
-    if (distanceY > distanceX) {
-      setTouchStart(null);
-      setTouchEnd(null);
-      setTouchStartY(null);
-      setTouchEndY(null);
-      return;
-    }
+    if (distanceY > distanceX) return;
 
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    const delta = startX - endX;
+    const isLeftSwipe = delta > minSwipeDistance;
+    const isRightSwipe = delta < -minSwipeDistance;
 
     const routes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
     const currentPath = window.location.hash.replace('#', '');
@@ -165,17 +169,15 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     if (isLeftSwipe && currentIndex < routes.length - 1) {
       setTransitionDirection('forward');
       navigate(routes[currentIndex + 1]);
-    }
-
-    if (isRightSwipe && currentIndex > 0) {
+    } else if (isRightSwipe && currentIndex > 0) {
       setTransitionDirection('reverse');
       navigate(routes[currentIndex - 1]);
     }
 
-    setTouchStart(null);
-    setTouchEnd(null);
-    setTouchStartY(null);
-    setTouchEndY(null);
+    touchStartX.current = null;
+    touchEndX.current = null;
+    touchStartY.current = null;
+    touchEndY.current = null;
   };
 
   return (
@@ -466,6 +468,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentWebPortal, setCurrentWebPortal] = useState(w);
+  const [showOfflinePrompt, setShowOfflinePrompt] = useState(false);
   const [messMenuOpen, setMessMenuOpen] = useState(() => {
     return localStorage.getItem("messMenuOpen") === "true";
   });
@@ -590,6 +593,16 @@ function App() {
     performLogin();
   }, []);
 
+  useEffect(() => {
+    let t;
+    if (isLoading) {
+      t = setTimeout(() => setShowOfflinePrompt(true), 10000);
+    } else {
+      setShowOfflinePrompt(false);
+    }
+    return () => clearTimeout(t);
+  }, [isLoading]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
@@ -605,7 +618,7 @@ function App() {
             <span className="text-xs text-muted-foreground mb-1">Quick Access</span>
             <div className="flex flex-wrap gap-2 items-center justify-center">
               <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
-                <span className="flex items-center justify-center px-6 py-2 bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:text-green-300 transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
+                <span className="flex items-center justify-center px-6 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
                   <UtensilsCrossed size={18} /> Mess Menu
                 </span>
               </MessMenu>
@@ -613,21 +626,29 @@ function App() {
                 href="#/academic-calendar"
                 onClick={(e) => {
                   try {
-                    e.preventDefault();
-                    const target = '#/academic-calendar';
-                    if (window.location.hash !== target) {
-                      window.location.hash = target;
-                      window.dispatchEvent(new Event('hashchange'));
-                    }
+                    window.location.hash = '#/academic-calendar';
                   } catch (err) {
                     window.location.href = '#/academic-calendar';
                   }
                 }}
-                className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 transition-colors rounded-lg text-sm font-medium gap-2"
+                className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2"
               >
                 <CalendarIcon size={18} /> Academic Calendar
               </a>
               <InstallPWA />
+              {showOfflinePrompt && (
+                <button
+                  onClick={() => {
+                    setCurrentWebPortal(new ArtificialWebPortal());
+                    setIsAuthenticated(true);
+                    setIsLoading(false);
+                    setShowOfflinePrompt(false);
+                  }}
+                  className="px-4 py-2 bg-secondary/10 border border-border text-secondary hover:bg-secondary/20 transition-colors rounded-lg text-sm font-medium"
+                >
+                  Offline Mode
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -701,7 +722,6 @@ function App() {
           </div>
         </Router>
       </ThemeProvider>
-</Analytics>
     </HelmetProvider>
   );
 }
