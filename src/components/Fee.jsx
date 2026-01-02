@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Receipt, Hash, BookOpen, GitBranch, Calendar, Tag, AlertCircle, Download, RefreshCw, Wallet, Clock, CheckCircle2 } from "lucide-react";
+import { Hash, BookOpen, GitBranch, Calendar, Tag, AlertCircle, Download, RefreshCw, Wallet, Clock, CheckCircle2 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 import { Alert, AlertDescription } from './ui/alert';
-import { Badge } from "./ui/badge"; // Assuming you have a Badge component
+import { Badge } from "./ui/badge";
 import axios from 'axios';
 
 export default function Fee({ w, serialize_payload }) {
@@ -94,7 +94,6 @@ export default function Fee({ w, serialize_payload }) {
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 pb-24">
       <Helmet><title>Fee Summary | JP Portal</title></Helmet>
 
-      {/* Top Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Fee Summary</h1>
@@ -110,7 +109,6 @@ export default function Fee({ w, serialize_payload }) {
         </button>
       </div>
 
-      {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard title="Total Paid" amount={totalPaid} icon={<CheckCircle2 className="text-emerald-500" />} color="bg-emerald-500/10" />
         <StatCard title="Outstanding Due" amount={totalDue} icon={<Clock className="text-rose-500" />} color="bg-rose-500/10" />
@@ -118,7 +116,6 @@ export default function Fee({ w, serialize_payload }) {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left Column: Student Info */}
         <div className="space-y-6">
           <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
             <div className="p-4 border-b bg-muted/30">
@@ -137,9 +134,7 @@ export default function Fee({ w, serialize_payload }) {
           </div>
         </div>
 
-        {/* Right Column: Fines and Detailed Breakup */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Fines Section */}
           {fines.length > 0 && (
             <section className="space-y-3">
               <h3 className="text-lg font-semibold flex items-center gap-2 text-rose-600">
@@ -159,7 +154,6 @@ export default function Fee({ w, serialize_payload }) {
             </section>
           )}
 
-          {/* Fee Heads Section */}
           <section className="space-y-4">
             <h3 className="text-lg font-semibold">Semester-wise Breakdown</h3>
             <div className="grid gap-4">
@@ -197,7 +191,6 @@ export default function Fee({ w, serialize_payload }) {
   );
 }
 
-// Sub-components for cleaner JSX
 function StatCard({ title, amount, icon, color }) {
   return (
     <div className={`p-6 rounded-2xl border ${color} shadow-sm space-y-2`}>

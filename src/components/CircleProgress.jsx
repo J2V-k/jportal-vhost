@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from "react";
+import  { useEffect, useState, memo } from "react";
 
 const CircleProgress = memo(function CircleProgress({ percentage, label, target = 75, className = "" }) {
   const strokeWidth = 2.5;

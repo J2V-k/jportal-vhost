@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArtificialWebPortal } from "./scripts/artificialW";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import useTheme from "@/context/ThemeContext";
 import {
   LineChart,
@@ -55,7 +55,6 @@ const gradePointMap = {
 
 export default function Grades({
   w,
-  gradesData,
   setGradesData,
   semesterData,
   setSemesterData,

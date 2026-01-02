@@ -130,9 +130,16 @@ async function loadThemePresetsFromFile() {
   if (themePresetsData) return themePresetsData
   
   try {
+    const cached = localStorage.getItem('jportal_theme_presets_v1')
+    if (cached) {
+      themePresetsData = JSON.parse(cached)
+      return themePresetsData
+    }
+    
     const response = await fetch('/theme-presets.json')
     if (!response.ok) throw new Error('Failed to load theme-presets.json')
     themePresetsData = await response.json()
+    localStorage.setItem('jportal_theme_presets_v1', JSON.stringify(themePresetsData))
     return themePresetsData
   } catch (error) {
     console.error('Error loading theme presets:', error)
@@ -140,9 +147,6 @@ async function loadThemePresetsFromFile() {
   }
 }
 
-/**
- * Get all theme presets organized by category
- */
 export async function getAllThemePresets() {
   const data = await loadThemePresetsFromFile()
   if (!data || !data.presets) return {}
@@ -159,27 +163,18 @@ export async function getAllThemePresets() {
   return allPresets
 }
 
-/**
- * Get presets by category
- */
 export async function getPresetsByCategory(category) {
   const data = await loadThemePresetsFromFile()
   if (!data || !data.presets || !data.presets[category]) return []
   return data.presets[category]
 }
 
-/**
- * Get all preset categories
- */
 export async function getThemeCategories() {
   const data = await loadThemePresetsFromFile()
   if (!data || !data.categories) return {}
   return data.categories
 }
 
-/**
- * Get a specific preset by ID
- */
 export async function getPresetById(id) {
   const allPresets = await getAllThemePresets()
   return allPresets[id] || null

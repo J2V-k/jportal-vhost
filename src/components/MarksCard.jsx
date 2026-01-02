@@ -35,7 +35,6 @@ export default function MarksCard({ course, gradeInfo }) {
       <Card className="overflow-hidden bg-card border-border/60 shadow-sm hover:shadow-md transition-all duration-300">
         <CardContent className="p-4 md:p-6 space-y-5">
           
-          {/* Section 1: Title and Code */}
           <div className="flex flex-col gap-1.5 w-full">
             <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight leading-tight break-words">
               {course.name}
@@ -52,7 +51,6 @@ export default function MarksCard({ course, gradeInfo }) {
             </div>
           </div>
 
-          {/* Section 2: Grades & Credits (Always a new row) */}
           {matchingGrade && (
             <div className="w-full grid grid-cols-3 gap-2 bg-muted/30 p-3 rounded-xl border border-border/40">
               <StatBox label="Grade" value={matchingGrade.grade} colorClass="text-foreground" />
@@ -65,7 +63,6 @@ export default function MarksCard({ course, gradeInfo }) {
 
           <Separator className="opacity-50" />
 
-          {/* Section 3: Assessment Components */}
           <div className="space-y-4">
             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">
               <span>Assessment</span>

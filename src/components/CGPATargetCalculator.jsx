@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Calculator, Plus, Trash2, BookOpen, GraduationCap, Loader2, ArrowLeft, Target, TrendingUp, Award } from "lucide-react"
+import { Plus, Trash2, BookOpen, GraduationCap, Loader2, Target, TrendingUp, Award } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getFromCache } from "@/components/scripts/cache"
 import { Helmet } from 'react-helmet-async'
 
 export default function CGPATargetCalculator({ w }) {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("sgpa");
 
   const [subjectSemesters, setSubjectSemesters] = useState([]);
@@ -363,17 +361,6 @@ export default function CGPATargetCalculator({ w }) {
         <link rel="canonical" href="https://jportal2-0.vercel.app/#/gpa-calculator" />
       </Helmet>
       <div className="w-full max-w-5xl mx-auto bg-background text-foreground rounded-lg overflow-hidden">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur p-4 md:p-5 border-b border-border shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-lg md:text-xl font-bold text-foreground">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Calculator className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-              </div>
-              GPA Calculator
-            </div>
-
-          </div>
-        </div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mx-4 md:mx-6 mt-2">
             <TabsTrigger
@@ -392,7 +379,7 @@ export default function CGPATargetCalculator({ w }) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="sgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 space-y-4 md:space-y-5 py-2">
+          <TabsContent value="sgpa" className="min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 space-y-4 md:space-y-5 py-2">
             <div className="space-y-3 md:space-y-4">
               <Select onValueChange={handleSemesterChange} value={selectedSemester?.registration_id || ""}>
                 <SelectTrigger className="w-full md:max-w-sm h-11 md:h-12 bg-card text-foreground border-2 border-border hover:border-primary/50 text-sm rounded-lg transition-all shadow-lg">
@@ -507,7 +494,7 @@ export default function CGPATargetCalculator({ w }) {
             )}
           </TabsContent>
 
-          <TabsContent value="cgpa" className="max-h-[70vh] min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 space-y-4 md:space-y-6">
+          <TabsContent value="cgpa" className="min-h-[300px] md:min-h-[350px] overflow-y-auto px-4 md:px-6 py-4 space-y-4 md:space-y-6">
             <div className="flex flex-col gap-4 md:gap-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 p-3 md:p-4 rounded-lg bg-card border border-border">
@@ -668,6 +655,8 @@ export default function CGPATargetCalculator({ w }) {
             </div>
           </TabsContent>
         </Tabs>
+                <div className="h-12 md:h-12" />
+
       </div>
     </>
   );

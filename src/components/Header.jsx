@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThemeBtn from "./ui/ThemeBtn";
 import MessMenu from './MessMenu';
-import { Utensils, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Utensils, ArrowLeft, WifiOff } from 'lucide-react';
 import SettingsDialog from './SettingsDialog';
 import { ArtificialWebPortal } from './scripts/artificialW';
 
@@ -18,65 +18,69 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
 
   const rawPath = location.pathname || (location.hash ? location.hash.replace('#', '') : '/');
   const currentPath = rawPath.split('?')[0];
-  const backVisiblePaths = ['/academic-calendar', '/fee', '/feedback', '/gpa-calculator', '/timetable'];
+  const backVisiblePaths = ['/academic-calendar', '/fee', '/feedback', '/gpa-calculator', '/timetable', '/subjects'];
   const showBack = backVisiblePaths.includes(currentPath);
   const handleBack = () => navigate(-1);
 
+  const isOfflineMode = (w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal')));
+
   return (
     <motion.header
-      initial={{ opacity: 0, y: -50 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-background text-foreground mx-auto px-3 pt-4 pb-2 shadow-md"
+      className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
-      <div className="container-fluid flex justify-between items-center">
-        <div className="flex items-center gap-3">
+      <div className="mx-auto px-4 h-16 flex items-center justify-between max-w-[1440px]">
+        <div className="flex items-center gap-4">
           {showBack && (
-            <button onClick={handleBack} className="p-2 rounded-full bg-transparent hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" />
+            <button
+              onClick={handleBack}
+              className="group flex items-center justify-center w-9 h-9 rounded-xl border border-border bg-card hover:bg-accent transition-all duration-200 shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
             </button>
           )}
 
-          <motion.h1
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-foreground text-2xl font-bold lg:text-3xl font-sans"
-          >
-            <p className="md:hidden"> JP Portal</p>
-          </motion.h1>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              JP Portal
+            </h1>
+          </div>
         </div>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="flex items-center space-x-4"
-        >
-          <MessMenu open={messMenuOpen} onOpenChange={onMessMenuChange}>
-            <div
-              className="p-2 rounded-full focus:outline-none focus:ring-2 transition-colors duration-300 ease-in-out text-muted-foreground hover:bg-accent cursor-pointer"
-            >
-              <Utensils className="w-5 h-5" />
-            </div>
-          </MessMenu>
-          <ThemeBtn />
-          {(w && (w instanceof ArtificialWebPortal || (w.constructor && w.constructor.name === 'ArtificialWebPortal'))) && (
+
+        <div className="flex items-center gap-2">
+          {isOfflineMode && (
             <button
               onClick={() => window.location.reload()}
-              title="Refresh page"
-              aria-label="Refresh page"
-              className="flex items-center gap-2 px-2 py-1 bg-accent text-accent-foreground border border-accent/20 rounded-lg hover:bg-accent/90 transition-colors cursor-pointer"
+              className="mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
+              title="You are viewing cached data"
             >
-              <RefreshCw className="w-3 h-3 text-accent-foreground" />
-              <span className="text-xs font-medium">Offline</span>
+              <WifiOff className="w-3.5 h-3.5" />
+              <span className="hidden md:inline text-[10px] font-bold uppercase tracking-tighter">Offline</span>
             </button>
           )}
-          <SettingsDialog
-            onLogout={handleLogout}
-            attendanceGoal={attendanceGoal}
-            setAttendanceGoal={setAttendanceGoal}
-          />
-        </motion.div>
+
+          <div className="flex items-center gap-1">
+            <MessMenu open={messMenuOpen} onOpenChange={onMessMenuChange}>
+              <button 
+                className="inline-flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="View Mess Menu"
+              >
+                <Utensils className="w-5 h-5" />
+              </button>
+            </MessMenu>
+
+            <ThemeBtn />
+
+            <div className="w-px h-6 bg-border mx-1" />
+
+            <SettingsDialog
+              onLogout={handleLogout}
+              attendanceGoal={attendanceGoal}
+              setAttendanceGoal={setAttendanceGoal}
+            />
+          </div>
+        </div>
       </div>
     </motion.header>
   );

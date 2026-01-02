@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react"
-import { Link, useLocation, useSearchParams, useNavigate } from "react-router-dom"
+import { useState, useEffect, useMemo } from "react"
+import { useSearchParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from 'react-helmet-async'
 import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Empty } from "@/components/ui/empty";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks } from "lucide-react"
+import { Empty } from "@/components/ui/empty"
+import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks} from "lucide-react"
 import { getRegisteredSubjectsFromCache, saveRegisteredSubjectsToCache, getSubjectChoicesFromCache, saveSubjectChoicesToCache } from '@/components/scripts/cache'
 
 export default function Subjects({
@@ -20,7 +19,6 @@ export default function Subjects({
   selectedSem,
   setSelectedSem,
 }) {
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(!semestersData)
   const [subjectsLoading, setSubjectsLoading] = useState(!subjectData)
@@ -71,7 +69,7 @@ export default function Subjects({
           latest_semester: semestersList[0] || null,
         })
 
-        await findFirstSemesterWithSubjects(registeredSems)
+        await findFirstSemesterWithSubjects(semestersList)
       } catch (err) {
         console.error(err)
       } finally {
@@ -175,13 +173,10 @@ export default function Subjects({
           ...prev,
           [semester.registration_id]: cached,
         }))
-        setSubjectsLoading(false)
         return
       }
 
-      if (subjectData?.[semester.registration_id]) {
-        setSubjectsLoading(false)
-      } else {
+      if (!subjectData?.[semester.registration_id]) {
         const data = await w.get_registered_subjects_and_faculties(semester)
         setSubjectData((prev) => ({
           ...prev,
@@ -241,8 +236,8 @@ export default function Subjects({
     setNextSemChoices(null)
   }
 
-  const groupedSubjects =
-    currentSubjects?.subjects?.reduce((acc, subject) => {
+  const groupedSubjects = useMemo(() => {
+    return currentSubjects?.subjects?.reduce((acc, subject) => {
       const baseCode = subject.subject_code
       if (!acc[baseCode]) {
         acc[baseCode] = {
@@ -265,6 +260,20 @@ export default function Subjects({
 
       return acc
     }, {}) || {}
+  }, [currentSubjects])
+
+  const filteredSubjectsList = useMemo(() => {
+    let subjects = Object.values(groupedSubjects);
+    subjects = subjects.sort((a, b) => (b.credits || 0) - (a.credits || 0));
+
+    return subjects.filter(subject => {      
+      const hasL = componentFilters.L && subject.components.some(comp => comp.type === 'L');
+      const hasT = componentFilters.T && subject.components.some(comp => comp.type === 'T');
+      const hasP = componentFilters.P && subject.components.some(comp => comp.type === 'P');
+      
+      return (hasL || hasT || hasP);
+    });
+  }, [groupedSubjects, componentFilters]);
 
   const navigate = useNavigate();
 
@@ -337,22 +346,42 @@ export default function Subjects({
 
           <TabsContent value="registered" className="mt-4">
             {!subjectsLoading && currentSubjects && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="mb-4 flex justify-center"
-              >
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-muted/5 text-muted-foreground border border-border rounded-full text-sm font-medium">
-                  <BookOpen className="w-4 h-4" />
-                  Total Credits: {currentSubjects?.total_credits || 0}
+              <div className="space-y-4 mb-6">
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
+                  <div className="flex items-center gap-2 p-1 bg-muted/30 rounded-lg border border-border w-full md:w-auto overflow-x-auto">
+                    {[
+                      { id: 'L', label: 'Lectures' },
+                      { id: 'T', label: 'Tutorials' },
+                      { id: 'P', label: 'Practicals' }
+                    ].map((comp) => (
+                      <button
+                        key={comp.id}
+                        onClick={() => setComponentFilters(prev => ({ ...prev, [comp.id]: !prev[comp.id] }))}
+                        className={`flex-1 md:flex-none px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
+                          componentFilters[comp.id] 
+                            ? "bg-primary text-primary-foreground shadow-sm" 
+                            : "text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {comp.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary border border-primary/20 rounded-full text-xs font-bold">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    {currentSubjects?.total_credits || 0} CREDITS
+                  </div>
                 </div>
-              </motion.div>
+              </div>
             )}
+
             {subjectsLoading ? (
               <div className="flex items-center justify-center py-4 h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-foreground" />
-                <span className="ml-2 text-foreground">Loading...</span>
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <span className="text-muted-foreground font-medium">Fetching subjects...</span>
+                </div>
               </div>
             ) : currentSubjectsError ? (
               <div className="flex items-center justify-center py-8">
@@ -361,61 +390,34 @@ export default function Subjects({
                   <p className="text-muted-foreground">{currentSubjectsError}</p>
                 </div>
               </div>
-            ) : Object.keys(groupedSubjects).length === 0 ? (
+            ) : filteredSubjectsList.length === 0 ? (
               <div className="flex items-center justify-center py-8">
-                <Empty description="No subjects found for this semester." />
+                <Empty description={"No subjects found for this semester."} />
               </div>
             ) : (
-              <>
-                <div className="mb-4 p-4 bg-card rounded-lg border border-border flex flex-wrap items-center gap-4">
-                  <span className="text-sm font-medium text-foreground">Filter by Component:</span>
-                  <div className="flex items-center space-x-4">
-                    {['L', 'T', 'P'].map((comp) => (
-                      <div key={comp} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`filter-${comp}`}
-                          checked={componentFilters[comp]}
-                          onCheckedChange={(checked) => setComponentFilters(prev => ({ ...prev, [comp]: checked }))}
-                        />
-                        <label htmlFor={`filter-${comp}`} className="text-sm font-medium cursor-pointer">
-                          {comp === 'L' ? 'Lectures' : comp === 'T' ? 'Tutorials' : 'Practicals'}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <AnimatePresence mode="wait">
-                  <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(() => {
-                      let subjects = Object.values(groupedSubjects);
-                      subjects = subjects.sort((a, b) => (b.credits || 0) - (a.credits || 0));
-
-                      subjects = subjects.filter(subject => {
-                        const hasL = componentFilters.L && subject.components.some(comp => comp.type === 'L');
-                        const hasT = componentFilters.T && subject.components.some(comp => comp.type === 'T');
-                        const hasP = componentFilters.P && subject.components.some(comp => comp.type === 'P');
-                        return hasL || hasT || hasP;
-                      });
-
-                      return subjects.map((subject, index) => (
-                        <motion.div
-                          key={subject.code}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.05 }}
-                        >
-                          <SubjectInfoCard subject={subject} />
-                        </motion.div>
-                      ));
-                    })()}
-                  </motion.div>
-                </AnimatePresence>
-              </>
+              <AnimatePresence mode="popLayout">
+                <motion.div 
+                  layout
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  {filteredSubjectsList.map((subject, index) => (
+                    <motion.div
+                      layout
+                      key={subject.code}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2, delay: index * 0.03 }}
+                    >
+                      <SubjectInfoCard subject={subject} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
             )}
 
-            {currentSubjects && (
-              <div className="flex justify-center mt-6">
+            {currentSubjects && !subjectsLoading && (
+              <div className="flex justify-center mt-10">
                 <TimetableButton />
               </div>
             )}

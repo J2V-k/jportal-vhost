@@ -5,7 +5,6 @@ import {
   Phone,
   MapPin,
   GraduationCap,
-  Loader2,
   Calendar,
   Github,
   Home,
@@ -18,7 +17,6 @@ import {
   CreditCard,
   DollarSign,
   Building,
-  Briefcase,
   AtSign,
   Map,
   Bed,
@@ -49,7 +47,7 @@ export default function Profile({
   const [activeTab, setActiveTab] = useState("personal");
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [localSemesterData, setLocalSemesterData] = useState(initialSemesterData || []);
+  const [_, setLocalSemesterData] = useState(initialSemesterData || []);
   const [hostelData, setHostelData] = useState(null);
 
   useEffect(() => {
@@ -156,7 +154,6 @@ export default function Profile({
         <title>{info.studentname ? `${info.studentname} - Profile | JP Portal` : 'Profile - JP Portal'}</title>
       </Helmet>
 
-      {/* Header Info Card */}
       <motion.div
         initial={{ y: -20 }}
         animate={{ y: 0 }}
@@ -205,7 +202,6 @@ export default function Profile({
         </div>
       </motion.div>
 
-      {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="w-full justify-start bg-card h-auto p-1 border border-border overflow-x-auto">
           <TabsTrigger value="personal" className="flex items-center gap-2 py-2"><User className="w-4 h-4" /> Personal</TabsTrigger>
@@ -305,7 +301,6 @@ export default function Profile({
         </Card>
       </Tabs>
 
-      {/* Navigation Quick Links */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -331,7 +326,6 @@ export default function Profile({
           </motion.button>
         ))}
 
-        {/* Source and Docs */}
         <motion.a
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   getAttendanceFromCache,
   saveAttendanceToCache,
@@ -20,16 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Empty } from "@/components/ui/empty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import {
   Loader2,
-  AlertCircle,
   ChevronDown,
   ChevronUp,
   ArrowUpDown,
@@ -67,7 +62,6 @@ const Attendance = ({
   subjectCacheStatus,
   setSubjectCacheStatus,
 }) => {
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -517,7 +511,7 @@ const Attendance = ({
                 <BarChart3 className="w-4 h-4" /> Overview
               </TabsTrigger>
               <TabsTrigger value="daily" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
-                <CalendarDays className="w-4 h-4" /> Day‑to‑Day
+                <CalendarDays className="w-4 h-4" /> Day-to-Day
               </TabsTrigger>
             </TabsList>
 

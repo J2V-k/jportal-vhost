@@ -118,7 +118,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   const onTouchStart = (e) => {
     const tgt = e.target;
-    if (tgt && ['INPUT','TEXTAREA','SELECT','BUTTON'].includes(tgt.tagName)) return;
+    if (tgt && ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tgt.tagName)) return;
     const t = e.touches && e.touches[0];
     if (!t) return;
     touchStartX.current = t.clientX;
@@ -605,54 +605,56 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
-        <div className="flex flex-col items-center">
-          <Loader2 className="w-8 h-8 animate-spin mb-2" />
-          <p className="text-lg font-semibold mb-1">
-            Signing in...
-          </p>
-          <p className="text-sm mb-4">
-            Welcome to JP Portal
-          </p>
-          <div className="bg-card/50 border border-border rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
-            <span className="text-xs text-muted-foreground mb-1">Quick Access</span>
-            <div className="flex flex-wrap gap-2 items-center justify-center">
-              <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
-                <span className="flex items-center justify-center px-6 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
-                  <UtensilsCrossed size={18} /> Mess Menu
-                </span>
-              </MessMenu>
-              <a
-                href="#/academic-calendar"
-                onClick={(e) => {
-                  try {
-                    window.location.hash = '#/academic-calendar';
-                  } catch (err) {
-                    window.location.href = '#/academic-calendar';
-                  }
-                }}
-                className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2"
-              >
-                <CalendarIcon size={18} /> Academic Calendar
-              </a>
-              <InstallPWA />
-              {showOfflinePrompt && (
-                <button
-                  onClick={() => {
-                    setCurrentWebPortal(new ArtificialWebPortal());
-                    setIsAuthenticated(true);
-                    setIsLoading(false);
-                    setShowOfflinePrompt(false);
+      <ThemeProvider>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+          <div className="flex flex-col items-center">
+            <Loader2 className="w-8 h-8 animate-spin mb-2" />
+            <p className="text-lg font-semibold mb-1">
+              Signing in...
+            </p>
+            <p className="text-sm mb-4">
+              Welcome to JP Portal
+            </p>
+            <div className="bg-card/50 border border-border rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
+              <span className="text-xs text-muted-foreground mb-1">Quick Access</span>
+              <div className="flex flex-wrap gap-2 items-center justify-center">
+                <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
+                  <span className="flex items-center justify-center px-6 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
+                    <UtensilsCrossed size={18} /> Mess Menu
+                  </span>
+                </MessMenu>
+                <a
+                  href="#/academic-calendar"
+                  onClick={(e) => {
+                    try {
+                      window.location.hash = '#/academic-calendar';
+                    } catch (err) {
+                      window.location.href = '#/academic-calendar';
+                    }
                   }}
-                  className="px-4 py-2 bg-secondary/10 border border-border text-secondary hover:bg-secondary/20 transition-colors rounded-lg text-sm font-medium"
+                  className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2"
                 >
-                  Offline Mode
-                </button>
-              )}
+                  <CalendarIcon size={18} /> Academic Calendar
+                </a>
+                <InstallPWA />
+                {showOfflinePrompt && (
+                  <button
+                    onClick={() => {
+                      setCurrentWebPortal(new ArtificialWebPortal());
+                      setIsAuthenticated(true);
+                      setIsLoading(false);
+                      setShowOfflinePrompt(false);
+                    }}
+                    className="px-4 py-2 bg-secondary/10 border border-border text-secondary hover:bg-secondary/20 transition-colors rounded-lg text-sm font-medium"
+                  >
+                    Offline Mode
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ThemeProvider>
     );
   }
 

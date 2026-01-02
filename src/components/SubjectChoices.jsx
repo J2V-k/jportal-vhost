@@ -1,4 +1,3 @@
-import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Loader2, CheckCircle2, Clock, AlertCircle, Bookmark, GraduationCap, Layers } from "lucide-react"
 
@@ -51,7 +50,6 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
 
     return (
       <div className="max-w-7xl mx-auto space-y-8 pb-12">
-        {/* Header Stats Card */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -86,7 +84,6 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
           </div>
         </motion.div>
 
-        {/* Grid of Baskets */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <AnimatePresence>
             {Object.entries(baskets).map(([basketCode, basket], index) => (

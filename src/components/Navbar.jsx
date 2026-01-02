@@ -1,6 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom"
 import { CheckSquare, Calendar, User, Book, FileCheck, BarChart3, Calculator, DollarSign } from "lucide-react"
-import InstallPWA from "./InstallPWA"
 import { ArtificialWebPortal } from "./scripts/artificialW"
 import { useState, useEffect } from 'react'
 
@@ -52,28 +51,20 @@ export default function Navbar({ w }) {
     ? items.filter(item => !['Fee', 'Faculty Feedback', 'Grades', 'Exams'].includes(item.name)) 
     : items;
 
-  // Process Mobile Items
   const mobileItems = filterItems([...navItems]);
   if (showTimetableInNavbar && !mobileItems.find(i => i.path === '/timetable')) {
     mobileItems.push({ name: 'Timetable', path: '/timetable', icon: Calendar });
   }
 
-  // Process Desktop Items (Added Timetable logic here)
   const desktopItems = filterItems([...desktopNavItems]);
   if (showTimetableInNavbar && !desktopItems.find(i => i.path === '/timetable')) {
-    // Inserts Timetable after Attendance for better visibility
     desktopItems.splice(1, 0, { name: 'Timetable', path: '/timetable', icon: Calendar });
   }
 
   return (
     <>
-      {/* --- MOBILE NAVIGATION (Ultra-Compact) --- */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[52px] bg-card border-t border-border z-50 flex items-center">
         <div className="flex w-full items-center px-0.5">
-          <div className="scale-75 origin-center">
-            <InstallPWA />
-          </div>
-          
           <div className="flex flex-1 justify-around items-center h-full">
             {mobileItems.map((item) => {
               const Icon = item.icon
@@ -100,7 +91,6 @@ export default function Navbar({ w }) {
         </div>
       </nav>
 
-      {/* --- DESKTOP NAVIGATION --- */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 flex-col">
         <div className="h-16 flex items-center px-6 border-b border-border gap-3">
           <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
@@ -129,10 +119,6 @@ export default function Navbar({ w }) {
             );
           })}
         </nav>
-
-        <div className="p-4 border-t border-border bg-muted/30">
-          <InstallPWA />
-        </div>
       </aside>
     </>
   )

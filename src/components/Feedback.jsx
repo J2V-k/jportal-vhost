@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, CheckCircle, AlertCircle, Loader2, ChevronDown, ChevronUp, Shuffle, X } from 'lucide-react';
 import { Button } from './ui/button';

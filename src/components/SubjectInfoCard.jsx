@@ -1,4 +1,3 @@
-import React from 'react'
 import { Book, Users, Beaker, Hash } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,14 +24,11 @@ export function SubjectInfoCard({ subject }) {
         <CardContent className="p-4 sm:p-5">
           <div className="flex gap-4">
             
-            {/* Left Section: Main Info */}
             <div className="flex-1 min-w-0 flex flex-col gap-2">
-              {/* Title */}
               <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight tracking-tight">
                 {subject.name}
               </h2>
 
-              {/* Sub-header: Code + Audit */}
               <div className="flex items-center gap-2">
                 <span className="flex items-center text-xs font-mono font-bold text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded">
                   <Hash className="w-3 h-3 mr-1" />
@@ -45,7 +41,6 @@ export function SubjectInfoCard({ subject }) {
                 )}
               </div>
 
-              {/* Teachers List */}
               <div className="mt-2 space-y-2">
                 {subject.components.map((component, idx) => {
                   const info = getComponentInfo(component.type);

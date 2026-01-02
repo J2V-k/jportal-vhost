@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Calendar, Clock, BookOpen, GraduationCap, Users, Award, Target, Filter, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar, BookOpen, GraduationCap, Users, Award, Target, Filter, X } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,6 @@ const AcademicCalendar = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSemesters, setSelectedSemesters] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const navigate = useNavigate();
   const todayEventRef = useRef(null);
   const isMobile = window.innerWidth < 768;
 
