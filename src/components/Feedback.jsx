@@ -7,7 +7,8 @@ import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Helmet } from 'react-helmet-async';
 
-const API = "https://webportal.jiit.ac.in:6011/StudentPortalAPI";
+import { API_BASE } from '@/lib/api';
+const API = API_BASE;
 
 function generate_date_seq(date = null) {
   if (date === null) {
