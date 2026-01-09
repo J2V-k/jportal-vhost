@@ -38,7 +38,25 @@ import { ArtificialWebPortal } from "./components/scripts/artificialW";
 import Feedback from "./components/Feedback";
 import CGPATargetCalculator from "./components/CGPATargetCalculator";
 
-const w = new WebPortal();
+let w;
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    try {
+      let url = typeof input === 'string' ? input : input?.url || '';
+      const base = 'https://webportal.jiit.ac.in:6011/StudentPortalAPI';
+      if (url && url.startsWith(base)) {
+        const proxyPath = import.meta.env.DEV ? '/StudentPortalAPI' : '/api/StudentPortalAPI';
+        const newUrl = url.replace(base, proxyPath);
+        input = typeof input === 'string' ? newUrl : new Request(newUrl, input);
+      }
+    } catch (e) {
+    }
+    return originalFetch(input, init);
+  };
+}
+
+w = new WebPortal();
 
 function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal }) {
   const navigate = useNavigate();
