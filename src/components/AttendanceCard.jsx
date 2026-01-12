@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PropTypes from 'prop-types';
 import CircleProgress from "./CircleProgress";
 import {
@@ -26,27 +26,77 @@ const AttendanceCard = ({
   fetchSubjectAttendance,
   attendanceGoal,
 }) => {
-  const { name, attendance, combined, lecture, tutorial, practical, classesNeeded, classesCanMiss, target } = subject;
-  const effectiveTarget = typeof attendanceGoal === 'number' ? attendanceGoal : (typeof target === 'number' ? target : 75);
+  const { name, attendance, combined, lecture, tutorial, practical, classesNeeded, classesCanMiss, target, isNewFormat } = subject;
+  const effTarget = typeof attendanceGoal === 'number' ? attendanceGoal : (typeof target === 'number' ? target : 75);
 
-  const parsedCombined = parseFloat(combined);
-  const rawPercentage = attendance.total > 0
-    ? (isFinite(parsedCombined) ? parsedCombined : (attendance.attended / attendance.total) * 100)
-    : 100;
-  const displayedNumber = Math.round(rawPercentage * 10) / 10;
-  const attendancePercentage = Number(displayedNumber);
-  const displayName = name.replace(/\s*\([^)]*\)\s*$/, '');
+  const [loading, setLoading] = useState(false);
+  const [selDate, setSelDate] = useState(null);
+  const [attn, setAttn] = useState(attendance);
+  const [needClass, setNeedClass] = useState(classesNeeded);
+  const [missClass, setMissClass] = useState(classesCanMiss);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const comb = parseFloat(combined);
+  const rawPct = attn.total > 0
+    ? (isFinite(comb) ? comb : (attn.attended / attn.total) * 100)
+    : (isFinite(comb) ? comb : 100);
+  const num = Math.round(rawPct * 10) / 10;
+  const pct = Number(num);
+  const dName = name.replace(/\s*\([^)]*\)\s*$/, '');
+
+  const calcFromDaily = useCallback((data) => {
+    if (!Array.isArray(data)) return;
+    
+    let att = 0;
+    let tot = 0;
+    
+    data.forEach((entry) => {
+      tot++;
+      if (entry.present === "Present") {
+        att++;
+      }
+    });
+
+    setAttn(prev => {
+      if (prev.attended === att && prev.total === tot) return prev;
+      return { attended: att, total: tot };
+    });
+    
+    if (tot > 0 && attendanceGoal) {
+      const need = Math.ceil((attendanceGoal * tot - 100 * att) / (100 - attendanceGoal));
+      const miss = Math.floor((100 * att - attendanceGoal * tot) / attendanceGoal);
+      
+      setNeedClass(prev => {
+        const newVal = need > 0 ? need : 0;
+        return prev === newVal ? prev : newVal;
+      });
+      setMissClass(prev => {
+        const newVal = miss > 0 ? miss : 0;
+        return prev === newVal ? prev : newVal;
+      });
+    }
+  }, [attendanceGoal]);
+
+  useEffect(() => {
+    if (isNewFormat) {
+      if (subjectAttendanceData[subject.name]) {
+        calcFromDaily(subjectAttendanceData[subject.name]);
+      } else {
+        fetchSubjectAttendance(subject);
+      }
+    }
+  }, [isNewFormat, subject.name, subjectAttendanceData, calcFromDaily, fetchSubjectAttendance, subject]);
 
   const handleClick = async () => {
     setSelectedSubject(subject);
 
     if (!subjectAttendanceData[subject.name]) {
-      setIsLoading(true);
+      setLoading(true);
       await fetchSubjectAttendance(subject);
-      setIsLoading(false);
+      setLoading(false);
+    }
+    
+    if (isNewFormat && subjectAttendanceData[subject.name]) {
+       calcFromDaily(subjectAttendanceData[subject.name]);
     }
   };
 
@@ -119,26 +169,30 @@ const AttendanceCard = ({
         <CardContent className="p-4" onClick={handleClick}>
           <div className="flex justify-between items-center">
             <div className="flex-1 mr-4">
-              <h2 className="text-sm max-[390px]:text-xs font-semibold text-foreground">{displayName}</h2>
+              <h2 className="text-sm max-[390px]:text-xs font-semibold text-foreground">{dName}</h2>
               {lecture !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Lecture: {lecture}%</p>}
               {tutorial !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Tutorial: {tutorial}%</p>}
               {practical !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Practical: {practical}%</p>}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-center">
-                <div className="text-sm max-[390px]:text-xs text-foreground">{attendance.attended}</div>
+                <div className="text-sm max-[390px]:text-xs text-foreground">
+                  {attn.attended ?? '-'}
+                </div>
                 <div className="h-px w-full bg-border"></div>
-                <div className="text-sm max-[390px]:text-xs text-foreground">{attendance.total}</div>
+                <div className="text-sm max-[390px]:text-xs text-foreground">
+                  {attn.total ?? '-'}
+                </div>
               </div>
               <div className="flex flex-col items-center">
-                <CircleProgress percentage={attendancePercentage} label={`${Math.round(attendancePercentage)}`} target={effectiveTarget} />
-                {classesNeeded > 0 ? (
+                <CircleProgress percentage={pct} label={`${Math.round(pct)}`} target={effTarget} />
+                {needClass > 0 ? (
                   <div className="text-xs mt-1 text-muted-foreground">
-                    Attend {classesNeeded}
+                    Attend {needClass}
                   </div>
-                ) : classesCanMiss > 0 && (
+                ) : missClass > 0 && (
                   <div className="text-xs mt-1 text-muted-foreground">
-                    Can miss {classesCanMiss}
+                    Can miss {missClass}
                   </div>
                 )}
               </div>
@@ -149,7 +203,7 @@ const AttendanceCard = ({
 
       <Sheet open={selectedSubject?.name === subject.name} onOpenChange={() => {
         setSelectedSubject(null);
-        setSelectedDate(null);
+        setSelDate(null);
       }}>
         <SheetContent side="bottom" className="h-[80vh] md:h-[600px] bg-background text-foreground border-0 overflow-hidden flex flex-col">
           <SheetHeader>
@@ -202,7 +256,7 @@ const AttendanceCard = ({
                         statuses.filter(s => s === true).length ===
                         statuses.filter(s => s === false).length;
                     },
-                    selected: (date) => date === selectedDate,
+                    selected: (date) => date === selDate,
                   }}
                   modifiersStyles={{
                     presentSingle: {
@@ -246,9 +300,9 @@ const AttendanceCard = ({
                       borderRadius: '50%'
                     },
                   }}
-                  selected={selectedDate}
-                  onSelect={(date) => setSelectedDate(date)}
-                  className={`pb-2 text-foreground ${isLoading ? 'animate-pulse' : ''} w-full flex-shrink-0 max-w-full`}
+                  selected={selDate}
+                  onSelect={(date) => setSelDate(date)}
+                  className={`pb-2 text-foreground ${loading ? 'animate-pulse' : ''} w-full flex-shrink-0 max-w-full`}
                   classNames={{
                     months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                     month: "space-y-4 w-full",
@@ -273,9 +327,9 @@ const AttendanceCard = ({
                   }}
                 />
 
-                {selectedDate && (
+                {selDate && (
                   <div className="mt-4 space-y-2 w-full pb-4 flex-shrink-0">
-                    {getClassesForDate(selectedDate).map((classData, index) => (
+                    {getClassesForDate(selDate).map((classData, index) => (
                       <div
                         key={index}
                         className={`p-2 rounded ${classData.present === "Present"
