@@ -9,7 +9,6 @@ async function getRawBody(req) {
 
 export default async function handler(req, res) {
   try {
-    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -17,15 +16,13 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    // Extract the path after /api/
-    const reqPath = req.url.split('?')[0]; // Remove query string
+    const reqPath = req.url.split('?')[0];
     const pathAfterApi = reqPath.replace(/^\/api\//, '');
     
     if (!pathAfterApi) {
       return res.status(400).json({ error: 'No path specified' });
     }
 
-    // Construct backend URL
     const backendBase = 'https://webportal.jiit.ac.in:6011';
     const backendUrl = backendBase + '/' + pathAfterApi;
 
@@ -33,7 +30,6 @@ export default async function handler(req, res) {
 
     const outboundHeaders = { ...req.headers };
     
-    // Remove hop-by-hop headers and Vercel-specific headers
     const headersToDelete = [
       'host',
       'connection',
@@ -52,7 +48,6 @@ export default async function handler(req, res) {
     let body = null;
     
     if (method !== 'GET' && method !== 'HEAD') {
-      // Get raw body
       body = await getRawBody(req);
       if (body.length === 0) {
         body = null;
@@ -69,14 +64,12 @@ export default async function handler(req, res) {
     const arrayBuffer = await backendRes.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // copy headers except hop-by-hop
     backendRes.headers.forEach((value, key) => {
       const hopByHop = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade'];
       if (hopByHop.includes(key.toLowerCase())) return;
       res.setHeader(key, value);
     });
 
-    // Allow the frontend to call the proxy
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, LocalName');
