@@ -307,8 +307,9 @@ const Attendance = ({
   const safeDailyDate = dailyDate instanceof Date && !isNaN(dailyDate) ? dailyDate : new Date();
 
   const subjects = useMemo(() => {
-    const mappedSubjects = (selectedSem &&
-      attendanceData[selectedSem.registration_id]?.studentattendancelist?.map(
+    const attendanceResponse = attendanceData[selectedSem?.registration_id];
+    const studentList = attendanceResponse?.response?.studentattendancelist || attendanceResponse?.studentattendancelist;    
+    const mappedSubjects = (selectedSem && studentList)?.map(
         (item) => {
           const {
             subjectcode,
@@ -317,16 +318,17 @@ const Attendance = ({
             Ptotalclass, Ptotalpres, Ppercentage,
             LTpercantage,
           } = item;
-          const { attended, total } = {
-            attended: (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0),
-            total: (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0),
-          };
-          const classesNeeded = attendanceGoal
-            ? Math.ceil((attendanceGoal * total - 100 * attended) / (100 - attendanceGoal))
-            : null;
-          const classesCanMiss = attendanceGoal
-            ? Math.floor((100 * attended - attendanceGoal * total) / attendanceGoal)
-            : null;
+          const isNewFormat = !Ltotalclass && !Ttotalclass && !Ptotalclass;          
+          let attended = 0, total = 0;
+          if (!isNewFormat) {
+            attended = (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0);
+            total = (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0);
+          }
+          let classesNeeded = 0, classesCanMiss = 0;
+          if (total > 0 && attendanceGoal) {
+            classesNeeded = Math.ceil((attendanceGoal * total - 100 * attended) / (100 - attendanceGoal));
+            classesCanMiss = Math.floor((100 * attended - attendanceGoal * total) / attendanceGoal);
+          }
           return {
             name: subjectcode,
             attendance: { attended, total },
@@ -337,9 +339,10 @@ const Attendance = ({
             classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
             classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
             hasPractical: (Ptotalclass || 0) > 0,
+            isNewFormat,
           };
         }
-      )) || [];
+      ) || [];
     if (sortOrder === 'default') {
       const isDesktop = window.innerWidth > 768;
       if (isDesktop) {
