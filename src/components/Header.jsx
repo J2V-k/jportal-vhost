@@ -1,14 +1,33 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ThemeBtn from "./ui/ThemeBtn";
 import MessMenu from './MessMenu';
-import { Utensils, ArrowLeft, WifiOff } from 'lucide-react';
+import { Utensils, ArrowLeft, WifiOff, Info } from 'lucide-react';
 import SettingsDialog from './SettingsDialog';
 import { ArtificialWebPortal } from './scripts/artificialW';
 
 const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal, w }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [notice, setNotice] = useState('');
+  useEffect(() => {
+    const fetchNotice = async () => {
+      try {
+        const response = await fetch('https://raw.githubusercontent.com/J2V-k/data/refs/heads/main/notice.txt');
+        if (response.ok) {
+          const text = await response.text();
+          if (text && text.trim().length > 0) {
+            setNotice(text.trim());
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch notice:", error);
+      }
+    };
+
+    fetchNotice();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('password');
@@ -30,6 +49,25 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
       animate={{ opacity: 1, y: 0 }}
       className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
+      {/* Notice Bar - Only renders if notice state has text */}
+      <AnimatePresence>
+        {notice && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="w-full bg-primary/10 border-b border-primary/10 overflow-hidden"
+          >
+            <div className="mx-auto px-4 py-1.5 flex items-center justify-center gap-2 max-w-[1440px] text-center">
+              <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+              <p className="text-xs font-medium text-primary">
+                {notice}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="mx-auto px-4 h-16 flex items-center justify-between max-w-[1440px]">
         <div className="flex items-center gap-4">
           {showBack && (
