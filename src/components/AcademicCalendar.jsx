@@ -25,7 +25,6 @@ const AcademicCalendar = () => {
       } catch (err) {
         console.error('Failed to load academic calendar:', err);
         setCalendarData({ timelineEvents: [] });
-        setError('Unable to load academic calendar.');
       } finally {
         setLoading(false);
       }
@@ -56,10 +55,12 @@ const AcademicCalendar = () => {
     return eventDate > today;
   };
 
-  const formatDate = (dateString) => {
+  // Modified helper to include weekday if requested
+  const formatDate = (dateString, includeWeekday = false) => {
     if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
+      weekday: includeWeekday ? 'long' : undefined,
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -257,7 +258,8 @@ const AcademicCalendar = () => {
               const isTodayEvent = isEventToday(event);
               const isFirstTodayEvent = isTodayEvent && index === firstTodayEventIndex;
               const isTargetEvent = index === targetEventIndex;
-              const isUpcoming = isEventUpcoming(event);
+              // Check if event is single day (has no end date)
+              const isSingleDay = !event.endDate;
 
               return (
                 <Card
@@ -293,7 +295,8 @@ const AcademicCalendar = () => {
                           </div>
                         </div>
                         <div className="text-sm font-medium text-white/90 whitespace-nowrap bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
-                          {formatDate(event.startDate)}
+                          {/* If it's a single day event, include the weekday name */}
+                          {formatDate(event.startDate, isSingleDay)}
                           {event.endDate && ` - ${formatDate(event.endDate)}`}
                         </div>
                       </div>
