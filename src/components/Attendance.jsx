@@ -9,6 +9,7 @@ import {
   saveSemestersToCache,
 } from "@/components/scripts/cache";
 import AttendanceCard from "./AttendanceCard";
+import AttendanceDaily from "./AttendanceDaily"; 
 import {
   Select,
   SelectContent,
@@ -18,22 +19,19 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Empty } from "@/components/ui/empty";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   ChevronDown,
   ChevronUp,
   ArrowUpDown,
-  Calendar,
   BarChart3,
   Archive,
   CalendarDays,
 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
+
+const CACHE_DURATION = 2 * 60 * 60 * 1000;
 
 const Attendance = ({
   w,
@@ -163,6 +161,7 @@ const Attendance = ({
         const semesterToLoad = currentYearSemester || latestSem;
         const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
         const cached = await getAttendanceFromCache(username, semesterToLoad);
+        
         if (cached) {
           setAttendanceData((prev) => ({
             ...prev,
@@ -173,6 +172,11 @@ const Attendance = ({
           setIsFromCache(true);
           setIsAttendanceMetaLoading(false);
           setIsAttendanceDataLoading(false);
+
+          if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+             return;
+          }
+
           setIsRefreshing(true);
           try {
             const data = await w.get_attendance(header, semesterToLoad);
@@ -245,6 +249,7 @@ const Attendance = ({
     setIsAttendanceDataLoading(true);
     const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
     const cached = await getAttendanceFromCache(username, semester);
+    
     if (cached) {
       setAttendanceData((prev) => ({
         ...prev,
@@ -253,6 +258,11 @@ const Attendance = ({
       setCacheTimestamp(cached.timestamp || null);
       setIsFromCache(true);
       setIsAttendanceDataLoading(false);
+
+      if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+         return;
+      }
+
       setIsRefreshing(true);
       try {
         const meta = await w.get_attendance_meta();
@@ -303,8 +313,6 @@ const Attendance = ({
       setAttendanceGoal(value);
     }
   };
-
-  const safeDailyDate = dailyDate instanceof Date && !isNaN(dailyDate) ? dailyDate : new Date();
 
   const subjects = useMemo(() => {
     const attendanceResponse = attendanceData[selectedSem?.registration_id];
@@ -371,6 +379,11 @@ const Attendance = ({
           ...prev,
           [subject.name]: cached.data || cached,
         }));
+        
+        if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+             return;
+        }
+
         await fetchFreshSubjectData(subject, username);
         return;
       }
@@ -386,58 +399,76 @@ const Attendance = ({
       const subjectData = attendance.studentattendancelist.find(
         (s) => s.subjectcode === subject.name
       );
+
       if (!subjectData) return;
+
       const subjectcomponentids = [
         "Lsubjectcomponentid",
         "Psubjectcomponentid",
         "Tsubjectcomponentid",
-      ].filter((id) => subjectData[id]).map((id) => subjectData[id]);
+      ]
+        .filter((id) => subjectData[id])
+        .map((id) => subjectData[id]);
+
+      if (subjectcomponentids.length === 0) {
+        setSubjectAttendanceData((prev) => ({
+           ...prev,
+           [subject.name]: []
+        }));
+        return; 
+      }
+
       const data = await w.get_subject_daily_attendance(
         selectedSem,
         subjectData.subjectid,
         subjectData.individualsubjectcode,
         subjectcomponentids
       );
+
       if (!data || !data.studentAttdsummarylist) return;
+
       const freshData = data.studentAttdsummarylist;
+      
       setSubjectAttendanceData((prev) => ({
         ...prev,
         [subject.name]: freshData,
       }));
+
       await saveSubjectDataToCache(freshData, subject.name, username, selectedSem);
     } catch (error) {
-      console.error("Failed to fetch fresh subject attendance:", error);
+      console.error(`Failed to fetch fresh subject attendance for ${subject.name}:`, error);
     }
   };
 
   useEffect(() => {
-    if (activeTab !== "daily") return;
-    const loadAllSubjects = async () => {
-      await Promise.all(
-        subjects.map(async (subj) => {
-          if (subjectAttendanceData[subj.name]) {
-            setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
-            return;
-          }
-          setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "fetching" }));
-          await fetchSubjectAttendance(subj);
-          setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
-        })
-      );
-    };
-    loadAllSubjects();
-  }, [activeTab, subjects]);
+    let isMounted = true;
 
-  const getClassesFor = (subjectName, date) => {
-    const all = subjectAttendanceData[subjectName];
-    if (!all) return [];
-    const key = date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-    return all.filter((c) => c.datetime.startsWith(key));
-  };
+    const loadSubjectsSequentially = async (subjectsToFetch) => {
+      for (const subj of subjectsToFetch) {
+        if (!isMounted) break;
+        
+        setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "fetching" }));
+        
+        await fetchSubjectAttendance(subj);
+        
+        await new Promise(r => setTimeout(r, 50));
+
+        if (isMounted) {
+            setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
+        }
+      }
+    };
+
+    if (activeTab === "daily") {
+       const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
+       if (subjectsToFetch.length > 0) loadSubjectsSequentially(subjectsToFetch);
+    } else if (activeTab === "overview") {
+       const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
+       if (subjectsToFetch.length > 0) loadSubjectsSequentially(subjectsToFetch);
+    }
+
+    return () => { isMounted = false; };
+  }, [activeTab, selectedSem?.registration_id, subjects]);
 
   return (
     <>
@@ -541,79 +572,12 @@ const Attendance = ({
             </TabsContent>
 
             <TabsContent value="daily">
-              <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                  <div className="w-full md:w-auto md:sticky md:top-24 flex-shrink-0 flex justify-center md:justify-start">
-                    <Card className="bg-card border-border max-w-fit">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-center text-foreground flex items-center justify-center gap-2">
-                          <Calendar className="w-5 h-5" /> Select Date
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <CalendarComponent
-                          mode="single"
-                          selected={safeDailyDate}
-                          onSelect={(d) => d && setDailyDate(d)}
-                          modifiers={{
-                            hasActivity: (date) => subjects.some((s) => getClassesFor(s.name, date).length > 0),
-                            selected: (date) => date.toDateString() === safeDailyDate.toDateString(),
-                          }}
-                          modifiersStyles={{
-                            hasActivity: {
-                              backgroundColor: "rgba(59, 130, 246, 0.2)",
-                              border: "2px solid rgba(59, 130, 246, 0.6)",
-                              borderRadius: "6px",
-                              fontWeight: "bold",
-                            },
-                          }}
-                          className="bg-card text-card-foreground rounded-md border-0"
-                        />
-                      </CardContent>
-                    </Card>
-                  </div>
-                  <div className="flex-1 w-full min-w-0">
-                    <div className="min-h-[400px]">
-                      {subjects.length === 0 ? (
-                        <Empty description="No subjects found." />
-                      ) : (
-                        <div className="space-y-4">
-                          {subjects.flatMap((subj) => {
-                            const lectures = getClassesFor(subj.name, safeDailyDate);
-                            if (lectures.length === 0) return [];
-                            return (
-                              <Card key={subj.name} className="bg-card border-border hover:shadow-md transition-shadow">
-                                <CardHeader className="py-3 px-4 bg-muted/30 border-b border-border">
-                                  <CardTitle className="text-foreground flex items-center gap-2 text-sm md:text-base">
-                                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div> {subj.name}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                  <div className="divide-y divide-border">
-                                    {lectures.map((cls, i) => (
-                                      <div key={i} className="flex items-center justify-between p-3 md:p-4 hover:bg-accent/5">
-                                        <div className="flex items-center gap-3">
-                                          <Badge className={`px-2 py-0.5 text-xs font-bold border-none ${cls.present === "Present" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
-                                            {cls.present}
-                                          </Badge>
-                                          <span className="text-sm text-foreground/80 font-medium">{cls.classtype}</span>
-                                        </div>
-                                        <div className="text-xs text-muted-foreground font-mono">
-                                          {cls.datetime.split(" ").slice(1).join(" ").slice(1, -1)}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <AttendanceDaily 
+                dailyDate={dailyDate}
+                setDailyDate={setDailyDate}
+                subjects={subjects}
+                subjectAttendanceData={subjectAttendanceData}
+              />
             </TabsContent>
           </Tabs>
         )}

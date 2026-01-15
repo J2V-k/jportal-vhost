@@ -76,15 +76,15 @@ const AttendanceCard = ({
     }
   }, [attendanceGoal]);
 
+  // FIX: Removed the 'else { fetchSubjectAttendance(subject) }' block.
+  // This prevents the "thundering herd" of API calls on mount.
   useEffect(() => {
     if (isNewFormat) {
       if (subjectAttendanceData[subject.name]) {
         calcFromDaily(subjectAttendanceData[subject.name]);
-      } else {
-        fetchSubjectAttendance(subject);
       }
     }
-  }, [isNewFormat, subject.name, subjectAttendanceData, calcFromDaily, fetchSubjectAttendance, subject]);
+  }, [isNewFormat, subject.name, subjectAttendanceData, calcFromDaily]);
 
   const handleClick = async () => {
     setSelectedSubject(subject);

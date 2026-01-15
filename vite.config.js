@@ -143,18 +143,6 @@ export default defineConfig({
       },
     }),
   ],
-  server: {
-    proxy: {
-      '/StudentPortalAPI': {
-        target: 'https://webportal.jiit.ac.in:6011',
-        changeOrigin: true,
-        secure: false,
-        headers: {
-          origin: 'https://webportal.jiit.ac.in:6011'
-        }
-      },
-    },
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
