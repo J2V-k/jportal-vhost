@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js"
+import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.24/dist/jsjiit.esm.js"
 import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff } from "lucide-react"
 import InstallPWA from './InstallPWA'
 import MessMenu from "./MessMenu"

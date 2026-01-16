@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Helmet } from 'react-helmet-async';
-import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.23/dist/jsjiit.esm.js";
+import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.24/dist/jsjiit.esm.js";
 import {
   saveToCache,
   getFromCache,

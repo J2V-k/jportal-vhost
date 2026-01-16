@@ -15,8 +15,7 @@ import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Settings, LogOut, Trash2, X } from 'lucide-react';
-import InstallPWA from './InstallPWA';
+import { Settings, LogOut, Trash2, X, Download, Share, PlusSquare } from 'lucide-react';
 
 const TABS = [
   { key: '/attendance', label: 'Attendance' },
@@ -53,6 +52,47 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
     return '';
   });
   const [showTimetableInNavbar, setShowTimetableInNavbar] = useState(() => localStorage.getItem('showTimetableInNavbar') === 'true');
+
+  // --- PWA INSTALL LOGIC ---
+  const [installable, setInstallable] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+
+    // Check if iOS
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    setIsIOS(ios);
+
+    // Check if install prompt is available (captured in main.jsx)
+    if (window.deferredPrompt) {
+      setInstallable(true);
+    }
+
+    // Listen for the event in case it fires while dialog is open
+    const handlePWAReady = () => setInstallable(true);
+    window.addEventListener('pwa-ready', handlePWAReady);
+
+    return () => window.removeEventListener('pwa-ready', handlePWAReady);
+  }, []);
+
+  const handleInstallClick = async () => {
+    const promptEvent = window.deferredPrompt;
+    if (!promptEvent) return;
+
+    promptEvent.prompt();
+    const result = await promptEvent.userChoice;
+    
+    if (result.outcome === 'accepted') {
+      setInstallable(false);
+      window.deferredPrompt = null;
+    }
+  };
+  // -------------------------
 
   useEffect(() => {
     const loadPresets = async () => {
@@ -141,6 +181,38 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8 scrollbar-hide">
           <div className="space-y-6">
+            
+            {/* Install PWA Section - Integrated Directly */}
+            {!isInstalled && (
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl space-y-3">
+                <div className="flex items-start gap-3">
+                  <Download className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-sm">Install App</h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Add to your home screen for a better experience.
+                    </p>
+                  </div>
+                </div>
+
+                {installable ? (
+                  <Button onClick={handleInstallClick} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                    Install Now
+                  </Button>
+                ) : isIOS ? (
+                  <div className="text-xs bg-background/50 p-2 rounded border border-border mt-2">
+                    <p className="mb-1 font-medium">To install on iOS:</p>
+                    <div className="flex items-center gap-1">1. Tap <Share className="w-3 h-3" /> <b>Share</b></div>
+                    <div className="flex items-center gap-1">2. Tap <PlusSquare className="w-3 h-3" /> <b>Add to Home Screen</b></div>
+                  </div>
+                ) : (
+                  <Button disabled variant="outline" className="w-full opacity-50 cursor-not-allowed">
+                    App Installed / Not Available
+                  </Button>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 items-center">
               <Label className="text-sm font-medium">Theme Presets</Label>
               <Select value={selectedPresetId} onValueChange={(id) => {
@@ -252,18 +324,15 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
           </div>
         </div>
 
-        <div className="p-6 pt-2 shrink-0 border-t bg-card space-y-3">
-          <InstallPWA />
-          <div className="grid grid-cols-2 gap-3">
-            <Button onClick={handleLogout} variant="destructive" className="w-full">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-            <Button onClick={() => setOpen(false)} variant="outline" className="w-full">
-              <X className="w-4 h-4 mr-2" />
-              Close
-            </Button>
-          </div>
+        <div className="p-6 pt-2 shrink-0 border-t bg-card grid grid-cols-2 gap-3">
+          <Button onClick={handleLogout} variant="destructive" className="w-full">
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+          <Button onClick={() => setOpen(false)} variant="outline" className="w-full">
+            <X className="w-4 h-4 mr-2" />
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

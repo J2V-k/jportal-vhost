@@ -38,7 +38,7 @@ import pyodide_js
 import asyncio
 
 async def __load_packages():
-    await pyodide_js.loadPackage('https://github.com/J2V-k/jportal-vhost/raw/refs/heads/main/public/artifact/PyMuPDF-1.24.12-cp311-abi3-emscripten_3_1_32_wasm32.whl')
+    await pyodide_js.loadPackage('https://raw.githubusercontent.com/J2V-k/jportal-vhost/main/public/artifact/PyMuPDF-1.24.12-cp311-abi3-emscripten_3_1_32_wasm32.whl')  
     await pyodide_js.loadPackage('/artifact/jiit_marks-0.2.0-py3-none-any.whl')
 
 asyncio.get_event_loop().run_until_complete(__load_packages())

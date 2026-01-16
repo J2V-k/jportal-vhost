@@ -1,1 +1,1 @@
-export const API_BASE = import.meta.env.DEV ? '/StudentPortalAPI' : '/api/StudentPortalAPI';
+export const API_BASE = "https://jiitproxy.jportal696.workers.dev/api/StudentPortalAPI";
