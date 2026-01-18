@@ -79,7 +79,7 @@ const isMenuCurrent = (menuData) => {
 
 const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
   <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-    <div className="bg-muted/30 p-8 rounded-2xl border border-dashed border-border max-w-sm">
+    <div className="bg-muted/30 p-8 rounded-lg border border-dashed border-border max-w-sm">
       <ChefHat size={48} className="text-muted-foreground mx-auto mb-4 opacity-50" />
       <h3 className="text-xl font-bold text-foreground mb-2">
         Menu Unavailable
@@ -89,7 +89,7 @@ const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
       </p>
       <button
         onClick={onViewOldMenu}
-        className="text-sm px-4 py-2 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors flex items-center gap-2 mx-auto font-medium"
+        className="text-sm px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-2 mx-auto font-medium"
       >
         <History className="w-4 h-4" />
         View Previous Menu
@@ -203,7 +203,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05, duration: 0.3 }}
-              className={`group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 ${isToday
+              className={`group relative overflow-hidden rounded-lg border bg-card transition-all duration-300 ${isToday
                 ? "border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.2)] ring-1 ring-amber-400/50"
                 : "border-border hover:border-primary/30 hover:shadow-sm"
                 }`}
@@ -230,7 +230,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                     { label: 'Lunch', icon: Sun, items: dayMenu.Lunch, color: 'text-yellow-500' },
                     { label: 'Dinner', icon: Sunset, items: dayMenu.Dinner, color: 'text-indigo-500' }
                   ].map((meal) => (
-                    <div key={meal.label} className="bg-muted/20 rounded-lg p-3 border border-border/50">
+                    <div key={meal.label} className="bg-muted/20 rounded-md p-3 border border-border/50">
                       <div className="flex items-center gap-2 mb-2">
                         <meal.icon size={16} className={meal.color} />
                         <span className="font-semibold text-sm">{meal.label}</span>
@@ -260,7 +260,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
   }, [menuData, showTodayLabel, menuLoaded]);
 
   const WeeklyView = useMemo(() => (
-    <div className="w-full rounded-xl border border-border overflow-hidden bg-card">
+    <div className="w-full rounded-lg border border-border overflow-hidden bg-card">
       <div className="overflow-x-auto">
         <Table className="min-w-[800px]">
           <TableHeader>
@@ -290,14 +290,14 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                     <div className="flex flex-col">
                       <span className={isToday ? "text-amber-600 dark:text-amber-400 font-bold" : ""}>{day.split(" ")[0]}</span>
                       <span className="text-xs text-muted-foreground">{day.split(" ")[1]}</span>
-                      {isToday && <Badge variant="outline" className="w-fit mt-1 text-[10px] bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 h-5">Today</Badge>}
+                      {isToday && <Badge variant="outline" className="w-fit mt-1 text-[10px] bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 h-5 rounded-md">Today</Badge>}
                     </div>
                   </TableCell>
                   {['Breakfast', 'Lunch', 'Dinner'].map(meal => (
                     <TableCell key={meal} className="align-top py-3">
                       <div className="flex flex-wrap gap-1">
                         {meals[meal].split(", ").map((item, i) => (
-                          <span key={i} className={`text-xs px-2 py-1 rounded border ${isToday ? 'bg-amber-500/5 border-amber-500/20 text-foreground' : 'bg-muted/30 border-border text-foreground/90'}`}>
+                          <span key={i} className={`text-xs px-2 py-1 rounded-md border ${isToday ? 'bg-amber-500/5 border-amber-500/20 text-foreground' : 'bg-muted/30 border-border text-foreground/90'}`}>
                             {item}
                           </span>
                         ))}

@@ -50,9 +50,9 @@ const InstallPWA = () => {
         <Button
           onClick={handleInstallClick}
           variant="default"
-          className="w-full h-12 flex items-center justify-start gap-4 px-6 shadow-xl shadow-primary/10 rounded-xl group overflow-hidden relative"
+          className="w-full h-12 flex items-center justify-start gap-4 px-6 shadow-xl shadow-primary/10 rounded-lg group overflow-hidden relative"
         >
-          <div className="bg-primary-foreground/15 p-2 rounded-lg group-hover:bg-primary-foreground/20 transition-colors relative z-10">
+          <div className="bg-primary-foreground/15 p-2 rounded-md group-hover:bg-primary-foreground/20 transition-colors relative z-10">
             <Download className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
           </div>
 

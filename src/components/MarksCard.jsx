@@ -40,7 +40,7 @@ export default function MarksCard({ course, gradeInfo }) {
               {course.name}
             </h3>
             <div className="flex items-center gap-2">
-              <code className="text-[10px] md:text-xs font-mono bg-muted px-2 py-0.5 rounded text-muted-foreground uppercase tracking-wider">
+              <code className="text-[10px] md:text-xs font-mono bg-muted px-2 py-0.5 rounded-md text-muted-foreground uppercase tracking-wider">
                 {course.code}
               </code>
               {!matchingGrade && (
@@ -52,7 +52,7 @@ export default function MarksCard({ course, gradeInfo }) {
           </div>
 
           {matchingGrade && (
-            <div className="w-full grid grid-cols-3 gap-2 bg-muted/30 p-3 rounded-xl border border-border/40">
+            <div className="w-full grid grid-cols-3 gap-2 bg-muted/30 p-3 rounded-lg border border-border/40">
               <StatBox label="Grade" value={matchingGrade.grade} colorClass="text-foreground" />
               <div className="flex items-center justify-center border-x border-border/40">
                 <StatBox label="Credits" value={matchingGrade.coursecreditpoint} colorClass="text-primary" />
@@ -116,9 +116,9 @@ function StatBox({ label, value, colorClass }) {
 
 function ProgressBar({ percentage, color }) {
   return (
-    <div className="relative h-2 bg-muted rounded-full overflow-hidden border border-border/20">
+    <div className="relative h-2 bg-muted rounded-lg overflow-hidden border border-border/20">
       <motion.div
-        className={`absolute top-0 left-0 h-full rounded-full ${color}`}
+        className={`absolute top-0 left-0 h-full rounded-lg ${color}`}
         initial={{ width: 0 }}
         animate={{ width: `${Math.max(percentage, 2)}%` }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}

@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 
-const CACHE_DURATION = 2 * 60 * 60 * 1000;
+const CACHE_DURATION = 4 * 60 * 60 * 1000;
 
 const Attendance = ({
   w,

@@ -82,7 +82,7 @@ export default function Navbar({ w }) {
                     {item.name}
                   </span>
                   {isActive && (
-                    <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-t-full" />
+                    <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-full" />
                   )}
                 </NavLink>
               )
@@ -107,7 +107,7 @@ export default function Navbar({ w }) {
               <NavLink
                 key={item.name}
                 to={item.path}
-                className={`flex items-center px-4 py-2.5 rounded-md font-medium text-sm transition-all ${
+                className={`flex items-center px-4 py-2.5 rounded-lg font-medium text-sm transition-all ${
                   isActive 
                     ? "bg-primary text-primary-foreground" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"

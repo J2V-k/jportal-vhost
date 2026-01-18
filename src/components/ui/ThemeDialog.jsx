@@ -20,7 +20,7 @@ export default function ThemeDialog({ open, onClose }) {
   useEffect(() => {
     const initThemes = async () => {
       try {
-        const cached = localStorage.getItem('jportal_theme_presets_v1')
+        const cached = localStorage.getItem('jportal_theme_presets_v2')
         if (cached) {
           setThemeData(JSON.parse(cached))
           setLoading(false)
@@ -30,7 +30,7 @@ export default function ThemeDialog({ open, onClose }) {
         const response = await fetch('/theme-presets.json')
         const data = await response.json()
         setThemeData(data)
-        localStorage.setItem('jportal_theme_presets_v1', JSON.stringify(data))
+        localStorage.setItem('jportal_theme_presets_v2', JSON.stringify(data))
       } catch (error) {
         console.error('Error loading themes:', error)
       } finally {

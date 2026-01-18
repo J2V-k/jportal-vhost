@@ -355,7 +355,7 @@ const Feedback = ({ w }) => {
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="rounded-full hover:bg-accent"
+              className="rounded-lg hover:bg-accent"
             >
               <ArrowLeft className="w-6 h-6" />
             </Button>
@@ -369,7 +369,7 @@ const Feedback = ({ w }) => {
             </div>
           ) : message && !eventData && Object.keys(questionsData).length === 0 ? (
             <div className="text-center py-12">
-              <div className="bg-card border border-border rounded-xl p-8 max-w-md mx-auto">
+              <div className="bg-card border border-border rounded-lg p-8 max-w-md mx-auto">
                 <AlertCircle className="w-16 h-16 mx-auto mb-4 text-foreground" />
                 <h2 className="text-xl font-semibold text-foreground mb-2">Feedback Unavailable</h2>
                 <p className="text-muted-foreground mb-6">{message}</p>
@@ -387,7 +387,8 @@ const Feedback = ({ w }) => {
           ) : feedbackSubmitted ? (
 
             <div className="text-center py-12">
-              <div className="bg-card border border-border rounded-xl p-8 max-w-md mx-auto">
+              {}
+              <div className="bg-card border border-border rounded-lg p-8 max-w-md mx-auto">
                 <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
                 <h2 className="text-xl font-semibold text-foreground mb-2">
                   Feedback Already Submitted
@@ -407,7 +408,7 @@ const Feedback = ({ w }) => {
           ) : (
             <>
               {eventData && (
-                <div className="bg-card border border-border rounded-xl p-6">
+                <div className="bg-card border border-border rounded-lg p-6">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold flex items-center gap-2">
                       <MessageSquare className="w-5 h-5" />
@@ -419,7 +420,7 @@ const Feedback = ({ w }) => {
 
 
               {Object.keys(questionsData).length > 0 && (
-                <div className="bg-card border border-border rounded-xl p-4">
+                <div className="bg-card border border-border rounded-lg p-4">
                   <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 flex-shrink-0" />
@@ -470,7 +471,8 @@ const Feedback = ({ w }) => {
                 {Object.entries(questionsData).map(([key, data]) => {
                   const { subject, questions, ratings: ratingOptions } = data;
                   return (
-                    <div key={key} className="bg-card border border-border rounded-xl p-6 space-y-4">
+                    
+                    <div key={key} className="bg-card border border-border rounded-lg p-6 space-y-4">
                       <div className="border-b border-border pb-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -485,7 +487,7 @@ const Feedback = ({ w }) => {
                             </p>
                           </div>
                           <div className="ml-4">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground">
                               {subject.subjectcomponentcode === 'L' ? 'Lecture' : subject.subjectcomponentcode === 'P' ? 'Practical' : subject.subjectcomponentcode}
                             </span>
                           </div>
@@ -529,53 +531,54 @@ const Feedback = ({ w }) => {
                               ))}
                           </SelectContent>
                         </Select>
+
+
+                        {expandedSubjects[`${subject.subjectid}-${subject.employeeid}`] && (
+                          <div className="space-y-4 border-t border-border pt-4">
+                            <Label className="text-sm font-medium text-foreground">
+                              Individual Questions
+                            </Label>
+                            {questions.map((question) => {
+                              const ratingKey = `${subject.subjectid}-${subject.employeeid}-${question.questionid}`;
+                              const currentRating = ratings[ratingKey];
+
+                              return (
+                                <div key={question.questionid} className="space-y-2">
+                                  <Label className="text-sm font-medium text-foreground">
+                                    {question.questionbody}
+                                  </Label>
+                                  <Select
+                                    value={currentRating || ""}
+                                    onValueChange={(value) => handleRatingChange(subject.subjectid, subject.employeeid, question.questionid, value)}
+                                  >
+                                    <SelectTrigger className="w-full bg-background text-foreground border-border">
+                                      <SelectValue placeholder={randomized ? "Random rating" : "Choose rating"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {ratingOptions
+                                        .filter(r => r.questionid === question.questionid)
+                                        .sort((a, b) => a.slno - b.slno)
+                                        .map((rating) => (
+                                          <SelectItem key={rating.ratingid} value={rating.rating}>
+                                            {rating.ratingdesc}
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-
-
-                      {expandedSubjects[`${subject.subjectid}-${subject.employeeid}`] && (
-                        <div className="space-y-4 border-t border-border pt-4">
-                          <Label className="text-sm font-medium text-foreground">
-                            Individual Questions
-                          </Label>
-                          {questions.map((question) => {
-                            const ratingKey = `${subject.subjectid}-${subject.employeeid}-${question.questionid}`;
-                            const currentRating = ratings[ratingKey];
-
-                            return (
-                              <div key={question.questionid} className="space-y-2">
-                                <Label className="text-sm font-medium text-foreground">
-                                  {question.questionbody}
-                                </Label>
-                                <Select
-                                  value={currentRating || ""}
-                                  onValueChange={(value) => handleRatingChange(subject.subjectid, subject.employeeid, question.questionid, value)}
-                                >
-                                  <SelectTrigger className="w-full bg-background text-foreground border-border">
-                                    <SelectValue placeholder={randomized ? "Random rating" : "Choose rating"} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {ratingOptions
-                                      .filter(r => r.questionid === question.questionid)
-                                      .sort((a, b) => a.slno - b.slno)
-                                      .map((rating) => (
-                                        <SelectItem key={rating.ratingid} value={rating.rating}>
-                                          {rating.ratingdesc}
-                                        </SelectItem>
-                                      ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
               </div>
 
               {Object.keys(questionsData).length > 0 && !feedbackSubmitted && (
-                <div className="bg-card border border-border rounded-xl p-6">
+                
+                <div className="bg-card border border-border rounded-lg p-6">
                   <Button
                     onClick={handleFeedbackSubmit}
                     disabled={loading}

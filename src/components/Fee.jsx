@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Hash, BookOpen, GitBranch, Calendar, Tag, AlertCircle, Download, RefreshCw, Wallet, Clock, CheckCircle2 } from "lucide-react";
+import { useEffect, useState, cloneElement } from "react";
+import { Hash, BookOpen, GitBranch, Calendar, Tag, AlertCircle, Download, RefreshCw, Wallet, Clock, CheckCircle2, Info } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 import { Alert, AlertDescription } from './ui/alert';
 import { Badge } from "./ui/badge";
@@ -81,7 +81,7 @@ export default function Fee({ w, serialize_payload }) {
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
       </Alert>
-      <button onClick={() => setRefreshCounter(c => c + 1)} className="mt-4 w-full py-2 bg-primary text-white rounded-md">Retry</button>
+      <button onClick={() => setRefreshCounter(c => c + 1)} className="mt-4 w-full py-2 bg-primary text-white rounded-lg">Retry</button>
     </div>
   );
 
@@ -103,7 +103,7 @@ export default function Fee({ w, serialize_payload }) {
         <button
           onClick={downloadFeeDemandReport}
           disabled={downloadingReport}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:ring-2 ring-primary ring-offset-2 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:ring-2 ring-primary ring-offset-2 transition-all disabled:opacity-50 font-medium"
         >
           {downloadingReport ? <RefreshCw className="animate-spin w-4 h-4" /> : <Download className="w-4 h-4" />}
           Demand Report (PDF)
@@ -118,7 +118,7 @@ export default function Fee({ w, serialize_payload }) {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="space-y-6">
-          <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-card border rounded-lg overflow-hidden shadow-sm">
             <div className="p-4 border-b bg-muted/30">
               <h3 className="font-semibold flex items-center gap-2"><Tag className="w-4 h-4" /> Academic Profile</h3>
             </div>
@@ -143,7 +143,7 @@ export default function Fee({ w, serialize_payload }) {
               </h3>
               <div className="grid gap-3">
                 {fines.map((fine, i) => (
-                  <div key={i} className="flex justify-between items-center p-4 bg-rose-50/50 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900 rounded-lg">
+                  <div key={i} className="flex justify-between items-center p-4 bg-rose-50/50 dark:bg-rose-950/10 border rounded-lg">
                     <div>
                       <p className="font-medium text-sm">{fine.servicename || "Misc Charge"}</p>
                       <p className="text-xs text-muted-foreground">{fine.remarksbyauthority}</p>
@@ -159,7 +159,7 @@ export default function Fee({ w, serialize_payload }) {
             <h3 className="text-lg font-semibold">Semester-wise Breakdown</h3>
             <div className="grid gap-4">
               {feeData?.feeHeads?.map((fee, i) => (
-                <div key={i} className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow">
+                <div key={i} className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h4 className="text-xl font-bold">Semester {fee.stynumber}</h4>
@@ -194,7 +194,7 @@ export default function Fee({ w, serialize_payload }) {
 
 function StatCard({ title, amount, icon, color }) {
   return (
-    <div className={`p-6 rounded-2xl border ${color} shadow-sm space-y-2`}>
+    <div className={`p-6 rounded-lg border ${color} shadow-sm space-y-2`}>
       <div className="flex justify-between items-center">
         <span className="text-sm font-medium text-muted-foreground">{title}</span>
         {icon}
@@ -224,5 +224,3 @@ function DataBlock({ label, value, color = "" }) {
     </div>
   );
 }
-
-import { cloneElement } from "react";

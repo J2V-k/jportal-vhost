@@ -295,7 +295,6 @@ const AcademicCalendar = () => {
                           </div>
                         </div>
                         <div className="text-sm font-medium text-white/90 whitespace-nowrap bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
-                          {/* If it's a single day event, include the weekday name */}
                           {formatDate(event.startDate, isSingleDay)}
                           {event.endDate && ` - ${formatDate(event.endDate)}`}
                         </div>

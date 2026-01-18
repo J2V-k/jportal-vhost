@@ -53,7 +53,7 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-muted/30 p-6 md:p-8"
+          className="relative overflow-hidden rounded-lg border border-border bg-gradient-to-br from-card to-muted/30 p-6 md:p-8"
         >
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
             <div>
@@ -67,11 +67,11 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
-              <div className="bg-background/50 backdrop-blur-sm border border-border px-4 py-2 rounded-xl shadow-sm">
+              <div className="bg-background/50 backdrop-blur-sm border border-border px-4 py-2 rounded-lg shadow-sm">
                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Active Credits</p>
                 <p className="text-xl font-black text-foreground">{totalCredits}</p>
               </div>
-              <div className={`backdrop-blur-sm border px-4 py-2 rounded-xl shadow-sm ${isFinalized ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+              <div className={`backdrop-blur-sm border px-4 py-2 rounded-lg shadow-sm ${isFinalized ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Status</p>
                 <div className="flex items-center gap-1.5">
                   <div className={`w-2 h-2 rounded-full animate-pulse ${isFinalized ? 'bg-emerald-500' : 'bg-amber-500'}`} />
@@ -92,11 +92,11 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
-                className="group flex flex-col bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all overflow-hidden"
+                className="group flex flex-col bg-card border border-border rounded-lg shadow-sm hover:shadow-md hover:border-primary/20 transition-all overflow-hidden"
               >
                 <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+                    <div className="p-1.5 bg-primary/10 rounded-md text-primary">
                       <Layers size={18} />
                     </div>
                     <h3 className="font-bold text-foreground leading-tight">{basket.name}</h3>
@@ -118,7 +118,7 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                       return (
                         <div
                           key={subject.subjectid}
-                          className={`relative p-4 rounded-xl border transition-all duration-300 ${
+                          className={`relative p-4 rounded-lg border transition-all duration-300 ${
                             status === 'allotted' 
                             ? 'bg-emerald-500/[0.03] border-emerald-500/20' 
                             : 'bg-background hover:bg-muted/30 border-border'
@@ -126,7 +126,7 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
                         >
                           <div className="flex items-start gap-4">
                             {!isCore && (
-                              <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shadow-inner border ${
+                              <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-xs font-black shadow-inner border ${
                                 status === 'allotted' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-muted text-muted-foreground border-border'
                               }`}>
                                 {subject.preference}
@@ -179,7 +179,7 @@ export default function SubjectChoices({ currentChoices, choicesLoading, semeste
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center py-20 px-4 text-center"
     >
-      <div className="bg-muted/30 p-8 rounded-3xl border border-dashed border-border max-w-sm">
+      <div className="bg-muted/30 p-8 rounded-lg border border-dashed border-border max-w-sm">
         <AlertCircle size={48} className="mx-auto text-muted-foreground/40 mb-4" />
         <h3 className="text-lg font-bold mb-2">No Choices Found</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">

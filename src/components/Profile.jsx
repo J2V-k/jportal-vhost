@@ -128,7 +128,7 @@ export default function Profile({
   if (loading) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-4 pb-24 md:pb-8 space-y-6">
-        <Card className="bg-card shadow">
+        <Card className="bg-card shadow rounded-lg">
           <CardContent className="p-6">
             <div className="flex items-center gap-4 mb-6">
               <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-full" />
@@ -192,7 +192,7 @@ export default function Profile({
           <div className="w-full md:w-auto mt-2 md:mt-0 md:border-l md:pl-6 border-border">
             <div className="grid grid-cols-2 md:grid-cols-2 gap-3 min-w-[220px] text-sm">
               <div className="flex items-center gap-2 text-muted-foreground"><BookOpen className="w-4 h-4" /> Semester</div>
-              <Badge variant="secondary" className="w-fit">{info.semester}</Badge>
+              <Badge variant="secondary" className="w-fit rounded-md">{info.semester}</Badge>
               <div className="flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" /> Section</div>
               <div className="font-semibold text-foreground">{info.sectioncode}</div>
               <div className="flex items-center gap-2 text-muted-foreground"><Calendar className="w-4 h-4" /> Batch</div>
@@ -203,16 +203,16 @@ export default function Profile({
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="w-full justify-start bg-card h-auto p-1 border border-border overflow-x-auto">
-          <TabsTrigger value="personal" className="flex items-center gap-2 py-2"><User className="w-4 h-4" /> Personal</TabsTrigger>
-          <TabsTrigger value="contact" className="flex items-center gap-2 py-2"><Phone className="w-4 h-4" /> Contact</TabsTrigger>
-          <TabsTrigger value="education" className="flex items-center gap-2 py-2"><GraduationCap className="w-4 h-4" /> Education</TabsTrigger>
+        <TabsList className="w-full justify-start bg-card h-auto p-1 border border-border overflow-x-auto rounded-lg">
+          <TabsTrigger value="personal" className="flex items-center gap-2 py-2 rounded-md"><User className="w-4 h-4" /> Personal</TabsTrigger>
+          <TabsTrigger value="contact" className="flex items-center gap-2 py-2 rounded-md"><Phone className="w-4 h-4" /> Contact</TabsTrigger>
+          <TabsTrigger value="education" className="flex items-center gap-2 py-2 rounded-md"><GraduationCap className="w-4 h-4" /> Education</TabsTrigger>
           {hostelData?.presenthosteldetail && (
-            <TabsTrigger value="hostel" className="flex items-center gap-2 py-2"><Home className="w-4 h-4" /> Hostel</TabsTrigger>
+            <TabsTrigger value="hostel" className="flex items-center gap-2 py-2 rounded-md"><Home className="w-4 h-4" /> Hostel</TabsTrigger>
           )}
         </TabsList>
 
-        <Card className="mt-4 border-border bg-card shadow-sm overflow-hidden">
+        <Card className="mt-4 border-border bg-card shadow-sm overflow-hidden rounded-lg">
           <CardContent className="p-0">
             <AnimatePresence mode="wait">
               <motion.div
@@ -272,7 +272,7 @@ export default function Profile({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-sm font-semibold truncate">{qual.qualificationcode}</span>
-                          <span className="text-xs font-bold text-primary px-2 py-0.5 bg-primary/10 rounded">{qual.percentagemarks}%</span>
+                          <span className="text-xs font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-md">{qual.percentagemarks}%</span>
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
                           <span className="truncate">{qual.boardname}</span>
@@ -357,7 +357,7 @@ function InfoRow({ icon: Icon, label, value }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30 transition-colors group cursor-help">
+          <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-muted/30 transition-colors group cursor-help">
             <Icon className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
             <div className="grid grid-cols-2 gap-4 flex-1 items-center">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>

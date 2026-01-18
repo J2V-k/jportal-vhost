@@ -53,7 +53,7 @@ function adjustLightness(hsl, delta) {
 export function applyTheme(theme) {
   const root = document.documentElement
   const style = root.style
-  let { primary, secondary, background, foreground, mode, font } = theme || {}
+  let { primary, secondary, background, foreground, mode, font, radius, borderColor } = theme || {}
 
   if (!mode && background) {
     const [r, g, b] = hexToRgb(background)
@@ -73,6 +73,8 @@ export function applyTheme(theme) {
     style.setProperty('--font-family', font)
     document.body.style.fontFamily = font
   }
+
+  style.setProperty('--radius', radius || '0.5rem')
 
   if (background && primary && secondary && foreground) {
     const bgHsl = hexToHsl(background)
@@ -104,8 +106,14 @@ export function applyTheme(theme) {
     style.setProperty('--destructive', '0 84.2% 60.2%')
     style.setProperty('--destructive-foreground', '0 0% 98%')
 
-    style.setProperty('--border', adjustLightness(secondBgHsl, safeMode === 'dark' ? 12 : -12))
-    style.setProperty('--input', adjustLightness(secondBgHsl, safeMode === 'dark' ? 12 : -12))
+    if (borderColor) {
+      const borderHsl = hexToHsl(borderColor)
+      style.setProperty('--border', borderHsl)
+      style.setProperty('--input', borderHsl)
+    } else {
+      style.setProperty('--border', adjustLightness(secondBgHsl, safeMode === 'dark' ? 12 : -12))
+      style.setProperty('--input', adjustLightness(secondBgHsl, safeMode === 'dark' ? 12 : -12))
+    }
 
     style.setProperty('--ring', fgHsl)
   }
@@ -123,14 +131,13 @@ export function saveTheme(theme) {
   try { localStorage.setItem('jp-theme', JSON.stringify(theme)) } catch (e) { }
 }
 
-
 let themePresetsData = null
 
 async function loadThemePresetsFromFile() {
   if (themePresetsData) return themePresetsData
   
   try {
-    const cached = localStorage.getItem('jportal_theme_presets_v1')
+    const cached = localStorage.getItem('jportal_theme_presets_v2')
     if (cached) {
       themePresetsData = JSON.parse(cached)
       return themePresetsData
@@ -139,7 +146,7 @@ async function loadThemePresetsFromFile() {
     const response = await fetch('/theme-presets.json')
     if (!response.ok) throw new Error('Failed to load theme-presets.json')
     themePresetsData = await response.json()
-    localStorage.setItem('jportal_theme_presets_v1', JSON.stringify(themePresetsData))
+    localStorage.setItem('jportal_theme_presets_v2', JSON.stringify(themePresetsData))
     return themePresetsData
   } catch (error) {
     console.error('Error loading theme presets:', error)

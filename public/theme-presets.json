@@ -8,6 +8,7 @@
         "secondary": "#06b6d4",
         "background": "#0f172a",
         "foreground": "#1e293b",
+        "radius": "0.5rem",
         "mode": "dark",
         "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -18,6 +19,7 @@
         "secondary": "#ec4899",
         "background": "#fff1f2",
         "foreground": "#ffffff",
+        "radius": "1rem",
         "mode": "light",
         "font": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -28,6 +30,7 @@
         "secondary": "#14b8a6",
         "background": "#0f2f1f",
         "foreground": "#1a3a2a",
+        "borderColor": "#1f4b3a",
         "mode": "dark",
         "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -38,6 +41,8 @@
         "secondary": "#d8b4fe",
         "background": "#faf5ff",
         "foreground": "#ffffff",
+        "borderColor": "#e9d5ff",
+        "radius": "1rem",
         "mode": "light",
         "font": "'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -48,6 +53,7 @@
         "secondary": "#ef4444",
         "background": "#1f2937",
         "foreground": "#111827",
+        "radius": "0px",
         "mode": "dark",
         "font": "'Courier New', monospace"
       },
@@ -58,6 +64,7 @@
         "secondary": "#fbbf24",
         "background": "#fffbf0",
         "foreground": "#ffffff",
+        "radius": "12px",
         "mode": "light",
         "font": "'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -68,6 +75,7 @@
         "secondary": "#6366f1",
         "background": "#1e1b4b",
         "foreground": "#312e81",
+        "borderColor": "#4338ca",
         "mode": "dark",
         "font": "'JetBrains Mono', monospace"
       },
@@ -78,6 +86,7 @@
         "secondary": "#14b8a6",
         "background": "#f0fdfa",
         "foreground": "#ffffff",
+        "borderColor": "#ccfbf1",
         "mode": "light",
         "font": "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -88,6 +97,8 @@
         "secondary": "#c4b5fd",
         "background": "#0d0d14",
         "foreground": "#1a1a2e",
+        "borderColor": "#2e2e4e",
+        "radius": "4px",
         "mode": "dark",
         "font": "'IBM Plex Mono', monospace"
       },
@@ -110,6 +121,8 @@
         "secondary": "#232f3e",
         "background": "#0f1115",
         "foreground": "#232f3e",
+        "borderColor": "#3a4149",
+        "radius": "4px",
         "mode": "dark",
         "font": "'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -120,6 +133,7 @@
         "secondary": "#107C10",
         "background": "#f3f3f3",
         "foreground": "#ffffff",
+        "radius": "4px",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -130,6 +144,8 @@
         "secondary": "#79c0ff",
         "background": "#0d1117",
         "foreground": "#161b22",
+        "borderColor": "#30363d",
+        "radius": "6px",
         "mode": "dark",
         "font": "'GitHub Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -140,6 +156,8 @@
         "secondary": "#007acc",
         "background": "#1e1e1e",
         "foreground": "#252526",
+        "borderColor": "#3e3e42",
+        "radius": "2px",
         "mode": "dark",
         "font": "'Consolas', 'Monaco', 'Courier New', monospace"
       },
@@ -150,6 +168,7 @@
         "secondary": "#F27E2D",
         "background": "#1a1a1a",
         "foreground": "#2d2d2d",
+        "radius": "4px",
         "mode": "dark",
         "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -160,6 +179,8 @@
         "secondary": "#0B3B5D",
         "background": "#0f1419",
         "foreground": "#1a1f2e",
+        "borderColor": "#353d4f",
+        "radius": "6px",
         "mode": "dark",
         "font": "'Sohne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -170,6 +191,8 @@
         "secondary": "#36C5F0",
         "background": "#ffffff",
         "foreground": "#f8f8f8",
+        "borderColor": "#e2e2e2",
+        "radius": "8px",
         "mode": "light",
         "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -180,6 +203,8 @@
         "secondary": "#F24E1E",
         "background": "#f5f5f5",
         "foreground": "#ffffff",
+        "borderColor": "#e5e5e5",
+        "radius": "6px",
         "mode": "light",
         "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -190,6 +215,8 @@
         "secondary": "#888888",
         "background": "#000000",
         "foreground": "#111111",
+        "borderColor": "#333333",
+        "radius": "6px",
         "mode": "dark",
         "font": "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -200,6 +227,8 @@
         "secondary": "#635BFF",
         "background": "#0a0e27",
         "foreground": "#131829",
+        "borderColor": "#1f2747",
+        "radius": "8px",
         "mode": "dark",
         "font": "'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       }
@@ -212,6 +241,8 @@
         "secondary": "#ff006e",
         "background": "#050511",
         "foreground": "#0f1126",
+        "borderColor": "#00ff88",
+        "radius": "0px",
         "mode": "dark",
         "font": "'Space Mono', monospace"
       },
@@ -222,6 +253,8 @@
         "secondary": "#00f5ff",
         "background": "#1a0b2e",
         "foreground": "#2b124a",
+        "borderColor": "#ff2a9d",
+        "radius": "0px",
         "mode": "dark",
         "font": "'Orbitron', monospace"
       },
@@ -232,6 +265,8 @@
         "secondary": "#666666",
         "background": "#ffffff",
         "foreground": "#fafafa",
+        "borderColor": "#e5e5e5",
+        "radius": "0.5rem",
         "mode": "light",
         "font": "'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -252,6 +287,7 @@
         "secondary": "#85c1e2",
         "background": "#f0f9ff",
         "foreground": "#ffffff",
+        "borderColor": "#d0e8f7",
         "mode": "light",
         "font": "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -262,6 +298,7 @@
         "secondary": "#4a7c1c",
         "background": "#0f1b0a",
         "foreground": "#1a2d12",
+        "borderColor": "#27421c",
         "mode": "dark",
         "font": "'Bitter', serif"
       },
@@ -282,6 +319,8 @@
         "secondary": "#BB00FF",
         "background": "#1a0033",
         "foreground": "#330066",
+        "borderColor": "#BB00FF",
+        "radius": "0px",
         "mode": "dark",
         "font": "'Victor Mono', monospace"
       },
@@ -292,6 +331,7 @@
         "secondary": "#B8C6A1",
         "background": "#F4F6F1",
         "foreground": "#ffffff",
+        "radius": "1rem",
         "mode": "light",
         "font": "'Cormorant Garamond', serif"
       },
@@ -302,6 +342,7 @@
         "secondary": "#818CF8",
         "background": "#1E1B4B",
         "foreground": "#2E2B5F",
+        "borderColor": "#474585",
         "mode": "dark",
         "font": "'Courier Prime', monospace"
       },
@@ -312,6 +353,8 @@
         "secondary": "#505050",
         "background": "#ffffff",
         "foreground": "#f5f5f5",
+        "borderColor": "#e0e0e0",
+        "radius": "4px",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -322,6 +365,8 @@
         "secondary": "#191414",
         "background": "#0f0f0f",
         "foreground": "#181818",
+        "borderColor": "#282828",
+        "radius": "8px",
         "mode": "dark",
         "font": "'Circular Std', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -332,6 +377,7 @@
         "secondary": "#DD1C6C",
         "background": "#fdf2f8",
         "foreground": "#ffffff",
+        "radius": "12px",
         "mode": "light",
         "font": "'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -342,6 +388,8 @@
         "secondary": "#7B2CBF",
         "background": "#0e0e10",
         "foreground": "#18181b",
+        "borderColor": "#29292e",
+        "radius": "6px",
         "mode": "dark",
         "font": "'Roblox Mono', monospace"
       },
@@ -352,6 +400,7 @@
         "secondary": "#00A4EF",
         "background": "#F7F9FA",
         "foreground": "#ffffff",
+        "borderColor": "#e6e8eb",
         "mode": "light",
         "font": "'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       }
@@ -364,6 +413,8 @@
         "secondary": "#36C5F0",
         "background": "#121212",
         "foreground": "#1d1d1d",
+        "borderColor": "#303030",
+        "radius": "6px",
         "mode": "dark",
         "font": "'Slack Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -374,6 +425,8 @@
         "secondary": "#1D91FF",
         "background": "#F3F5F7",
         "foreground": "#ffffff",
+        "borderColor": "#e2e4e8",
+        "radius": "6px",
         "mode": "light",
         "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -394,6 +447,8 @@
         "secondary": "#0095D8",
         "background": "#1e1e1e",
         "foreground": "#252526",
+        "borderColor": "#363636",
+        "radius": "4px",
         "mode": "dark",
         "font": "'Monaco', monospace"
       },
@@ -404,6 +459,8 @@
         "secondary": "#388bfd",
         "background": "#ffffff",
         "foreground": "#f6f8fa",
+        "borderColor": "#d0d7de",
+        "radius": "6px",
         "mode": "light",
         "font": "'GitHub Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -434,6 +491,7 @@
         "secondary": "#11AA33",
         "background": "#001e2b",
         "foreground": "#003333",
+        "borderColor": "#004d3d",
         "mode": "dark",
         "font": "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -444,6 +502,8 @@
         "secondary": "#A259FF",
         "background": "#fdf2f8",
         "foreground": "#ffffff",
+        "borderColor": "#fce7f3",
+        "radius": "6px",
         "mode": "light",
         "font": "'Gilroy', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -454,6 +514,8 @@
         "secondary": "#999999",
         "background": "#191919",
         "foreground": "#2d2d2d",
+        "borderColor": "#3d3d3d",
+        "radius": "4px",
         "mode": "dark",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -464,6 +526,8 @@
         "secondary": "#57F287",
         "background": "#313338",
         "foreground": "#2c2f33",
+        "borderColor": "#1e1f22",
+        "radius": "8px",
         "mode": "dark",
         "font": "'Whitney', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -474,6 +538,7 @@
         "secondary": "#0950BA",
         "background": "#f3f2ef",
         "foreground": "#ffffff",
+        "radius": "4px",
         "mode": "light",
         "font": "'Helvetica', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -494,6 +559,7 @@
         "secondary": "#E24329",
         "background": "#1f1f1f",
         "foreground": "#2d2d2d",
+        "borderColor": "#424242",
         "mode": "dark",
         "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -504,6 +570,8 @@
         "secondary": "#026AA7",
         "background": "#f4f5f7",
         "foreground": "#ffffff",
+        "borderColor": "#dfe1e6",
+        "radius": "4px",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -524,6 +592,7 @@
         "secondary": "#2B4D6F",
         "background": "#f5f6f8",
         "foreground": "#ffffff",
+        "radius": "6px",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -534,6 +603,8 @@
         "secondary": "#00D9FF",
         "background": "#1f2b4a",
         "foreground": "#2d3e5f",
+        "borderColor": "#3a4d70",
+        "radius": "8px",
         "mode": "dark",
         "font": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -544,6 +615,8 @@
         "secondary": "#9F7AEA",
         "background": "#f3e8ff",
         "foreground": "#ffffff",
+        "borderColor": "#e9d8fd",
+        "radius": "4px",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },

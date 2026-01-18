@@ -30,12 +30,12 @@ export function SubjectInfoCard({ subject }) {
               </h2>
 
               <div className="flex items-center gap-2">
-                <span className="flex items-center text-xs font-mono font-bold text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded">
+                <span className="flex items-center text-xs font-mono font-bold text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded-md">
                   <Hash className="w-3 h-3 mr-1" />
                   {subject.code}
                 </span>
                 {subject.isAudit && (
-                  <Badge variant="outline" className="text-[10px] h-5 uppercase font-black border-indigo-500/30 text-indigo-500 bg-indigo-500/5">
+                  <Badge variant="outline" className="text-[10px] h-5 uppercase font-black border-indigo-500/30 text-indigo-500 bg-indigo-500/5 rounded-md">
                     Audit
                   </Badge>
                 )}
@@ -61,7 +61,7 @@ export function SubjectInfoCard({ subject }) {
               </div>
             </div>
 
-            <div className="flex-shrink-0 flex flex-col items-center justify-center bg-primary/5 border border-primary/20 rounded-2xl px-4 py-4 min-w-[60px] h-fit self-start sm:self-center shadow-inner">
+            <div className="flex-shrink-0 flex flex-col items-center justify-center bg-primary/5 border border-primary/20 rounded-lg px-4 py-4 min-w-[60px] h-fit self-start sm:self-center shadow-inner">
               <span className="text-xl font-black text-primary leading-none">
                 {subject.credits.toFixed(1)}
               </span>

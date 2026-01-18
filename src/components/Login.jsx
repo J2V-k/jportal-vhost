@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.24/dist/jsjiit.esm.js"
-import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff } from "lucide-react"
+import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff, Smartphone } from "lucide-react"
 import InstallPWA from './InstallPWA'
 import MessMenu from "./MessMenu"
 import ThemeBtn from "./ui/ThemeBtn"
@@ -144,7 +144,7 @@ export default function Login({ onLoginSuccess, w }) {
           <InstallPWA />
         </ul>
         <div className="w-full max-w-md">
-          <div className="bg-card backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-border">
+          <div className="bg-card backdrop-blur-sm rounded-lg shadow-2xl p-8 border border-border">
             <h2 className="text-2xl font-bold mb-6 text-card-foreground">Login to Your WebKiosk  Account</h2>
             {loginStatus.error && (
               <Alert variant="destructive" className="mb-6">
@@ -267,4 +267,3 @@ export default function Login({ onLoginSuccess, w }) {
     </div>
   )
 }
-

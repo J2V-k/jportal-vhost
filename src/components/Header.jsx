@@ -49,7 +49,6 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
       animate={{ opacity: 1, y: 0 }}
       className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
-      {/* Notice Bar - Only renders if notice state has text */}
       <AnimatePresence>
         {notice && (
           <motion.div 
