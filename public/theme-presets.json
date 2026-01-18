@@ -4,7 +4,7 @@
       {
         "id": "midnightOcean",
         "name": "Midnight Ocean",
-        "primary": "#0ea5e9",
+        "primary": "#38bdf8",
         "secondary": "#06b6d4",
         "background": "#0f172a",
         "foreground": "#1e293b",
@@ -14,17 +14,17 @@
       {
         "id": "sunsetBliss",
         "name": "Sunset Bliss",
-        "primary": "#f97316",
+        "primary": "#ea580c",
         "secondary": "#ec4899",
-        "background": "#fef2f2",
-        "foreground": "#fafafa",
+        "background": "#fff1f2",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "forestWhisper",
         "name": "Forest Whisper",
-        "primary": "#10b981",
+        "primary": "#34d399",
         "secondary": "#14b8a6",
         "background": "#0f2f1f",
         "foreground": "#1a3a2a",
@@ -34,18 +34,18 @@
       {
         "id": "lavenderDream",
         "name": "Lavender Dream",
-        "primary": "#a78bfa",
+        "primary": "#7c3aed",
         "secondary": "#d8b4fe",
         "background": "#faf5ff",
-        "foreground": "#f3e8ff",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "crimsonEdge",
         "name": "Crimson Edge",
-        "primary": "#dc2626",
-        "secondary": "#f87171",
+        "primary": "#f87171",
+        "secondary": "#ef4444",
         "background": "#1f2937",
         "foreground": "#111827",
         "mode": "dark",
@@ -54,17 +54,17 @@
       {
         "id": "peachCream",
         "name": "Peach Cream",
-        "primary": "#fb923c",
+        "primary": "#c2410c",
         "secondary": "#fbbf24",
         "background": "#fffbf0",
-        "foreground": "#fef3c7",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "indigoStorm",
         "name": "Indigo Storm",
-        "primary": "#4f46e5",
+        "primary": "#818cf8",
         "secondary": "#6366f1",
         "background": "#1e1b4b",
         "foreground": "#312e81",
@@ -74,18 +74,18 @@
       {
         "id": "mintClarity",
         "name": "Mint Clarity",
-        "primary": "#06b6d4",
+        "primary": "#0891b2",
         "secondary": "#14b8a6",
         "background": "#f0fdfa",
-        "foreground": "#ccfbf1",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "obsidianNight",
         "name": "Obsidian Night",
-        "primary": "#8b5cf6",
-        "secondary": "#a78bfa",
+        "primary": "#a78bfa",
+        "secondary": "#c4b5fd",
         "background": "#0d0d14",
         "foreground": "#1a1a2e",
         "mode": "dark",
@@ -94,10 +94,10 @@
       {
         "id": "goldenHour",
         "name": "Golden Hour",
-        "primary": "#d97706",
+        "primary": "#b45309",
         "secondary": "#f59e0b",
         "background": "#fffaf0",
-        "foreground": "#fef3c7",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       }
@@ -107,8 +107,8 @@
         "id": "awsOrange",
         "name": "AWS Orange",
         "primary": "#FF9900",
-        "secondary": "#146EB4",
-        "background": "#1a1a1a",
+        "secondary": "#232f3e",
+        "background": "#0f1115",
         "foreground": "#232f3e",
         "mode": "dark",
         "font": "'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
@@ -118,8 +118,8 @@
         "name": "Microsoft Blue",
         "primary": "#0078D4",
         "secondary": "#107C10",
-        "background": "#ffffff",
-        "foreground": "#f3f3f3",
+        "background": "#f3f3f3",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -136,8 +136,8 @@
       {
         "id": "vscodeTheme",
         "name": "VS Code",
-        "primary": "#007acc",
-        "secondary": "#646695",
+        "primary": "#4ec9b0",
+        "secondary": "#007acc",
         "background": "#1e1e1e",
         "foreground": "#252526",
         "mode": "dark",
@@ -166,7 +166,7 @@
       {
         "id": "slackVariant",
         "name": "Slack Variant",
-        "primary": "#E01E5A",
+        "primary": "#4a154b",
         "secondary": "#36C5F0",
         "background": "#ffffff",
         "foreground": "#f8f8f8",
@@ -176,28 +176,28 @@
       {
         "id": "figmaDesign",
         "name": "Figma Design",
-        "primary": "#F24E1E",
-        "secondary": "#A259FF",
-        "background": "#ffffff",
-        "foreground": "#f5f5f5",
+        "primary": "#000000",
+        "secondary": "#F24E1E",
+        "background": "#f5f5f5",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "vercelDark",
         "name": "Vercel Dark",
-        "primary": "#ffffff",
+        "primary": "#ededed",
         "secondary": "#888888",
         "background": "#000000",
-        "foreground": "#1a1a1a",
+        "foreground": "#111111",
         "mode": "dark",
         "font": "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "stripeModern",
         "name": "Stripe Modern",
-        "primary": "#635BFF",
-        "secondary": "#00D4FF",
+        "primary": "#80e9ff",
+        "secondary": "#635BFF",
         "background": "#0a0e27",
         "foreground": "#131829",
         "mode": "dark",
@@ -210,25 +210,25 @@
         "name": "Cyberpunk Neon",
         "primary": "#00ff88",
         "secondary": "#ff006e",
-        "background": "#0a0e27",
-        "foreground": "#16213e",
+        "background": "#050511",
+        "foreground": "#0f1126",
         "mode": "dark",
         "font": "'Space Mono', monospace"
       },
       {
         "id": "retroSynthwave",
         "name": "Retro Synthwave",
-        "primary": "#ff006e",
+        "primary": "#ff2a9d",
         "secondary": "#00f5ff",
-        "background": "#1a0033",
-        "foreground": "#330066",
+        "background": "#1a0b2e",
+        "foreground": "#2b124a",
         "mode": "dark",
         "font": "'Orbitron', monospace"
       },
       {
         "id": "minimalLight",
         "name": "Minimal Light",
-        "primary": "#000000",
+        "primary": "#171717",
         "secondary": "#666666",
         "background": "#ffffff",
         "foreground": "#fafafa",
@@ -238,7 +238,7 @@
       {
         "id": "warmSunset",
         "name": "Warm Sunset",
-        "primary": "#FF6B35",
+        "primary": "#fdba74",
         "secondary": "#FF8C42",
         "background": "#1a1410",
         "foreground": "#2d2219",
@@ -248,17 +248,17 @@
       {
         "id": "coolGlacier",
         "name": "Cool Glacier",
-        "primary": "#5dade2",
+        "primary": "#0369a1",
         "secondary": "#85c1e2",
-        "background": "#ecf0f1",
-        "foreground": "#f8f9fa",
+        "background": "#f0f9ff",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "deepForest",
         "name": "Deep Forest",
-        "primary": "#2d5016",
+        "primary": "#4ade80",
         "secondary": "#4a7c1c",
         "background": "#0f1b0a",
         "foreground": "#1a2d12",
@@ -268,7 +268,7 @@
       {
         "id": "sunsetGlow",
         "name": "Sunset Glow",
-        "primary": "#FF8C42",
+        "primary": "#ea580c",
         "secondary": "#FFB347",
         "background": "#FFF8DC",
         "foreground": "#FFFACD",
@@ -278,7 +278,7 @@
       {
         "id": "electricPurple",
         "name": "Electric Purple",
-        "primary": "#8800FF",
+        "primary": "#c084fc",
         "secondary": "#BB00FF",
         "background": "#1a0033",
         "foreground": "#330066",
@@ -288,17 +288,17 @@
       {
         "id": "sageGreen",
         "name": "Sage Green",
-        "primary": "#9CAF88",
+        "primary": "#4d7c0f",
         "secondary": "#B8C6A1",
         "background": "#F4F6F1",
-        "foreground": "#FAFBF8",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Cormorant Garamond', serif"
       },
       {
         "id": "slateBlue",
         "name": "Slate Blue",
-        "primary": "#6366F1",
+        "primary": "#818cf8",
         "secondary": "#818CF8",
         "background": "#1E1B4B",
         "foreground": "#2E2B5F",
@@ -308,7 +308,7 @@
       {
         "id": "notionMinimal",
         "name": "Notion Minimal",
-        "primary": "#000000",
+        "primary": "#171717",
         "secondary": "#505050",
         "background": "#ffffff",
         "foreground": "#f5f5f5",
@@ -328,17 +328,17 @@
       {
         "id": "dribbblePink",
         "name": "Dribbble Pink",
-        "primary": "#EA4C89",
+        "primary": "#db2777",
         "secondary": "#DD1C6C",
-        "background": "#f7f2f9",
-        "foreground": "#faf7fc",
+        "background": "#fdf2f8",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "twitchPurple",
         "name": "Twitch Purple",
-        "primary": "#9146FF",
+        "primary": "#a970ff",
         "secondary": "#7B2CBF",
         "background": "#0e0e10",
         "foreground": "#18181b",
@@ -350,8 +350,8 @@
         "name": "Dropbox Blue",
         "primary": "#0061FF",
         "secondary": "#00A4EF",
-        "background": "#ffffff",
-        "foreground": "#f9fafb",
+        "background": "#F7F9FA",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       }
@@ -372,8 +372,8 @@
         "name": "Linear App",
         "primary": "#5E51E6",
         "secondary": "#1D91FF",
-        "background": "#ffffff",
-        "foreground": "#f9fafb",
+        "background": "#F3F5F7",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -400,7 +400,7 @@
       {
         "id": "githubLight",
         "name": "GitHub Light",
-        "primary": "#1f6feb",
+        "primary": "#0969da",
         "secondary": "#388bfd",
         "background": "#ffffff",
         "foreground": "#f6f8fa",
@@ -410,17 +410,17 @@
       {
         "id": "slackPink",
         "name": "Slack Pink",
-        "primary": "#E01E5A",
-        "secondary": "#F2CC8F",
-        "background": "#ffffff",
-        "foreground": "#f9f9f9",
+        "primary": "#be123c",
+        "secondary": "#E01E5A",
+        "background": "#fff1f2",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "herokuPurple",
         "name": "Heroku Purple",
-        "primary": "#430098",
+        "primary": "#a855f7",
         "secondary": "#79589f",
         "background": "#0a0a0a",
         "foreground": "#1a1a1a",
@@ -432,7 +432,7 @@
         "name": "MongoDB Green",
         "primary": "#00ED64",
         "secondary": "#11AA33",
-        "background": "#001d1d",
+        "background": "#001e2b",
         "foreground": "#003333",
         "mode": "dark",
         "font": "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
@@ -440,17 +440,17 @@
       {
         "id": "figmaPink",
         "name": "Figma Pink",
-        "primary": "#F24E1E",
+        "primary": "#be185d",
         "secondary": "#A259FF",
-        "background": "#ffffff",
-        "foreground": "#f5f5f5",
+        "background": "#fdf2f8",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Gilroy', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
       {
         "id": "notionDark",
         "name": "Notion Dark",
-        "primary": "#FFFFFF",
+        "primary": "#e5e5e5",
         "secondary": "#999999",
         "background": "#191919",
         "foreground": "#2d2d2d",
@@ -472,8 +472,8 @@
         "name": "LinkedIn Blue",
         "primary": "#0A66C2",
         "secondary": "#0950BA",
-        "background": "#ffffff",
-        "foreground": "#f5f5f5",
+        "background": "#f3f2ef",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Helvetica', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       },
@@ -500,9 +500,9 @@
       {
         "id": "trelloBlue",
         "name": "Trello Blue",
-        "primary": "#0079BF",
+        "primary": "#172b4d",
         "secondary": "#026AA7",
-        "background": "#f8f9fa",
+        "background": "#f4f5f7",
         "foreground": "#ffffff",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
@@ -510,9 +510,9 @@
       {
         "id": "slackAqua",
         "name": "Slack Aqua",
-        "primary": "#36C5F0",
+        "primary": "#0e7490",
         "secondary": "#2EB67D",
-        "background": "#f9f9f9",
+        "background": "#f0fdfa",
         "foreground": "#ffffff",
         "mode": "light",
         "font": "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
@@ -522,8 +522,8 @@
         "name": "Asana Blue",
         "primary": "#145FDD",
         "secondary": "#2B4D6F",
-        "background": "#ffffff",
-        "foreground": "#f5f5f5",
+        "background": "#f5f6f8",
+        "foreground": "#ffffff",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
       },
@@ -542,7 +542,7 @@
         "name": "Notion Purple",
         "primary": "#6B46C1",
         "secondary": "#9F7AEA",
-        "background": "#f9f9f9",
+        "background": "#f3e8ff",
         "foreground": "#ffffff",
         "mode": "light",
         "font": "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif"
@@ -550,7 +550,7 @@
       {
         "id": "canvaGreen",
         "name": "Canvas Green",
-        "primary": "#00A170",
+        "primary": "#007a55",
         "secondary": "#00D084",
         "background": "#f0f5f2",
         "foreground": "#ffffff",
@@ -574,7 +574,7 @@
     },
     "additional": {
       "label": "Additional Themes",
-      "count": 15
+      "count": 20
     }
   }
 }
