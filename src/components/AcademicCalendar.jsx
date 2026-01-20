@@ -55,7 +55,6 @@ const AcademicCalendar = () => {
     return eventDate > today;
   };
 
-  // Modified helper to include weekday if requested
   const formatDate = (dateString, includeWeekday = false) => {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -151,7 +150,7 @@ const AcademicCalendar = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Skeleton className="w-8 h-8 mx-auto rounded-full" />
+          <Skeleton className="w-8 h-8 mx-auto rounded-lg" />
           <Skeleton className="h-4 w-48 mx-auto" />
           <div className="space-y-2 mt-8">
             <Skeleton className="h-4 w-64 mx-auto" />
@@ -193,7 +192,7 @@ const AcademicCalendar = () => {
                       setSelectedSemesters([]);
                       setSelectedCategories([]);
                     }}
-                    className="h-6 w-6 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                    className="h-6 w-6 rounded-lg hover:bg-destructive/10 hover:text-destructive"
                     title="Clear All"
                   >
                     <X className="w-3 h-3" />
@@ -209,7 +208,7 @@ const AcademicCalendar = () => {
                     setSelectedSemesters([]);
                     setSelectedCategories([]);
                   }}
-                  className="rounded-full text-xs h-7 px-3"
+                  className="rounded-lg text-xs h-7 px-3"
                 >
                   All
                 </Button>
@@ -217,7 +216,7 @@ const AcademicCalendar = () => {
                   <Badge
                     key={`sem-${semester}`}
                     variant={selectedSemesters.includes(semester) ? "default" : "outline"}
-                    className="cursor-pointer transition-colors hover:bg-primary/20 bg-background text-foreground border border-border whitespace-nowrap"
+                    className="cursor-pointer transition-colors hover:bg-primary/20 bg-background text-foreground border border-border whitespace-nowrap rounded-lg"
                     onClick={() => {
                       setSelectedSemesters(prev =>
                         prev.includes(semester)
@@ -234,7 +233,7 @@ const AcademicCalendar = () => {
                   <Badge
                     key={`cat-${category}`}
                     variant={selectedCategories.includes(category) ? "default" : "outline"}
-                    className="cursor-pointer transition-colors hover:bg-primary/20 bg-background text-foreground border border-border whitespace-nowrap"
+                    className="cursor-pointer transition-colors hover:bg-primary/20 bg-background text-foreground border border-border whitespace-nowrap rounded-lg"
                     onClick={() => {
                       setSelectedCategories(prev =>
                         prev.includes(category)
@@ -258,7 +257,6 @@ const AcademicCalendar = () => {
               const isTodayEvent = isEventToday(event);
               const isFirstTodayEvent = isTodayEvent && index === firstTodayEventIndex;
               const isTargetEvent = index === targetEventIndex;
-              // Check if event is single day (has no end date)
               const isSingleDay = !event.endDate;
 
               return (
@@ -270,7 +268,7 @@ const AcademicCalendar = () => {
                   style={isMobile ? { scrollMarginTop: '120px' } : {}}
                   role="article"
                   aria-labelledby={`event-title-${index}`}
-                  className={`${getCategoryColor(event.category)} ${isFirstTodayEvent ? 'ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] border-amber-400' : ''} transition-all hover:shadow-md border`}
+                  className={`${getCategoryColor(event.category)} ${isFirstTodayEvent ? 'ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] border-amber-400' : ''} transition-all hover:shadow-md border rounded-lg`}
                 >
                   <CardContent className="p-4">
                     <div className="flex-1">
@@ -281,20 +279,20 @@ const AcademicCalendar = () => {
                               <span className="text-white/80">{getCategoryIcon(event.category)}</span>
                               <h3 id={`event-title-${index}`} className="font-medium break-words text-white">{event.category}</h3>
                             </div>
-                            <Badge variant="secondary" className="text-xs bg-black/20 text-white border-white/20 backdrop-blur-sm">
+                            <Badge variant="secondary" className="text-xs bg-black/20 text-white border-white/20 backdrop-blur-sm rounded-lg">
                               {event.semester} Sem
                             </Badge>
-                            <Badge variant="secondary" className="text-xs bg-black/20 text-white border-white/20 backdrop-blur-sm">
+                            <Badge variant="secondary" className="text-xs bg-black/20 text-white border-white/20 backdrop-blur-sm rounded-lg">
                               {event.type}
                             </Badge>
                             {isTodayEvent && (
-                              <Badge className="text-xs font-bold bg-white text-black hover:bg-white/90 border-none shadow-sm">
+                              <Badge className="text-xs font-bold bg-white text-black hover:bg-white/90 border-none shadow-sm rounded-lg">
                                 TODAY
                               </Badge>
                             )}
                           </div>
                         </div>
-                        <div className="text-sm font-medium text-white/90 whitespace-nowrap bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
+                        <div className="text-sm font-medium text-white/90 whitespace-nowrap bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
                           {formatDate(event.startDate, isSingleDay)}
                           {event.endDate && ` - ${formatDate(event.endDate)}`}
                         </div>
@@ -322,7 +320,7 @@ const AcademicCalendar = () => {
                     setSelectedSemesters([]);
                     setSelectedCategories([]);
                   }}
-                  className="mt-4"
+                  className="mt-4 rounded-lg"
                 >
                   Clear Filters
                 </Button>
@@ -335,7 +333,7 @@ const AcademicCalendar = () => {
           onClick={scrollToCurrentEvent}
           disabled={filteredEvents.length === 0}
           size="icon"
-          className={`fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 ${filteredEvents.length === 0
+          className={`fixed bottom-24 md:bottom-6 right-6 w-12 h-12 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 z-50 ${filteredEvents.length === 0
             ? 'bg-muted cursor-not-allowed opacity-50 border border-border'
             : 'bg-primary hover:bg-primary/90 border border-primary text-primary-foreground'
             }`}

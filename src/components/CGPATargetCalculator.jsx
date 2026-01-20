@@ -422,7 +422,7 @@ export default function CGPATargetCalculator({ w }) {
                                 {subject.name}
                               </div>
                               <div className="flex items-center gap-3 text-xs md:text-sm">
-                                <span className="px-2 py-1 bg-muted text-muted-foreground rounded text-xs font-medium">{subject.code}</span>
+                                <span className="px-2 py-1 bg-muted text-muted-foreground rounded-lg text-xs font-medium">{subject.code}</span>
                                 <span className="text-muted-foreground">{subject.credits} credits</span>
                                 {subject.marks && (
                                   <span className="text-xs text-muted-foreground ml-2">
@@ -655,7 +655,7 @@ export default function CGPATargetCalculator({ w }) {
             </div>
           </TabsContent>
         </Tabs>
-                <div className="h-12 md:h-12" />
+        <div className="h-12 md:h-12" />
 
       </div>
     </>

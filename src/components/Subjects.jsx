@@ -347,7 +347,7 @@ export default function Subjects({
           <TabsContent value="registered" className="mt-4">
             {!subjectsLoading && currentSubjects && (
               <div className="space-y-4 mb-6">
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border border-border shadow-sm">
                   <div className="flex items-center gap-2 p-1 bg-muted/30 rounded-lg border border-border w-full md:w-auto overflow-x-auto">
                     {[
                       { id: 'L', label: 'Lectures' },

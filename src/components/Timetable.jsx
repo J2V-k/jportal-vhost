@@ -234,7 +234,7 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
       <AnimatePresence>
         {isDialogOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-card w-full max-w-md rounded-xl border border-border p-6 shadow-2xl relative">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-card w-full max-w-md rounded-lg border border-border p-6 shadow-2xl relative">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold">{editingEventIndex !== null ? "Edit Class" : "Add Class"}</h3>
                 <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)}><X /></Button>
@@ -287,7 +287,7 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
               className="overflow-hidden"
             >
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <Card className="shadow-sm border-border/50">
+                <Card className="shadow-sm border-border/50 rounded-lg">
                   <CardHeader className="pb-3"><CardTitle className="text-sm font-bold flex items-center gap-2"><Layers className="w-4 h-4" /> Select Semester</CardTitle></CardHeader>
                   <CardContent className="space-y-3">
                     <Select value={selectedSemesterId || ""} onValueChange={setSelectedSemesterId}>
@@ -303,7 +303,7 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
                     </Button>
                   </CardContent>
                 </Card>
-                <Card className="lg:col-span-2 shadow-sm border-border/50">
+                <Card className="lg:col-span-2 shadow-sm border-border/50 rounded-lg">
                   <CardHeader className="pb-3 flex justify-between">
                     <CardTitle className="text-sm font-bold">Subject Codes</CardTitle>
                     <Button variant="ghost" size="sm" onClick={() => {
@@ -340,9 +340,9 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
               const dayEvents = icalEvents.filter(ev => ev.start.getDay() === di);
               const isToday = currentDayIndex === di;
               return (
-                <div key={day} ref={isToday ? todayRef : null} className={`flex flex-col gap-3 p-1 rounded-2xl ${isToday ? 'bg-amber-500/5 ring-2 ring-amber-400' : ''}`}>
+                <div key={day} ref={isToday ? todayRef : null} className={`flex flex-col gap-3 p-1 rounded-lg ${isToday ? 'bg-amber-500/5 ring-2 ring-amber-400' : ''}`}>
                   <span className={`text-[10px] font-black uppercase tracking-widest px-2 pt-1 ${isToday ? 'text-amber-600' : 'text-muted-foreground/60'}`}>{day}</span>
-                  <div className={`flex flex-col gap-2 p-2 rounded-xl border min-h-[140px] ${dayEvents.length ? 'bg-muted/10' : 'border-dashed border-border/30'}`}>
+                  <div className={`flex flex-col gap-2 p-2 rounded-lg border min-h-[140px] ${dayEvents.length ? 'bg-muted/10' : 'border-dashed border-border/30'}`}>
                     {dayEvents.map((ev, idx) => {
                       const subject = formatSubjectDisplay(ev.summary);
                       return (
@@ -351,11 +351,11 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
                             <button onClick={() => { setEditingEventIndex(icalEvents.indexOf(ev)); setFormData({summary: ev.summary, location: ev.location, day: String(ev.start.getDay()), startTime: ev.start.toTimeString().substring(0,5), endTime: ev.end.toTimeString().substring(0,5)}); setIsDialogOpen(true); }} className="p-1 hover:bg-muted text-muted-foreground"><Edit3 className="w-3 h-3" /></button>
                             <button onClick={() => setIcalEvents(p => p.filter(e => e !== ev))} className="p-1 hover:bg-destructive/10 text-destructive"><Trash2 className="w-3 h-3" /></button>
                           </div>
-                          {subject.type && <Badge variant="outline" className={`mb-1.5 text-[8px] h-3.5 px-1.5 font-bold uppercase ${subject.type.color}`}>{subject.type.label}</Badge>}
+                          {subject.type && <Badge variant="outline" className={`mb-1.5 text-[8px] h-3.5 px-1.5 font-bold uppercase rounded-md ${subject.type.color}`}>{subject.type.label}</Badge>}
                           <p className="font-bold text-[10.5px] leading-tight mb-2 pr-6">{subject.name}</p>
                           <div className="space-y-1 text-[9px] text-muted-foreground font-medium">
                             <div className="flex items-center gap-1"><Clock className="w-2.5 h-2.5 text-primary/70" /> {ev.start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - {ev.end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                            {ev.location && <Badge variant="secondary" className="text-[11px] font-black bg-primary/20 text-primary border-none h-5">{ev.location}</Badge>}
+                            {ev.location && <Badge variant="secondary" className="text-[11px] font-black bg-primary/20 text-primary border-none h-5 rounded-md">{ev.location}</Badge>}
                           </div>
                         </div>
                       );

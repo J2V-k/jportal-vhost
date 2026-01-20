@@ -63,7 +63,7 @@ const AttendanceDaily = ({
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="sticky top-0 z-30 -mx-4 px-4 py-2 md:static md:p-0 md:bg-transparent bg-background/80 backdrop-blur-md border-b md:border-none border-border/40 transition-all">
         <div className={cn(
-          "flex items-center justify-between p-1.5 rounded-xl border shadow-sm transition-all duration-300",
+          "flex items-center justify-between p-1.5 rounded-lg border shadow-sm transition-all duration-300",
           isCurrentDate 
             ? "bg-amber-500/10 border-amber-500/20 shadow-amber-500/5" 
             : "bg-card border-border"
@@ -116,7 +116,7 @@ const AttendanceDaily = ({
           isCalendarOpen ? "max-h-[500px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 md:max-h-[none] md:opacity-100 md:translate-y-0"
         )}>
           <div className="flex justify-center md:justify-start">
-            <Card className="bg-card border-border shadow-md max-w-fit rounded-xl overflow-hidden">
+            <Card className="bg-card border-border shadow-md max-w-fit rounded-lg overflow-hidden">
               <CardHeader className="pb-3 hidden md:block bg-muted/30 border-b border-border/50">
                 <CardTitle className="text-center text-foreground flex items-center justify-center gap-2 text-base font-medium">
                   <CalendarIcon className="w-4 h-4 text-primary" /> Select Date
@@ -174,7 +174,7 @@ const AttendanceDaily = ({
                   if (lectures.length === 0) return [];
                   
                   return (
-                    <Card key={subj.name} className="bg-card border-border shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/30 group">
+                    <Card key={subj.name} className="bg-card border-border shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/30 group rounded-lg">
                       <CardHeader className="py-3 px-4 bg-muted/20 border-b border-border/60 group-hover:bg-muted/40 transition-colors">
                         <CardTitle className="text-foreground flex items-center gap-3 text-sm md:text-base font-semibold">
                           <span className="relative flex h-3 w-3">
@@ -190,7 +190,7 @@ const AttendanceDaily = ({
                             <div key={i} className="flex items-center justify-between p-3 md:p-4 hover:bg-accent/10 transition-colors">
                               <div className="flex items-center gap-3">
                                 <Badge variant="outline" className={cn(
-                                  "px-2.5 py-1 text-xs font-bold border-0 shadow-sm",
+                                  "px-2.5 py-1 text-xs font-bold border-0 shadow-sm rounded-lg",
                                   cls.present === "Present" 
                                     ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20" 
                                     : "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-inset ring-red-500/20"
@@ -212,7 +212,7 @@ const AttendanceDaily = ({
                 })}
                 
                 {subjects.every(s => getClassesFor(s.name, safeDailyDate).length === 0) && (
-                  <div className="flex flex-col items-center justify-center py-16 text-center bg-gradient-to-b from-accent/5 to-transparent rounded-2xl border border-dashed border-border/60">
+                  <div className="flex flex-col items-center justify-center py-16 text-center bg-gradient-to-b from-accent/5 to-transparent rounded-lg border border-dashed border-border/60">
                     <div className="bg-background p-4 rounded-full shadow-sm mb-4">
                       <CalendarIcon className="w-8 h-8 text-muted-foreground/40" />
                     </div>
@@ -223,7 +223,7 @@ const AttendanceDaily = ({
               </div>
             )}
 
-            <div className="mt-8 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 shadow-sm flex gap-4 items-start md:items-center animate-in slide-in-from-bottom-4 duration-700">
+            <div className="mt-8 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 shadow-sm flex gap-4 items-start md:items-center animate-in slide-in-from-bottom-4 duration-700">
               <div className="p-2 bg-amber-500/10 rounded-full flex-shrink-0">
                 <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>

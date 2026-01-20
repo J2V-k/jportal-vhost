@@ -76,8 +76,6 @@ const AttendanceCard = ({
     }
   }, [attendanceGoal]);
 
-  // FIX: Removed the 'else { fetchSubjectAttendance(subject) }' block.
-  // This prevents the "thundering herd" of API calls on mount.
   useEffect(() => {
     if (isNewFormat) {
       if (subjectAttendanceData[subject.name]) {
@@ -165,7 +163,7 @@ const AttendanceCard = ({
 
   return (
     <>
-      <Card className="cursor-pointer bg-card hover:bg-accent/50 transition-colors duration-200 border-border">
+      <Card className="cursor-pointer bg-card hover:bg-accent/50 transition-colors duration-200 border-border rounded-lg">
         <CardContent className="p-4" onClick={handleClick}>
           <div className="flex justify-between items-center">
             <div className="flex-1 mr-4">
@@ -205,7 +203,7 @@ const AttendanceCard = ({
         setSelectedSubject(null);
         setSelDate(null);
       }}>
-        <SheetContent side="bottom" className="h-[80vh] md:h-[600px] bg-background text-foreground border-0 overflow-hidden flex flex-col">
+        <SheetContent side="bottom" className="h-[80vh] md:h-[600px] bg-background text-foreground border-0 overflow-hidden flex flex-col rounded-t-lg">
           <SheetHeader>
           </SheetHeader>
           <div className="py-4 flex flex-1 overflow-y-auto">
@@ -332,7 +330,7 @@ const AttendanceCard = ({
                     {getClassesForDate(selDate).map((classData, index) => (
                       <div
                         key={index}
-                        className={`p-2 rounded ${classData.present === "Present"
+                        className={`p-2 rounded-md ${classData.present === "Present"
                             ? "bg-green-600/40 dark:bg-green-200/40"
                             : "bg-red-600/40 dark:bg-red-200/40"
                           }`}

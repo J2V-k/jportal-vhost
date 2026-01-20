@@ -260,7 +260,7 @@ const Attendance = ({
       setIsAttendanceDataLoading(false);
 
       if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-         return;
+           return;
       }
 
       setIsRefreshing(true);
@@ -454,7 +454,7 @@ const Attendance = ({
         await new Promise(r => setTimeout(r, 50));
 
         if (isMounted) {
-            setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
+           setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
         }
       }
     };
