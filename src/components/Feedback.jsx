@@ -7,45 +7,10 @@ import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Helmet } from 'react-helmet-async';
 
-import { API_BASE } from '@/lib/api';
-const API = API_BASE;
+import { proxy_url } from '@/lib/api';
+const API = proxy_url;
 
-function generate_date_seq(date = null) {
-  if (date === null) {
-    date = new Date();
-  }
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = String(date.getFullYear()).slice(2);
-  const weekday = String(date.getDay());
-  return day[0] + month[0] + year[0] + weekday + day[1] + month[1] + year[1];
-}
-
-function base64Encode(data) {
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
-}
-
-var IV = new TextEncoder().encode("dcek9wb8frty1pnm");
-
-async function generate_key(date = null) {
-  const dateSeq = generate_date_seq(date);
-  const keyData = new TextEncoder().encode("qa8y" + dateSeq + "ty1pn");
-  return window.crypto.subtle.importKey("raw", keyData, { name: "AES-CBC" }, false, ["encrypt", "decrypt"]);
-}
-
-async function encrypt(data) {
-  const key = await generate_key();
-  const encrypted = await window.crypto.subtle.encrypt({ name: "AES-CBC", iv: IV }, key, data);
-  return new Uint8Array(encrypted);
-}
-
-async function serialize_payload(payload) {
-  const raw = new TextEncoder().encode(JSON.stringify(payload));
-  const pbytes = await encrypt(raw);
-  return base64Encode(pbytes);
-}
-
-const Feedback = ({ w }) => {
+const Feedback = ({ w, serialize_payload }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -256,6 +221,29 @@ const Feedback = ({ w }) => {
     setRandomized(true);
   };
 
+  const isAlreadySubmitted = (err) => {
+    if (!err) return false;
+    if (err.status === 417) return true;
+    const msg = (err.message || '').toLowerCase();
+    if (msg.includes('feedback already submit') || msg.includes('feedback already sumbit')) return true;
+    if (msg.includes('responseStatus') || msg.includes('errors') || msg.includes('"responsestatus"')) return true;
+    if (err.responseStatus === 'Failure') return true;
+    if (Array.isArray(err.errors) && err.errors.some(e => /feedback already sumbit/i.test(e))) return true;
+    return false;
+  };
+
+  const buildSavePayload = (subject, questions_to_submit) => ({
+    instituteid: w.session.instituteid,
+    studentid: w.session.memberid,
+    eventid: eventData.eventid,
+    subjectid: subject.subjectid,
+    facultyid: subject.employeeid,
+    registrationid: subject.registrationid,
+    questionid: questions_to_submit,
+    facultycomments: null,
+    coursecomments: null
+  });
+
   const handleFeedbackSubmit = async () => {
     if (!w || !w.session || !eventData) {
       setMessage('Session expired. Please login again.');
@@ -268,74 +256,40 @@ const Feedback = ({ w }) => {
     try {
       const SAVE_ENDPOINT = "/feedbackformcontroller/savedatalist";
 
-      for (let [key, data] of Object.entries(questionsData)) {
+      for (const data of Object.values(questionsData)) {
         const { subject, questions } = data;
         const questions_to_submit = questions.map(q => {
           const ratingKey = `${subject.subjectid}-${subject.employeeid}-${q.questionid}`;
           const selectedRating = ratings[ratingKey];
+          if (!selectedRating) throw new Error(`Please select rating for all questions in ${subject.subjectdesc}`);
+          return { ...q, rating: selectedRating };
+        });
 
-          if (!selectedRating) {
-            throw new Error(`Please select rating for all questions in ${subject.subjectdesc}`);
+        const save_data_payload = await serialize_payload(buildSavePayload(subject, questions_to_submit));
+
+        try {
+          await w.__hit("POST", API + SAVE_ENDPOINT, { json: save_data_payload, authenticated: true });
+        } catch (err) {
+          if (isAlreadySubmitted(err)) {
+            setFeedbackSubmitted(true);
+            setMessage('Your feedback has already been submitted for this semester.');
+            setDialogType('already_submitted');
+            setDialogOpen(true);
+            return;
           }
-
-          return {
-            ...q,
-            rating: selectedRating
-          };
-        });
-
-        const save_data_payload = await serialize_payload({
-          instituteid: w.session.instituteid,
-          studentid: w.session.memberid,
-          eventid: eventData.eventid,
-          subjectid: subject.subjectid,
-          facultyid: subject.employeeid,
-          registrationid: subject.registrationid,
-          questionid: questions_to_submit,
-          facultycomments: null,
-          coursecomments: null
-        });
-
-        await w.__hit("POST", API + SAVE_ENDPOINT, { json: save_data_payload, authenticated: true });
+          throw err;
+        }
       }
 
       setMessage('Feedback submitted successfully!');
       setFeedbackSubmitted(true);
       setDialogType('success');
       setDialogOpen(true);
-
     } catch (err) {
       console.error('Submit error:', err);
-      console.log('Error message:', err.message);
-      console.log('Error status:', err.status);
-      console.log('Error responseStatus:', err.responseStatus);
-      console.log('Error errors:', err.errors);
-
-      const isAlreadySubmitted =
-        (err.message && (
-          err.message.includes('Feedback already Submit!') ||
-          err.message.includes('Feedback already Sumbit!') ||
-          err.message.includes('"responseStatus": "Failure"') ||
-          err.message.includes('responseStatus') ||
-          err.message.includes('errors')
-        )) ||
-        (err.status === 417) ||
-        (err.responseStatus === 'Failure' && err.errors && (
-          err.errors.includes('Feedback already Submit!') ||
-          err.errors.includes('Feedback already Sumbit!')
-        )) ||
-        (err.responseStatus === 'Failure');
-
-      if (isAlreadySubmitted) {
-        setFeedbackSubmitted(true);
-        setMessage('Your feedback has already been submitted for this semester.');
-        setDialogType('already_submitted');
-        setDialogOpen(true);
-      } else {
-        setMessage(err.message || 'Failed to submit feedback.');
-        setDialogType('error');
-        setDialogOpen(true);
-      }
+      setMessage(err.message || 'Failed to submit feedback.');
+      setDialogType('error');
+      setDialogOpen(true);
     } finally {
       setLoading(false);
     }

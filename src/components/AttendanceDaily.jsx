@@ -111,10 +111,13 @@ const AttendanceDaily = ({
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
-        <div className={cn(
-          "w-full md:w-auto md:sticky md:top-24 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden",
-          isCalendarOpen ? "max-h-[500px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 md:max-h-[none] md:opacity-100 md:translate-y-0"
-        )}>
+        <div
+          className={cn(
+            "w-full md:w-auto md:sticky md:top-24 flex-shrink-0 transition-all duration-500 overflow-hidden",
+            isCalendarOpen ? "max-h-[500px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 md:max-h-[none] md:opacity-100 md:translate-y-0"
+          )}
+          style={{ transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)' }}
+        >
           <div className="flex justify-center md:justify-start">
             <Card className="bg-card border-border shadow-md max-w-fit rounded-lg overflow-hidden">
               <CardHeader className="pb-3 hidden md:block bg-muted/30 border-b border-border/50">
@@ -223,19 +226,7 @@ const AttendanceDaily = ({
               </div>
             )}
 
-            <div className="mt-8 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 shadow-sm flex gap-4 items-start md:items-center animate-in slide-in-from-bottom-4 duration-700">
-              <div className="p-2 bg-amber-500/10 rounded-full flex-shrink-0">
-                <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
-                  Daily Attendance Update
-                </p>
-                <p className="text-xs md:text-sm text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
-                  Attendance marked for today typically reflects on the portal by <strong>tomorrow morning</strong>. 
-                </p>
-              </div>
-            </div>
+
           </div>
         </div>
       </div>

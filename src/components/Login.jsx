@@ -230,7 +230,7 @@ export default function Login({ onLoginSuccess, w }) {
                 {loginStatus.canFallbackOffline && (
                   <button
                     onClick={handleOfflineMode}
-                    className="flex items-center justify-center px-6 py-2 bg-orange-600/20 dark:bg-orange-100 border border-orange-500/30 dark:border-orange-300 text-orange-400 dark:text-orange-700 hover:bg-orange-700/40 dark:hover:bg-orange-50 hover:text-orange-200 dark:hover:text-orange-600 transition-colors rounded-lg text-sm font-medium gap-2"
+                    className="flex items-center justify-center px-6 py-2 bg-orange-600/20 dark:bg-orange-100 border border-orange-500/30 dark:border-orange-300 text-foreground dark:text-foreground hover:bg-orange-700/40 dark:hover:bg-orange-50 hover:text-foreground dark:hover:text-foreground transition-colors rounded-lg text-sm font-medium gap-2"
                   >
                     <Smartphone size={18} /> Offline Mode
                   </button>

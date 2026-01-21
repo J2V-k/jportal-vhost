@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import PropTypes from 'prop-types';
 import CircleProgress from "./CircleProgress";
+import { Loader2 } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -25,6 +26,7 @@ const AttendanceCard = ({
   subjectAttendanceData,
   fetchSubjectAttendance,
   attendanceGoal,
+  subjectCacheStatus,
 }) => {
   const { name, attendance, combined, lecture, tutorial, practical, classesNeeded, classesCanMiss, target, isNewFormat } = subject;
   const effTarget = typeof attendanceGoal === 'number' ? attendanceGoal : (typeof target === 'number' ? target : 75);
@@ -34,6 +36,8 @@ const AttendanceCard = ({
   const [attn, setAttn] = useState(attendance);
   const [needClass, setNeedClass] = useState(classesNeeded);
   const [missClass, setMissClass] = useState(classesCanMiss);
+
+  const isFetching = loading || (subjectCacheStatus && subjectCacheStatus[subject.name] === 'fetching');
 
   const comb = parseFloat(combined);
   const rawPct = attn.total > 0
@@ -83,6 +87,15 @@ const AttendanceCard = ({
       }
     }
   }, [isNewFormat, subject.name, subjectAttendanceData, calcFromDaily]);
+
+  useEffect(() => {
+    if (!loading && subjectCacheStatus && subjectCacheStatus[subject.name] === 'fetching') {
+      setLoading(true);
+    }
+    if (loading && subjectCacheStatus && subjectCacheStatus[subject.name] === 'cached') {
+      setLoading(false);
+    }
+  }, [subjectCacheStatus]);
 
   const handleClick = async () => {
     setSelectedSubject(subject);
@@ -167,7 +180,15 @@ const AttendanceCard = ({
         <CardContent className="p-4" onClick={handleClick}>
           <div className="flex justify-between items-center">
             <div className="flex-1 mr-4">
-              <h2 className="text-sm max-[390px]:text-xs font-semibold text-foreground">{dName}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm max-[390px]:text-xs font-semibold text-foreground">{dName}</h2>
+                {isFetching && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Loading</span>
+                  </div>
+                )}
+              </div>
               {lecture !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Lecture: {lecture}%</p>}
               {tutorial !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Tutorial: {tutorial}%</p>}
               {practical !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Practical: {practical}%</p>}
@@ -438,4 +459,5 @@ AttendanceCard.propTypes = {
   setSelectedSubject: PropTypes.func.isRequired,
   subjectAttendanceData: PropTypes.object.isRequired,
   fetchSubjectAttendance: PropTypes.func.isRequired,
+  subjectCacheStatus: PropTypes.object,
 };

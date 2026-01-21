@@ -1,1 +1,1 @@
-export const API_BASE = "https://jiitproxy.jportal696.workers.dev/api/StudentPortalAPI";
+export const proxy_url = "https://jiitproxy.jportal696.workers.dev/api/StudentPortalAPI";

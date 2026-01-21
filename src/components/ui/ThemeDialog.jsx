@@ -12,6 +12,7 @@ export default function ThemeDialog({ open, onClose }) {
   const [foreground, setForeground] = useState('#f3f4f6')
   const [font, setFont] = useState('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
   const [selectedPalette, setSelectedPalette] = useState(null)
+  const [radiusVal, setRadiusVal] = useState(8)
   
   const [themeData, setThemeData] = useState({ presets: {}, categories: {} })
   const [loading, setLoading] = useState(true)
@@ -49,6 +50,12 @@ export default function ThemeDialog({ open, onClose }) {
       setBackground(saved.background)
       setForeground(saved.foreground)
       setFont(saved.font || font)
+
+      if (saved.radius) {
+        if (String(saved.radius).endsWith('px')) setRadiusVal(parseInt(saved.radius))
+        else if (String(saved.radius).endsWith('rem')) setRadiusVal(Math.round(parseFloat(saved.radius) * 16))
+        else setRadiusVal(parseInt(saved.radius) || 8)
+      }
       
       let matchedId = 'custom-mod'
       Object.values(themeData.presets).forEach(category => {
@@ -63,11 +70,18 @@ export default function ThemeDialog({ open, onClose }) {
   }, [loading, themeData])
 
   const handleColorChange = (key, value) => {
-    const newTheme = { primary, secondary, background, foreground, font, [key]: value }
+    const newTheme = { primary, secondary, background, foreground, font, radius: `${radiusVal}px`, [key]: value }
     if (key === 'primary') setPrimary(value)
     if (key === 'secondary') setSecondary(value)
     if (key === 'background') setBackground(value)
     if (key === 'foreground') setForeground(value)
+    setSelectedPalette('custom-mod')
+    applyTheme(newTheme)
+  }
+
+  const handleRadiusChange = (value) => {
+    setRadiusVal(value)
+    const newTheme = { primary, secondary, background, foreground, font, radius: `${value}px` }
     setSelectedPalette('custom-mod')
     applyTheme(newTheme)
   }
@@ -128,6 +142,16 @@ export default function ThemeDialog({ open, onClose }) {
                   </div>
                 </div>
               ))}
+
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block">Radius</span>
+                <div className="flex items-center gap-2 bg-background p-1 rounded-md border border-border/50">
+                  <input type="range" min="0" max="24" value={radiusVal} onChange={e => { setRadiusVal(Number(e.target.value)); handleRadiusChange(Number(e.target.value)); }}
+                    className="w-full" />
+                  <span className="text-[10px] font-mono font-bold text-foreground/70 uppercase select-all">{radiusVal}px</span>
+                </div>
+              </div>
+
             </div>
           )}
 
@@ -146,6 +170,11 @@ export default function ThemeDialog({ open, onClose }) {
                     onClick={() => {
                       setSelectedPalette(p.id); setPrimary(p.primary); setSecondary(p.secondary);
                       setBackground(p.background); setForeground(p.foreground); setFont(p.font);
+                      if (p.radius) {
+                        if (String(p.radius).endsWith('px')) setRadiusVal(parseInt(p.radius))
+                        else if (String(p.radius).endsWith('rem')) setRadiusVal(Math.round(parseFloat(p.radius) * 16))
+                        else setRadiusVal(parseInt(p.radius) || 8)
+                      }
                       applyTheme({ ...p });
                     }} 
                     className={`group flex flex-col gap-1.5 p-1.5 rounded-xl border transition-all text-left ${
@@ -172,7 +201,7 @@ export default function ThemeDialog({ open, onClose }) {
           <div className="flex gap-2 w-full sm:w-auto">
             <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-8 text-[10px] font-bold uppercase tracking-wider px-4" onClick={onClose}>Discard</Button>
             <Button size="sm" className="flex-1 sm:flex-none h-8 text-[10px] font-bold uppercase tracking-wider px-8 shadow-md shadow-primary/20" 
-              onClick={() => { saveTheme({ primary, secondary, background, foreground, font }); onClose?.() }}>
+              onClick={() => { saveTheme({ primary, secondary, background, foreground, font, radius: `${radiusVal}px` }); onClose?.() }}>
               Confirm Selection
             </Button>
           </div>

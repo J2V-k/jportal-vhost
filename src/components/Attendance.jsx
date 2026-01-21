@@ -28,13 +28,16 @@ import {
   BarChart3,
   Archive,
   CalendarDays,
+  Info,
 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
+import { proxy_url } from '@/lib/api';
 
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
 
 const Attendance = ({
   w,
+  serialize_payload,
   attendanceData,
   setAttendanceData,
   semestersData,
@@ -384,10 +387,11 @@ const Attendance = ({
              return;
         }
 
-        await fetchFreshSubjectData(subject, username);
+        await fetchSubjectsBatch([subject]);
         return;
       }
-      await fetchFreshSubjectData(subject, username);
+
+      await fetchSubjectsBatch([subject]);
     } catch (error) {
       console.error("Failed to fetch subject attendance:", error);
     }
@@ -440,31 +444,81 @@ const Attendance = ({
     }
   };
 
+  const fetchSubjectsBatch = async (subjectsToFetch) => {
+    try {
+      if (!w?.session) {
+        console.warn('No session available for batch attendance fetch');
+        return;
+      }
+
+      const calls = await Promise.all(subjectsToFetch.map(async (subj) => {
+        const attendance = attendanceData[selectedSem.registration_id];
+        const subjectData = attendance.studentattendancelist.find(s => s.subjectcode === subj.name);
+        if (!subjectData) return null;
+        const subjectcomponentids = ["Lsubjectcomponentid","Psubjectcomponentid","Tsubjectcomponentid"].filter(id => subjectData[id]).map(id => subjectData[id]);
+        if (subjectcomponentids.length === 0) return { key: subj.name, empty: true };
+        const payload = await serialize_payload({
+          cmpidkey: subjectcomponentids.map((id) => ({ subjectcomponentid: id })),
+          clientid: w.session.clientid,
+          instituteid: w.session.instituteid,
+          registrationcode: selectedSem.registration_code,
+          registrationid: selectedSem.registration_id,
+          subjectcode: subj.name,
+          subjectid: subjectData.subjectid
+        });
+        const callHeaders = await w.session.get_headers();
+        return { path: "StudentPortalAPI/StudentClassAttendance/getstudentsubjectpersentage", method: "POST", body: payload, key: subj.name, headers: callHeaders };
+      }));
+
+      const filteredCalls = calls.filter(c => c && !c.empty);
+
+      calls.filter(c => c && c.empty).forEach(c => {
+        setSubjectAttendanceData(prev => ({ ...prev, [c.key]: [] }));
+        setSubjectCacheStatus(p => ({ ...p, [c.key]: 'cached' }));
+      });
+
+      if (filteredCalls.length === 0) return;
+
+      const batchReq = { calls: filteredCalls };
+
+      const workerBase = (function(){ try { return new URL(proxy_url).origin; } catch (e) { return proxy_url.replace(/\/StudentPortalAPI.*$/,''); } })();
+      const batchUrl = `${workerBase.replace(/\/$/,'')}/api/batch/attendance`;
+      const res = await fetch(batchUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(batchReq), credentials: 'include', mode: 'cors' });
+      if (!res.ok) throw new Error('Batch request failed');
+      const result = await res.json();
+      if (!result.responses) throw new Error('Invalid batch response');
+
+      for (const r of result.responses) {
+        try {
+          if (r.ok && r.body && r.body.response && r.body.response.studentAttdsummarylist) {
+            await saveSubjectDataToCache(r.body.response.studentAttdsummarylist, r.key, (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user', selectedSem);
+            setSubjectAttendanceData(prev => ({ ...prev, [r.key]: r.body.response.studentAttdsummarylist }));
+            setSubjectCacheStatus(p => ({ ...p, [r.key]: 'cached' }));
+          } else {
+            setSubjectAttendanceData(prev => ({ ...prev, [r.key]: [] }));
+            setSubjectCacheStatus(p => ({ ...p, [r.key]: 'cached' }));
+          }
+        } catch (err) {
+          console.error('Error processing batch response for', r.key, err);
+          setSubjectAttendanceData(prev => ({ ...prev, [r.key]: [] }));
+          setSubjectCacheStatus(p => ({ ...p, [r.key]: 'cached' }));
+        }
+      }
+
+    } catch (err) {
+      console.error('Failed batch fetch for subjects:', err);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
-    const loadSubjectsSequentially = async (subjectsToFetch) => {
-      for (const subj of subjectsToFetch) {
-        if (!isMounted) break;
-        
-        setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "fetching" }));
-        
-        await fetchSubjectAttendance(subj);
-        
-        await new Promise(r => setTimeout(r, 50));
-
-        if (isMounted) {
-           setSubjectCacheStatus((p) => ({ ...p, [subj.name]: "cached" }));
-        }
-      }
-    };
-
     if (activeTab === "daily") {
        const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
-       if (subjectsToFetch.length > 0) loadSubjectsSequentially(subjectsToFetch);
+       if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
     } else if (activeTab === "overview") {
        const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
-       if (subjectsToFetch.length > 0) loadSubjectsSequentially(subjectsToFetch);
+       if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
     }
 
     return () => { isMounted = false; };
@@ -539,6 +593,7 @@ const Attendance = ({
             Loading attendance...
           </div>
         ) : (
+          <>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="px-3 pb-4 max-w-[1440px] mx-auto">
             <TabsList className="grid grid-cols-2 bg-background relative z-30">
               <TabsTrigger value="overview" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
@@ -555,19 +610,24 @@ const Attendance = ({
                   {attendanceData[selectedSem.registration_id].error}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {subjects.map((subject) => (
-                    <AttendanceCard
-                      key={subject.name}
-                      subject={subject}
-                      selectedSubject={selectedSubject}
-                      setSelectedSubject={setSelectedSubject}
-                      subjectAttendanceData={subjectAttendanceData}
-                      fetchSubjectAttendance={fetchSubjectAttendance}
-                      attendanceGoal={attendanceGoal}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {subjects.map((subject) => (
+                      <AttendanceCard
+                        key={subject.name}
+                        subject={subject}
+                        selectedSubject={selectedSubject}
+                        setSelectedSubject={setSelectedSubject}
+                        subjectAttendanceData={subjectAttendanceData}
+                        fetchSubjectAttendance={fetchSubjectAttendance}
+                        attendanceGoal={attendanceGoal}
+                        subjectCacheStatus={subjectCacheStatus}
+                      />
+                    ))}
+                  </div>
+
+
+                </>
               )}
             </TabsContent>
 
@@ -580,9 +640,25 @@ const Attendance = ({
               />
             </TabsContent>
           </Tabs>
+
+          <div className="mx-3 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 shadow-sm flex gap-4 items-start md:items-center animate-in slide-in-from-bottom-4 duration-700">
+            <div className="p-2 bg-amber-500/10 rounded-full flex-shrink-0">
+              <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                Daily Attendance Update
+              </p>
+              <p className="text-xs md:text-sm text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
+                Attendance marked for today typically reflects on the portal by <strong>tomorrow morning</strong>.
+              </p>
+            </div>
+          </div>
+          </>
         )}
         <div className="h-16 md:h-20" />
       </div>
+
     </>
   );
 };

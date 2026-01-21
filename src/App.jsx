@@ -7,7 +7,7 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { CSSTransition, TransitionGroup } from "react-transition-group";
 import "./styles/transitions.css";
 import "./styles/layout.css";
 import Header from "./components/Header";
@@ -28,39 +28,29 @@ import { Loader2 } from "lucide-react";
 import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider } from "react-helmet-async";
 
-import { WebPortal, LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.24/dist/jsjiit.esm.js";
+import {
+  WebPortal,
+  LoginError,
+} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.24/dist/jsjiit.esm.js";
 import { serialize_payload } from "@/lib/jiitCrypto";
-
+import { proxy_url } from "@/lib/api";
 import { ArtificialWebPortal } from "./components/scripts/artificialW";
 
 import Feedback from "./components/Feedback";
 import CGPATargetCalculator from "./components/CGPATargetCalculator";
 
-let w;
-if (typeof window !== 'undefined') {
-  const originalFetch = window.fetch.bind(window);
-  window.fetch = async (input, init) => {
-    try {
-      let url = typeof input === 'string' ? input : input?.url || '';
-      const base = 'https://webportal.jiit.ac.in:6011/StudentPortalAPI';
-      
-      if (url && url.startsWith(base)) {
-        const proxyPath = 'https://jiitproxy.jportal696.workers.dev/api/StudentPortalAPI';
-        
-        const newUrl = url.replace(base, proxyPath);
-        input = typeof input === 'string' ? newUrl : new Request(newUrl, input);
-      }
-    } catch (e) {
-      console.error("Fetch override error:", e);
-    }
-    return originalFetch(input, init);
-  };
-}
-w = new WebPortal();
+const w = new WebPortal({ apiUrl: proxy_url, useProxy: false });
 
-function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChange, attendanceGoal, setAttendanceGoal }) {
+function AuthenticatedApp({
+  w,
+  setIsAuthenticated,
+  messMenuOpen,
+  onMessMenuChange,
+  attendanceGoal,
+  setAttendanceGoal,
+}) {
   const navigate = useNavigate();
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
@@ -87,10 +77,13 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
         try {
           const data = await w.get_personal_info();
           setProfileData(data);
-          localStorage.setItem('profileData', JSON.stringify({
-            studentname: data?.generalinformation?.studentname,
-            imagepath: data?.["photo&signature"]?.photo
-          }));
+          localStorage.setItem(
+            "profileData",
+            JSON.stringify({
+              studentname: data?.generalinformation?.studentname,
+              imagepath: data?.["photo&signature"]?.photo,
+            }),
+          );
         } catch (error) {
           console.error("Failed to fetch profile data in App:", error);
         }
@@ -138,7 +131,8 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   const onTouchStart = (e) => {
     const tgt = e.target;
-    if (tgt && ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tgt.tagName)) return;
+    if (tgt && ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tgt.tagName))
+      return;
     const t = e.touches && e.touches[0];
     if (!t) return;
     touchStartX.current = t.clientX;
@@ -155,14 +149,15 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
   };
 
   const location = useLocation();
-  const [transitionDirection, setTransitionDirection] = useState('forward');
+  const [transitionDirection, setTransitionDirection] = useState("forward");
 
   const onTouchEndWithTransition = (e) => {
-    const swipeEnabled = localStorage.getItem('swipeEnabled') !== 'false';
+    const swipeEnabled = localStorage.getItem("swipeEnabled") !== "false";
     const isDesktop = window.innerWidth >= 768;
     if (!swipeEnabled || isDesktop) return;
 
-    let endX = null, endY = null;
+    let endX = null,
+      endY = null;
     if (e && e.changedTouches && e.changedTouches[0]) {
       endX = e.changedTouches[0].clientX;
       endY = e.changedTouches[0].clientY;
@@ -171,7 +166,8 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     endY = endY || touchEndY.current;
     const startX = touchStartX.current;
     const startY = touchStartY.current;
-    if (startX == null || endX == null || startY == null || endY == null) return;
+    if (startX == null || endX == null || startY == null || endY == null)
+      return;
 
     const distanceX = Math.abs(startX - endX);
     const distanceY = Math.abs(startY - endY);
@@ -182,15 +178,21 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
     const isLeftSwipe = delta > minSwipeDistance;
     const isRightSwipe = delta < -minSwipeDistance;
 
-    const routes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
-    const currentPath = window.location.hash.replace('#', '');
+    const routes = [
+      "/attendance",
+      "/grades",
+      "/exams",
+      "/subjects",
+      "/profile",
+    ];
+    const currentPath = window.location.hash.replace("#", "");
     const currentIndex = routes.indexOf(currentPath);
 
     if (isLeftSwipe && currentIndex < routes.length - 1) {
-      setTransitionDirection('forward');
+      setTransitionDirection("forward");
       navigate(routes[currentIndex + 1]);
     } else if (isRightSwipe && currentIndex > 0) {
-      setTransitionDirection('reverse');
+      setTransitionDirection("reverse");
       navigate(routes[currentIndex - 1]);
     }
 
@@ -202,7 +204,11 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
 
   return (
     <div className="relative">
-      <Navbar w={w} messMenuOpen={messMenuOpen} onMessMenuChange={onMessMenuChange} />
+      <Navbar
+        w={w}
+        messMenuOpen={messMenuOpen}
+        onMessMenuChange={onMessMenuChange}
+      />
       <div
         className="h-screen flex flex-col"
         onTouchStart={onTouchStart}
@@ -224,60 +230,105 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
             <CSSTransition
               key={location.pathname}
               timeout={300}
-              classNames={`page-transition${transitionDirection === 'reverse' ? '-reverse' : ''}`}
+              classNames={`page-transition${transitionDirection === "reverse" ? "-reverse" : ""}`}
               unmountOnExit
             >
               <div className="w-full min-h-full">
                 <Routes location={location}>
-                  <Route path="/" element={<Navigate to={(() => {
-                    let targetTab = localStorage.getItem('defaultTab') || '/attendance';
-                    if (targetTab === 'auto') {
-                      const examStartDate = localStorage.getItem('examStartDate');
-                      const examEndDate = localStorage.getItem('examEndDate');
-                      if (examStartDate && examEndDate) {
-                        const now = new Date();
-                        const examStart = new Date(examStartDate);
-                        const examEnd = new Date(examEndDate);
-                        const tomorrow = new Date(now);
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
-                        const isInExamPeriod = now >= examStart && now <= examEnd;
-                        if (isTomorrowExamStart || isInExamPeriod) {
-                          return '/exams';
-                        }
-                      }
-                      return '/attendance';
+                  <Route
+                    path="/"
+                    element={
+                      <Navigate
+                        to={(() => {
+                          let targetTab =
+                            localStorage.getItem("defaultTab") || "/attendance";
+                          if (targetTab === "auto") {
+                            const examStartDate =
+                              localStorage.getItem("examStartDate");
+                            const examEndDate =
+                              localStorage.getItem("examEndDate");
+                            if (examStartDate && examEndDate) {
+                              const now = new Date();
+                              const examStart = new Date(examStartDate);
+                              const examEnd = new Date(examEndDate);
+                              const tomorrow = new Date(now);
+                              tomorrow.setDate(tomorrow.getDate() + 1);
+                              const isTomorrowExamStart =
+                                tomorrow.toDateString() ===
+                                examStart.toDateString();
+                              const isInExamPeriod =
+                                now >= examStart && now <= examEnd;
+                              if (isTomorrowExamStart || isInExamPeriod) {
+                                return "/exams";
+                              }
+                            }
+                            return "/attendance";
+                          }
+                          const validRoutes = [
+                            "/attendance",
+                            "/grades",
+                            "/exams",
+                            "/subjects",
+                            "/profile",
+                          ];
+                          return validRoutes.includes(targetTab)
+                            ? targetTab
+                            : "/attendance";
+                        })()}
+                        replace
+                      />
                     }
-                    const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
-                    return validRoutes.includes(targetTab) ? targetTab : '/attendance';
-                  })()} replace />} />
-                  <Route path="/login" element={<Navigate to={(() => {
-                    let targetTab = localStorage.getItem('defaultTab') || '/attendance';
-                    if (targetTab === 'auto') {
-                      const examStartDate = localStorage.getItem('examStartDate');
-                      const examEndDate = localStorage.getItem('examEndDate');
-                      if (examStartDate && examEndDate) {
-                        const now = new Date();
-                        const examStart = new Date(examStartDate);
-                        const examEnd = new Date(examEndDate);
-                        const tomorrow = new Date(now);
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
-                        const isInExamPeriod = now >= examStart && now <= examEnd;
-                        if (isTomorrowExamStart || isInExamPeriod) {
-                          return '/exams';
-                        }
-                      }
-                      return '/attendance';
+                  />
+                  <Route
+                    path="/login"
+                    element={
+                      <Navigate
+                        to={(() => {
+                          let targetTab =
+                            localStorage.getItem("defaultTab") || "/attendance";
+                          if (targetTab === "auto") {
+                            const examStartDate =
+                              localStorage.getItem("examStartDate");
+                            const examEndDate =
+                              localStorage.getItem("examEndDate");
+                            if (examStartDate && examEndDate) {
+                              const now = new Date();
+                              const examStart = new Date(examStartDate);
+                              const examEnd = new Date(examEndDate);
+                              const tomorrow = new Date(now);
+                              tomorrow.setDate(tomorrow.getDate() + 1);
+                              const isTomorrowExamStart =
+                                tomorrow.toDateString() ===
+                                examStart.toDateString();
+                              const isInExamPeriod =
+                                now >= examStart && now <= examEnd;
+                              if (isTomorrowExamStart || isInExamPeriod) {
+                                return "/exams";
+                              }
+                            }
+                            return "/attendance";
+                          }
+                          const validRoutes = [
+                            "/attendance",
+                            "/grades",
+                            "/exams",
+                            "/subjects",
+                            "/profile",
+                          ];
+                          return validRoutes.includes(targetTab)
+                            ? targetTab
+                            : "/attendance";
+                        })()}
+                        replace
+                      />
                     }
-                    const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
-                    return validRoutes.includes(targetTab) ? targetTab : '/attendance';
-                  })()} replace />} />
+                  />
                   <Route
                     path="/attendance"
                     element={
                       <Attendance
                         w={w}
+                        serialize_payload={serialize_payload}
                         attendanceData={attendanceData}
                         setAttendanceData={setAttendanceData}
                         semestersData={attendanceSemestersData}
@@ -410,10 +461,7 @@ function AuthenticatedApp({ w, setIsAuthenticated, messMenuOpen, onMessMenuChang
                       />
                     }
                   />
-                  <Route
-                    path="/feedback"
-                    element={<Feedback w={w} />}
-                  />
+                  <Route path="/feedback" element={<Feedback w={w} serialize_payload={serialize_payload} />} />
                   <Route
                     path="/gpa-calculator"
                     element={<CGPATargetCalculator w={w} />}
@@ -435,11 +483,11 @@ function LoginWrapper({ onLoginSuccess, w }) {
     const portal = webPortal || w;
     onLoginSuccess(portal);
     setTimeout(() => {
-      let targetTab = localStorage.getItem('defaultTab') || '/attendance';
+      let targetTab = localStorage.getItem("defaultTab") || "/attendance";
 
-      if (targetTab === 'auto') {
-        const examStartDate = localStorage.getItem('examStartDate');
-        const examEndDate = localStorage.getItem('examEndDate');
+      if (targetTab === "auto") {
+        const examStartDate = localStorage.getItem("examStartDate");
+        const examEndDate = localStorage.getItem("examEndDate");
 
         if (examStartDate && examEndDate) {
           const now = new Date();
@@ -448,33 +496,45 @@ function LoginWrapper({ onLoginSuccess, w }) {
           const tomorrow = new Date(now);
           tomorrow.setDate(tomorrow.getDate() + 1);
 
-          const isTomorrowExamStart = tomorrow.toDateString() === examStart.toDateString();
+          const isTomorrowExamStart =
+            tomorrow.toDateString() === examStart.toDateString();
           const isInExamPeriod = now >= examStart && now <= examEnd;
 
           if (isTomorrowExamStart || isInExamPeriod) {
-            targetTab = '/exams';
+            targetTab = "/exams";
           } else {
-            targetTab = '/attendance';
+            targetTab = "/attendance";
           }
         } else {
-          targetTab = '/attendance';
+          targetTab = "/attendance";
         }
       }
 
-      const validRoutes = ['/attendance', '/grades', '/exams', '/subjects', '/profile'];
+      const validRoutes = [
+        "/attendance",
+        "/grades",
+        "/exams",
+        "/subjects",
+        "/profile",
+      ];
       if (!validRoutes.includes(targetTab)) {
-        console.warn(`Invalid default tab: ${targetTab}, falling back to /attendance`);
-        targetTab = '/attendance';
+        console.warn(
+          `Invalid default tab: ${targetTab}, falling back to /attendance`,
+        );
+        targetTab = "/attendance";
       }
       try {
         navigate(targetTab, { replace: true });
       } catch (error) {
-        console.error('Navigation failed, falling back to /attendance:', error);
-        navigate('/attendance', { replace: true });
+        console.error("Navigation failed, falling back to /attendance:", error);
+        navigate("/attendance", { replace: true });
       }
       setTimeout(() => {
-        if (window.location.hash.includes('/login') || window.location.hash === '#/') {
-          navigate('/attendance', { replace: true });
+        if (
+          window.location.hash.includes("/login") ||
+          window.location.hash === "#/"
+        ) {
+          navigate("/attendance", { replace: true });
         }
       }, 2000);
     }, 100);
@@ -509,14 +569,14 @@ function App() {
 
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'attendanceGoal') {
+      if (e.key === "attendanceGoal") {
         const newValue = e.newValue ? parseInt(e.newValue) : 75;
         setAttendanceGoal(newValue);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -525,7 +585,7 @@ function App() {
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === "hidden") {
         setMessMenuOpen(false);
         localStorage.removeItem("messMenuOpen");
       }
@@ -541,16 +601,16 @@ function App() {
       localStorage.removeItem("messMenuOpen");
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 
@@ -570,15 +630,16 @@ function App() {
       } catch (error) {
         console.error("Login failed:", error);
         const keys = Object.keys(localStorage);
-        const hasCachedData = keys.some(key =>
-          key.startsWith('attendance-') ||
-          key.startsWith('grades-') ||
-          key.startsWith('subject-') ||
-          key === 'latestSemester' ||
-          key === 'semestersData' ||
-          key === 'gradeCardSemesters' ||
-          key === 'mess-menu' ||
-          key === 'profileData'
+        const hasCachedData = keys.some(
+          (key) =>
+            key.startsWith("attendance-") ||
+            key.startsWith("grades-") ||
+            key.startsWith("subject-") ||
+            key === "latestSemester" ||
+            key === "semestersData" ||
+            key === "gradeCardSemesters" ||
+            key === "mess-menu" ||
+            key === "profileData",
         );
 
         if (hasCachedData) {
@@ -589,11 +650,11 @@ function App() {
           if (
             error instanceof LoginError &&
             error.message.includes(
-              "JIIT Web Portal server is temporarily unavailable"
+              "JIIT Web Portal server is temporarily unavailable",
             )
           ) {
             setError(
-              "JIIT Web Portal server is temporarily unavailable. Please try again later."
+              "JIIT Web Portal server is temporarily unavailable. Please try again later.",
             );
           } else if (
             error instanceof LoginError &&
@@ -601,7 +662,9 @@ function App() {
           ) {
             setError("JIIT Web Portal server is temporarily unavailable.");
           } else {
-            setError("Login failed. Please check your credentials and try again.");
+            setError(
+              "Login failed. Please check your credentials and try again.",
+            );
             setIsAuthenticated(false);
           }
         }
@@ -629,16 +692,17 @@ function App() {
         <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
           <div className="flex flex-col items-center">
             <Loader2 className="w-8 h-8 animate-spin mb-2" />
-            <p className="text-lg font-semibold mb-1">
-              Signing in...
-            </p>
-            <p className="text-sm mb-4">
-              Welcome to JP Portal
-            </p>
+            <p className="text-lg font-semibold mb-1">Signing in...</p>
+            <p className="text-sm mb-4">Welcome to JP Portal</p>
             <div className="bg-card/50 border border-border rounded-xl p-4 shadow-lg flex flex-col items-center gap-3 mb-4">
-              <span className="text-xs text-muted-foreground mb-1">Quick Access</span>
+              <span className="text-xs text-muted-foreground mb-1">
+                Quick Access
+              </span>
               <div className="flex flex-wrap gap-2 items-center justify-center">
-                <MessMenu open={messMenuOpen} onOpenChange={handleMessMenuChange}>
+                <MessMenu
+                  open={messMenuOpen}
+                  onOpenChange={handleMessMenuChange}
+                >
                   <span className="flex items-center justify-center px-6 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2 cursor-pointer">
                     <UtensilsCrossed size={18} /> Mess Menu
                   </span>
@@ -647,9 +711,9 @@ function App() {
                   href="#/academic-calendar"
                   onClick={(e) => {
                     try {
-                      window.location.hash = '#/academic-calendar';
+                      window.location.hash = "#/academic-calendar";
                     } catch (err) {
-                      window.location.href = '#/academic-calendar';
+                      window.location.href = "#/academic-calendar";
                     }
                   }}
                   className="flex w-full sm:w-auto items-center justify-center px-4 py-2 bg-primary/10 border border-border text-primary hover:bg-primary/20 hover:text-primary-foreground transition-colors rounded-lg text-sm font-medium gap-2"
@@ -705,7 +769,8 @@ function App() {
                   </>
                 }
               />
-              {!isAuthenticated || (isAuthenticated && currentWebPortal === w && !w.session) ? (
+              {!isAuthenticated ||
+              (isAuthenticated && currentWebPortal === w && !w.session) ? (
                 <Route
                   path="*"
                   element={

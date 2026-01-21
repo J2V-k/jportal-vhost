@@ -29,9 +29,9 @@ export default function Fee({ w, serialize_payload }) {
       const headers = await w.session.get_headers();
       const payload = { instituteid: w.session.instituteid, studentid: w.session.memberid };
       const encryptedPayload = await serialize_payload(payload);
-      const { API_BASE } = await import('@/lib/api');
+      const { proxy_url } = await import('@/lib/api');
       const response = await axios.post(
-        `${API_BASE}/feedemandreportcontroller/generatereportforpdf`,
+        `${proxy_url}/feedemandreportcontroller/generatereportforpdf`,
         encryptedPayload,
         { headers: { ...headers, 'Content-Type': 'text/plain' }, responseType: 'blob' }
       );

@@ -79,7 +79,7 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
           )}
 
           <div className="flex flex-col">
-            <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl text-foreground">
               JP Portal
             </h1>
           </div>
