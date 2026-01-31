@@ -449,7 +449,7 @@ export default function CGPATargetCalculator({ w }) {
                           ? "text-destructive"
                           : "text-foreground"
                           }`}>
-                          {calculateSGPA()}
+                          {calculateSGPA() !== "-" ? parseFloat(calculateSGPA()).toFixed(2) : "-"}
                         </span>
                       </div>
                       <div className="p-4 md:p-5 rounded-lg bg-card border border-border flex items-center justify-between w-full">
