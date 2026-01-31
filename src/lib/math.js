@@ -2,7 +2,7 @@
  * Centralized Mathematical Utilities for JPortal
  */
 
-export const GRADE_POINT_MAP = {
+export const gradePointMap = {
     "A+": 10,
     "A": 9,
     "B+": 8,
@@ -25,7 +25,7 @@ export function calculateSGPA(subjects) {
     subjects.forEach(subject => {
         const credits = parseFloat(subject.credits);
         if (credits > 0) {
-            const gp = subject.gradePoints ?? GRADE_POINT_MAP[subject.grade] ?? 0;
+            const gp = subject.gradePoints ?? gradePointMap[subject.grade] ?? 0;
             totalPoints += gp * credits;
             totalCredits += credits;
         }
