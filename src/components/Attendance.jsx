@@ -9,7 +9,7 @@ import {
   saveSemestersToCache,
 } from "@/components/scripts/cache";
 import AttendanceCard from "./AttendanceCard";
-import AttendanceDaily from "./AttendanceDaily"; 
+import AttendanceDaily from "./AttendanceDaily";
 import {
   Select,
   SelectContent,
@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 import { proxy_url } from '@/lib/api';
+import { calculateClassesNeeded, calculateClassesCanMiss } from '@/lib/math';
 
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
 
@@ -137,7 +138,7 @@ const Attendance = ({
           setIsAttendanceMetaLoading(false);
           setIsAttendanceDataLoading(false);
         }
-      } catch (e) {}
+      } catch (e) { }
       try {
         const meta = await w.get_attendance_meta();
         if (!meta) {
@@ -156,7 +157,7 @@ const Attendance = ({
         try {
           const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
           await saveSemestersToCache(meta.semesters, username);
-        } catch (e) {}
+        } catch (e) { }
         const currentYear = new Date().getFullYear().toString();
         const currentYearSemester = meta.semesters.find(sem =>
           sem.registration_code && sem.registration_code.includes(currentYear)
@@ -164,7 +165,7 @@ const Attendance = ({
         const semesterToLoad = currentYearSemester || latestSem;
         const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
         const cached = await getAttendanceFromCache(username, semesterToLoad);
-        
+
         if (cached) {
           setAttendanceData((prev) => ({
             ...prev,
@@ -177,7 +178,7 @@ const Attendance = ({
           setIsAttendanceDataLoading(false);
 
           if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-             return;
+            return;
           }
 
           setIsRefreshing(true);
@@ -252,7 +253,7 @@ const Attendance = ({
     setIsAttendanceDataLoading(true);
     const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
     const cached = await getAttendanceFromCache(username, semester);
-    
+
     if (cached) {
       setAttendanceData((prev) => ({
         ...prev,
@@ -263,7 +264,7 @@ const Attendance = ({
       setIsAttendanceDataLoading(false);
 
       if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-           return;
+        return;
       }
 
       setIsRefreshing(true);
@@ -319,41 +320,38 @@ const Attendance = ({
 
   const subjects = useMemo(() => {
     const attendanceResponse = attendanceData[selectedSem?.registration_id];
-    const studentList = attendanceResponse?.response?.studentattendancelist || attendanceResponse?.studentattendancelist;    
+    const studentList = attendanceResponse?.response?.studentattendancelist || attendanceResponse?.studentattendancelist;
     const mappedSubjects = (selectedSem && studentList)?.map(
-        (item) => {
-          const {
-            subjectcode,
-            Ltotalclass, Ltotalpres, Lpercentage,
-            Ttotalclass, Ttotalpres, Tpercentage,
-            Ptotalclass, Ptotalpres, Ppercentage,
-            LTpercantage,
-          } = item;
-          const isNewFormat = !Ltotalclass && !Ttotalclass && !Ptotalclass;          
-          let attended = 0, total = 0;
-          if (!isNewFormat) {
-            attended = (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0);
-            total = (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0);
-          }
-          let classesNeeded = 0, classesCanMiss = 0;
-          if (total > 0 && attendanceGoal) {
-            classesNeeded = Math.ceil((attendanceGoal * total - 100 * attended) / (100 - attendanceGoal));
-            classesCanMiss = Math.floor((100 * attended - attendanceGoal * total) / attendanceGoal);
-          }
-          return {
-            name: subjectcode,
-            attendance: { attended, total },
-            combined: LTpercantage,
-            lecture: Lpercentage !== undefined && Lpercentage !== null ? String(Lpercentage) : "",
-            tutorial: Tpercentage !== undefined && Tpercentage !== null ? String(Tpercentage) : "",
-            practical: Ppercentage !== undefined && Ppercentage !== null ? String(Ppercentage) : "",
-            classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
-            classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
-            hasPractical: (Ptotalclass || 0) > 0,
-            isNewFormat,
-          };
+      (item) => {
+        const {
+          subjectcode,
+          Ltotalclass, Ltotalpres, Lpercentage,
+          Ttotalclass, Ttotalpres, Tpercentage,
+          Ptotalclass, Ptotalpres, Ppercentage,
+          LTpercantage,
+        } = item;
+        const isNewFormat = !Ltotalclass && !Ttotalclass && !Ptotalclass;
+        let attended = 0, total = 0;
+        if (!isNewFormat) {
+          attended = (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0);
+          total = (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0);
         }
-      ) || [];
+        let classesNeeded = calculateClassesNeeded(attended, total, attendanceGoal);
+        let classesCanMiss = calculateClassesCanMiss(attended, total, attendanceGoal);
+        return {
+          name: subjectcode,
+          attendance: { attended, total },
+          combined: LTpercantage,
+          lecture: Lpercentage !== undefined && Lpercentage !== null ? String(Lpercentage) : "",
+          tutorial: Tpercentage !== undefined && Tpercentage !== null ? String(Tpercentage) : "",
+          practical: Ppercentage !== undefined && Ppercentage !== null ? String(Ppercentage) : "",
+          classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
+          classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
+          hasPractical: (Ptotalclass || 0) > 0,
+          isNewFormat,
+        };
+      }
+    ) || [];
     if (sortOrder === 'default') {
       const isDesktop = window.innerWidth > 768;
       if (isDesktop) {
@@ -382,9 +380,9 @@ const Attendance = ({
           ...prev,
           [subject.name]: cached.data || cached,
         }));
-        
+
         if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-             return;
+          return;
         }
 
         await fetchSubjectsBatch([subject]);
@@ -416,10 +414,10 @@ const Attendance = ({
 
       if (subjectcomponentids.length === 0) {
         setSubjectAttendanceData((prev) => ({
-           ...prev,
-           [subject.name]: []
+          ...prev,
+          [subject.name]: []
         }));
-        return; 
+        return;
       }
 
       const data = await w.get_subject_daily_attendance(
@@ -432,7 +430,7 @@ const Attendance = ({
       if (!data || !data.studentAttdsummarylist) return;
 
       const freshData = data.studentAttdsummarylist;
-      
+
       setSubjectAttendanceData((prev) => ({
         ...prev,
         [subject.name]: freshData,
@@ -455,7 +453,7 @@ const Attendance = ({
         const attendance = attendanceData[selectedSem.registration_id];
         const subjectData = attendance.studentattendancelist.find(s => s.subjectcode === subj.name);
         if (!subjectData) return null;
-        const subjectcomponentids = ["Lsubjectcomponentid","Psubjectcomponentid","Tsubjectcomponentid"].filter(id => subjectData[id]).map(id => subjectData[id]);
+        const subjectcomponentids = ["Lsubjectcomponentid", "Psubjectcomponentid", "Tsubjectcomponentid"].filter(id => subjectData[id]).map(id => subjectData[id]);
         if (subjectcomponentids.length === 0) return { key: subj.name, empty: true };
         const payload = await serialize_payload({
           cmpidkey: subjectcomponentids.map((id) => ({ subjectcomponentid: id })),
@@ -481,8 +479,8 @@ const Attendance = ({
 
       const batchReq = { calls: filteredCalls };
 
-      const workerBase = (function(){ try { return new URL(proxy_url).origin; } catch (e) { return proxy_url.replace(/\/StudentPortalAPI.*$/,''); } })();
-      const batchUrl = `${workerBase.replace(/\/$/,'')}/api/batch/attendance`;
+      const workerBase = (function () { try { return new URL(proxy_url).origin; } catch (e) { return proxy_url.replace(/\/StudentPortalAPI.*$/, ''); } })();
+      const batchUrl = `${workerBase.replace(/\/$/, '')}/api/batch/attendance`;
       const res = await fetch(batchUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(batchReq), credentials: 'include', mode: 'cors' });
       if (!res.ok) throw new Error('Batch request failed');
       const result = await res.json();
@@ -514,11 +512,11 @@ const Attendance = ({
     let isMounted = true;
 
     if (activeTab === "daily") {
-       const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
-       if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
+      const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
+      if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
     } else if (activeTab === "overview") {
-       const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
-       if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
+      const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
+      if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
     }
 
     return () => { isMounted = false; };
@@ -594,66 +592,66 @@ const Attendance = ({
           </div>
         ) : (
           <>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="px-3 pb-4 max-w-[1440px] mx-auto">
-            <TabsList className="grid grid-cols-2 bg-background relative z-30">
-              <TabsTrigger value="overview" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
-                <BarChart3 className="w-4 h-4" /> Overview
-              </TabsTrigger>
-              <TabsTrigger value="daily" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
-                <CalendarDays className="w-4 h-4" /> Day-to-Day
-              </TabsTrigger>
-            </TabsList>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="px-3 pb-4 max-w-[1440px] mx-auto">
+              <TabsList className="grid grid-cols-2 bg-background relative z-30">
+                <TabsTrigger value="overview" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" /> Overview
+                </TabsTrigger>
+                <TabsTrigger value="daily" className="bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4" /> Day-to-Day
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="overview">
-              {selectedSem && attendanceData[selectedSem.registration_id]?.error ? (
-                <div className="flex items-center justify-center py-4">
-                  {attendanceData[selectedSem.registration_id].error}
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {subjects.map((subject) => (
-                      <AttendanceCard
-                        key={subject.name}
-                        subject={subject}
-                        selectedSubject={selectedSubject}
-                        setSelectedSubject={setSelectedSubject}
-                        subjectAttendanceData={subjectAttendanceData}
-                        fetchSubjectAttendance={fetchSubjectAttendance}
-                        attendanceGoal={attendanceGoal}
-                        subjectCacheStatus={subjectCacheStatus}
-                      />
-                    ))}
+              <TabsContent value="overview">
+                {selectedSem && attendanceData[selectedSem.registration_id]?.error ? (
+                  <div className="flex items-center justify-center py-4">
+                    {attendanceData[selectedSem.registration_id].error}
                   </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {subjects.map((subject) => (
+                        <AttendanceCard
+                          key={subject.name}
+                          subject={subject}
+                          selectedSubject={selectedSubject}
+                          setSelectedSubject={setSelectedSubject}
+                          subjectAttendanceData={subjectAttendanceData}
+                          fetchSubjectAttendance={fetchSubjectAttendance}
+                          attendanceGoal={attendanceGoal}
+                          subjectCacheStatus={subjectCacheStatus}
+                        />
+                      ))}
+                    </div>
 
 
-                </>
-              )}
-            </TabsContent>
+                  </>
+                )}
+              </TabsContent>
 
-            <TabsContent value="daily">
-              <AttendanceDaily 
-                dailyDate={dailyDate}
-                setDailyDate={setDailyDate}
-                subjects={subjects}
-                subjectAttendanceData={subjectAttendanceData}
-              />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="daily">
+                <AttendanceDaily
+                  dailyDate={dailyDate}
+                  setDailyDate={setDailyDate}
+                  subjects={subjects}
+                  subjectAttendanceData={subjectAttendanceData}
+                />
+              </TabsContent>
+            </Tabs>
 
-          <div className="mx-3 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 shadow-sm flex gap-4 items-start md:items-center animate-in slide-in-from-bottom-4 duration-700">
-            <div className="p-2 bg-amber-500/10 rounded-full flex-shrink-0">
-              <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="mx-3 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 shadow-sm flex gap-4 items-start md:items-center animate-in slide-in-from-bottom-4 duration-700">
+              <div className="p-2 bg-amber-500/10 rounded-full flex-shrink-0">
+                <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                  Daily Attendance Update
+                </p>
+                <p className="text-xs md:text-sm text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
+                  Attendance marked for today typically reflects on the portal by <strong>tomorrow morning</strong>.
+                </p>
+              </div>
             </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
-                Daily Attendance Update
-              </p>
-              <p className="text-xs md:text-sm text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
-                Attendance marked for today typically reflects on the portal by <strong>tomorrow morning</strong>.
-              </p>
-            </div>
-          </div>
           </>
         )}
         <div className="h-16 md:h-20" />
