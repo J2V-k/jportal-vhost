@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import PropTypes from 'prop-types';
+import { calculateClassesNeeded, calculateClassesCanMiss } from '@/lib/math';
 import CircleProgress from "./CircleProgress";
 import { Loader2 } from 'lucide-react';
 import {
@@ -49,10 +50,10 @@ const AttendanceCard = ({
 
   const calcFromDaily = useCallback((data) => {
     if (!Array.isArray(data)) return;
-    
+
     let att = 0;
     let tot = 0;
-    
+
     data.forEach((entry) => {
       tot++;
       if (entry.present === "Present") {
@@ -64,11 +65,11 @@ const AttendanceCard = ({
       if (prev.attended === att && prev.total === tot) return prev;
       return { attended: att, total: tot };
     });
-    
+
     if (tot > 0 && attendanceGoal) {
-      const need = Math.ceil((attendanceGoal * tot - 100 * att) / (100 - attendanceGoal));
-      const miss = Math.floor((100 * att - attendanceGoal * tot) / attendanceGoal);
-      
+      const need = calculateClassesNeeded(att, tot, attendanceGoal);
+      const miss = calculateClassesCanMiss(att, tot, attendanceGoal);
+
       setNeedClass(prev => {
         const newVal = need > 0 ? need : 0;
         return prev === newVal ? prev : newVal;
@@ -105,9 +106,9 @@ const AttendanceCard = ({
       await fetchSubjectAttendance(subject);
       setLoading(false);
     }
-    
+
     if (isNewFormat && subjectAttendanceData[subject.name]) {
-       calcFromDaily(subjectAttendanceData[subject.name]);
+      calcFromDaily(subjectAttendanceData[subject.name]);
     }
   };
 
@@ -352,8 +353,8 @@ const AttendanceCard = ({
                       <div
                         key={index}
                         className={`p-2 rounded-md ${classData.present === "Present"
-                            ? "bg-green-600/40 dark:bg-green-200/40"
-                            : "bg-red-600/40 dark:bg-red-200/40"
+                          ? "bg-green-600/40 dark:bg-green-200/40"
+                          : "bg-red-600/40 dark:bg-red-200/40"
                           }`}
                       >
                         <p className="text-sm max-[390px]:text-xs text-foreground">

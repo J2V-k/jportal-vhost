@@ -6,6 +6,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getFromCache } from "@/components/scripts/cache"
 import { Helmet } from 'react-helmet-async'
+import {
+  calculateSGPA as calcSGPA,
+  calculateCGPA as calcCGPA,
+  calculateRequiredSGPA as calcReqSGPA,
+  gradePointMap
+} from "@/lib/math"
 
 export default function CGPATargetCalculator({ w }) {
   const [activeTab, setActiveTab] = useState("sgpa");
@@ -206,9 +212,7 @@ export default function CGPATargetCalculator({ w }) {
     return Object.values(groupedSubjects);
   };
 
-  const gradePointMap = {
-    "A+": 10, "A": 9, "B+": 8, "B": 7, "C+": 6, "C": 5, "D": 4, "F": 0
-  };
+
 
   const gradeOptions = ["A+", "A", "B+", "B", "C+", "C", "D", "F"];
 
@@ -221,19 +225,13 @@ export default function CGPATargetCalculator({ w }) {
   };
 
   const calculateSGPA = () => {
-    let totalPoints = 0;
-    let totalCredits = 0;
-
-    sgpaSubjects.forEach(subject => {
-      if (subject.grade && subject.credits > 0) {
-        const gp = gradePointMap[subject.grade] || 0;
-        totalPoints += gp * subject.credits;
-        totalCredits += subject.credits;
-      }
-    });
-
-    if (totalCredits === 0) return "-";
-    return (totalPoints / totalCredits).toFixed(2);
+    // Adapter for math library: passed array of { credits, grade }
+    return calcSGPA(
+      sgpaSubjects.map(s => ({
+        credits: s.credits,
+        grade: s.grade
+      }))
+    );
   };
 
   const handleSemesterChange = (semesterId) => {
@@ -276,74 +274,59 @@ export default function CGPATargetCalculator({ w }) {
 
   const calculateProjectedCGPA = () => {
     const currentSgpa = parseFloat(calculateSGPA());
-    if (isNaN(currentSgpa) || currentSgpa === 0) return "-";
+    if (isNaN(currentSgpa)) return "-";
 
-    let currentCredits = 0;
-    sgpaSubjects.forEach(subject => {
-      if (subject.credits > 0) {
-        currentCredits += subject.credits;
-      }
-    });
-
+    const currentCredits = sgpaSubjects.reduce((acc, s) => acc + (s.credits > 0 ? s.credits : 0), 0);
     if (currentCredits === 0) return "-";
 
-    let previousGradePoints = 0;
-    let previousCredits = 0;
+    const pastSemesters = (Array.isArray(fetchedSemesters) ? fetchedSemesters : [])
+      .map(sem => ({
+        sgpa: parseFloat(sem.sgpa),
+        credits: parseFloat(sem.totalcoursecredit)
+      }))
+      .filter(s => !isNaN(s.sgpa) && !isNaN(s.credits));
 
-    if (Array.isArray(fetchedSemesters) && fetchedSemesters.length > 0) {
-      fetchedSemesters.forEach(sem => {
-        const sgpa = parseFloat(sem.sgpa);
-        const credits = parseFloat(sem.totalcoursecredit);
-        if (!isNaN(sgpa) && !isNaN(credits)) {
-          previousGradePoints += sgpa * credits;
-          previousCredits += credits;
-        }
-      });
-    }
+    // Combine past + current projected
+    const allSemesters = [
+      ...pastSemesters,
+      { sgpa: currentSgpa, credits: currentCredits }
+    ];
 
-    const totalGradePoints = previousGradePoints + (currentSgpa * currentCredits);
-    const totalCredits = previousCredits + currentCredits;
-
-    if (totalCredits === 0) return "-";
-    return (totalGradePoints / totalCredits).toFixed(2);
+    const projected = calcCGPA(allSemesters);
+    return isNaN(projected) ? "-" : projected.toFixed(2);
   };
 
   const calculateCGPA = () => {
-    let totalPoints = 0;
-    let totalCredits = 0;
-    cgpaSemesters.forEach(({ g, c }) => {
-      const sgpa = parseFloat(g);
-      const credits = parseFloat(c);
-      if (!isNaN(sgpa) && !isNaN(credits)) {
-        totalPoints += sgpa * credits;
-        totalCredits += credits;
-      }
-    });
-    if (totalCredits === 0) return "-";
-    const cgpa = totalPoints / totalCredits;
-    const bounded = Math.min(10, Math.max(0, cgpa));
-    return bounded.toFixed(2);
+    // Adapter for math library: passed array of { sgpa, credits }
+    const semesters = cgpaSemesters.map(s => ({
+      sgpa: parseFloat(s.g),
+      credits: parseFloat(s.c)
+    })).filter(s => !isNaN(s.sgpa) && !isNaN(s.credits));
+
+    if (semesters.length === 0) return "-";
+
+    const val = calcCGPA(semesters);
+    return isNaN(val) ? "-" : val.toFixed(2);
   };
 
   const calculateRequiredSGPA = () => {
     const t = parseFloat(targetCgpa);
     if (isNaN(t)) return "-";
-    let prevGradePoints = 0;
-    let prevCredits = 0;
-    if (Array.isArray(fetchedSemesters) && fetchedSemesters.length > 0) {
-      fetchedSemesters.forEach(sem => {
-        const sgpa = parseFloat(sem.sgpa);
-        const credits = parseFloat(sem.totalcoursecredit);
-        if (!isNaN(sgpa) && !isNaN(credits)) {
-          prevGradePoints += sgpa * credits;
-          prevCredits += credits;
-        }
-      });
-    }
+
+    const pastSemesters = (Array.isArray(fetchedSemesters) ? fetchedSemesters : [])
+      .map(sem => ({
+        sgpa: parseFloat(sem.sgpa),
+        credits: parseFloat(sem.totalcoursecredit)
+      }))
+      .filter(s => !isNaN(s.sgpa) && !isNaN(s.credits));
+
     const nextIndex = Array.isArray(fetchedSemesters) ? fetchedSemesters.length : 0;
     const nextCredits = parseFloat(cgpaSemesters[nextIndex]?.c);
+
     if (isNaN(nextCredits) || nextCredits <= 0) return "-";
-    const required = (t * (prevCredits + nextCredits) - prevGradePoints) / nextCredits;
+
+    const required = calcReqSGPA(t, pastSemesters, nextCredits);
+    // calcReqSGPA returns number, we need to format it or handle infinity
     if (!isFinite(required)) return "-";
     return required.toFixed(2);
   };
@@ -466,7 +449,7 @@ export default function CGPATargetCalculator({ w }) {
                           ? "text-destructive"
                           : "text-foreground"
                           }`}>
-                          {calculateSGPA()}
+                          {calculateSGPA() !== "-" ? parseFloat(calculateSGPA()).toFixed(2) : "-"}
                         </span>
                       </div>
                       <div className="p-4 md:p-5 rounded-lg bg-card border border-border flex items-center justify-between w-full">
