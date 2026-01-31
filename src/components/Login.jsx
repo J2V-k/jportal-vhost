@@ -138,7 +138,7 @@ export default function Login({ onLoginSuccess, w }) {
 
       <main className="flex-grow container mx-auto px-4 py-12 flex flex-col items-center justify-center gap-12">
         <div className="hidden md:flex justify-center mb-4">
-          <img src="/pwa-icons/wheel.svg" alt="JP Portal Logo" className="w-16 h-16 rounded-lg shadow-lg" />
+          <img src="https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/pwa-icons/wheel.svg" alt="JP Portal Logo" className="w-16 h-16 rounded-lg shadow-lg" />
         </div>
         <ul className="flex justify-center mb-4">
           <InstallPWA />

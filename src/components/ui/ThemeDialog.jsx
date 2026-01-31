@@ -28,7 +28,7 @@ export default function ThemeDialog({ open, onClose }) {
           return
         }
         
-        const response = await fetch('/theme-presets.json')
+        const response = await fetch('https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/theme-presets.json')
         const data = await response.json()
         setThemeData(data)
         localStorage.setItem('jportal_theme_presets_v2', JSON.stringify(data))
