@@ -93,7 +93,7 @@ export default function Navbar({ w }) {
 
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 flex-col">
         <div className="h-16 flex items-center px-6 border-b border-border gap-3">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <img src="https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
           <span className="text-lg font-bold tracking-tight text-foreground uppercase">
             JP Portal
           </span>

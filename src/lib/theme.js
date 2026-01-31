@@ -143,7 +143,7 @@ async function loadThemePresetsFromFile() {
       return themePresetsData
     }
     
-    const response = await fetch('/theme-presets.json')
+    const response = await fetch('https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/theme-presets.json')
     if (!response.ok) throw new Error('Failed to load theme-presets.json')
     themePresetsData = await response.json()
     localStorage.setItem('jportal_theme_presets_v2', JSON.stringify(themePresetsData))

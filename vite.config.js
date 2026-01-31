@@ -27,7 +27,7 @@ export default defineConfig({
         enabled: true,
       },
       minify: false,
-      includeAssets: ['pwa-icons/*.svg'],
+      includeAssets: ['pwa-icons/circle.svg', 'pwa-icons/circle.ico'],
       workbox: {
         maximumFileSizeToCacheInBytes: 100 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,whl,json,wasm,data}"],
@@ -105,7 +105,7 @@ export default defineConfig({
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.wasm", revision: null },
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.data", revision: null },
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/repodata.json", revision: null },
-          { url: "/artifact/jiit_marks-0.2.0-py3-none-any.whl", revision: null },
+          { url: "https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/artifact/jiit_marks-0.2.0-py3-none-any.whl", revision: null },
           { url: "https://raw.githubusercontent.com/J2V-k/jportal-vhost/main/public/artifact/PyMuPDF-1.24.12-cp311-abi3-emscripten_3_1_32_wasm32.whl", revision: null },
         ],
       },
@@ -123,20 +123,20 @@ export default defineConfig({
         },
         icons: [
           {
-            src: "pwa-icons/wheel.svg",
+            src: "https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/pwa-icons/wheel.svg",
             sizes: "48x48",
           },
           {
-            src: "pwa-icons/wheel.svg",
+            src: "https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/pwa-icons/wheel.svg",
             sizes: "72x72 96x96",
             purpose: "maskable",
           },
           {
-            src: "pwa-icons/wheel.svg",
+            src: "https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/pwa-icons/wheel.svg",
             sizes: "128x128 256x256",
           },
           {
-            src: "pwa-icons/wheel.svg",
+            src: "https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/pwa-icons/wheel.svg",
             sizes: "512x512",
           },
         ],
