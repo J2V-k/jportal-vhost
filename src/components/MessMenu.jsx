@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { motion } from "framer-motion";
 import { Sunrise, Sun, Sunset, Calendar, ChefHat, History, Info } from "lucide-react";
+import { getDefaultMessMenuView, setDefaultMessMenuView } from '@/components/scripts/cache';
 import { Badge } from "@/components/ui/badge";
 
 const dayMapping = [
@@ -44,11 +45,11 @@ const extractDateFromKey = (key) => {
 
 const mealTimeLabel = (dayName, meal) => {
   if (meal === 'Breakfast') {
-    if (dayName === 'Sunday') return 'Till 9:30 AM';
-    return 'Till 9:00 AM';
+    if (dayName === 'Sunday') return 'Till 9:30am';
+    return '7:00am - 9:00am';
   }
-  if (meal === 'Lunch') return '12:00 - 14:00';
-  if (meal === 'Dinner') return 'From 19:30';
+  if (meal === 'Lunch') return '12:00pm - 2:00pm';
+  if (meal === 'Dinner') return '7:30pm - 9:30pm';
   return '';
 };
 
@@ -100,7 +101,7 @@ const MenuUnavailable = React.memo(({ onViewOldMenu }) => (
 
 const MessMenu = ({ children, open, onOpenChange }) => {
   const [view, setView] = useState(() => {
-    return localStorage.getItem('defaultMessMenuView') || 'daily';
+    return getDefaultMessMenuView();
   });
   const [menuAvailable, setMenuAvailable] = useState(true);
   const [forceShowMenu, setForceShowMenu] = useState(false);
@@ -144,7 +145,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      const defaultView = localStorage.getItem('defaultMessMenuView') || 'daily';
+      const defaultView = getDefaultMessMenuView();
       setView(defaultView);
     };
     window.addEventListener('storage', handleStorageChange);
@@ -159,7 +160,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
 
   const handleViewChange = useCallback((newView) => {
     setView(newView);
-    localStorage.setItem('defaultMessMenuView', newView);
+    setDefaultMessMenuView(newView);
   }, []);
 
   const shouldShowMenu = useMemo(() => menuAvailable || forceShowMenu, [menuAvailable, forceShowMenu]);
@@ -235,7 +236,7 @@ const MessMenu = ({ children, open, onOpenChange }) => {
                         <meal.icon size={16} className={meal.color} />
                         <span className="font-semibold text-sm">{meal.label}</span>
                         <span className="text-[10px] text-muted-foreground ml-auto bg-background px-1.5 py-0.5 rounded border border-border">
-                          {mealTimeLabel(dayName, meal.label).replace("Till ", "< ")}
+                          {mealTimeLabel(dayName, meal.label)}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">

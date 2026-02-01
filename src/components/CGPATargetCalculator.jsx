@@ -5,6 +5,8 @@ import { Plus, Trash2, BookOpen, GraduationCap, Loader2, Target, TrendingUp, Awa
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getFromCache } from "@/components/scripts/cache"
+import { getCgpaCalculatorSemesters, setCgpaCalculatorSemesters, getCgpaCalculatorTargetCgpa, setCgpaCalculatorTargetCgpa, getCgpaCalculatorSelectedSemester, setCgpaCalculatorSelectedSemester, getSubjectSemestersData, setSubjectSemestersData } from '@/components/scripts/cache' 
+import { getUsername } from '@/components/scripts/cache' 
 import { Helmet } from 'react-helmet-async'
 import {
   calculateSGPA as calcSGPA,
@@ -55,11 +57,10 @@ export default function CGPATargetCalculator({ w }) {
           console.warn('Failed to fetch sgpa/cgpa from portal for CGPA calculator, will try cache:', err);
         }
 
-        const cached = localStorage.getItem('cgpaCalculatorSemesters');
+        const cached = getCgpaCalculatorSemesters();
         if (cached) {
           try {
-            const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed) && parsed.length > 0) setCgpaSemesters(parsed);
+            if (Array.isArray(cached) && cached.length > 0) setCgpaSemesters(cached);
           } catch (e) { }
         }
       } catch (error) {
@@ -72,21 +73,20 @@ export default function CGPATargetCalculator({ w }) {
   }, [w]);
 
   useEffect(() => {
-    localStorage.setItem('cgpaCalculatorSemesters', JSON.stringify(cgpaSemesters));
+    setCgpaCalculatorSemesters(cgpaSemesters);
   }, [cgpaSemesters]);
 
 
   useEffect(() => {
-    const cachedTargetCgpa = localStorage.getItem('cgpaCalculatorTargetCgpa');
+    const cachedTargetCgpa = getCgpaCalculatorTargetCgpa();
     if (cachedTargetCgpa) {
       setTargetCgpa(cachedTargetCgpa);
     }
 
-    const cachedSelectedSemester = localStorage.getItem('cgpaCalculatorSelectedSemester');
+    const cachedSelectedSemester = getCgpaCalculatorSelectedSemester();
     if (cachedSelectedSemester) {
       try {
-        const parsed = JSON.parse(cachedSelectedSemester);
-        setSelectedSemester(parsed);
+        setSelectedSemester(cachedSelectedSemester);
       } catch (e) {
         console.error('Failed to parse cached selected semester:', e);
       }
@@ -94,12 +94,12 @@ export default function CGPATargetCalculator({ w }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cgpaCalculatorTargetCgpa', targetCgpa);
+    setCgpaCalculatorTargetCgpa(targetCgpa);
   }, [targetCgpa]);
 
   useEffect(() => {
     if (selectedSemester) {
-      localStorage.setItem('cgpaCalculatorSelectedSemester', JSON.stringify(selectedSemester));
+      setCgpaCalculatorSelectedSemester(selectedSemester);
     }
   }, [selectedSemester]);
 
@@ -134,10 +134,9 @@ export default function CGPATargetCalculator({ w }) {
       }
 
       try {
-        const cached = localStorage.getItem('subjectSemestersData');
+        const cached = getSubjectSemestersData();
         if (cached) {
-          const parsed = JSON.parse(cached);
-          setSubjectSemesters(parsed || []);
+          setSubjectSemesters(cached || []);
         }
       } catch (err) {
         console.error('Failed to load cached subject semesters:', err);
@@ -162,7 +161,7 @@ export default function CGPATargetCalculator({ w }) {
         const processedSubjects = processSubjectsForSGPA(subjects.subjects);
 
         try {
-          const username = w?.username || "user";
+          const username = w?.username || getUsername() || "user";
           const cacheKey = `marks-${semester.registration_code}-${username}`;
           const cached = await getFromCache(cacheKey);
           const marksMap = {};
@@ -225,7 +224,6 @@ export default function CGPATargetCalculator({ w }) {
   };
 
   const calculateSGPA = () => {
-    // Adapter for math library: passed array of { credits, grade }
     return calcSGPA(
       sgpaSubjects.map(s => ({
         credits: s.credits,
@@ -286,7 +284,6 @@ export default function CGPATargetCalculator({ w }) {
       }))
       .filter(s => !isNaN(s.sgpa) && !isNaN(s.credits));
 
-    // Combine past + current projected
     const allSemesters = [
       ...pastSemesters,
       { sgpa: currentSgpa, credits: currentCredits }
@@ -297,7 +294,6 @@ export default function CGPATargetCalculator({ w }) {
   };
 
   const calculateCGPA = () => {
-    // Adapter for math library: passed array of { sgpa, credits }
     const semesters = cgpaSemesters.map(s => ({
       sgpa: parseFloat(s.g),
       credits: parseFloat(s.c)
@@ -326,7 +322,6 @@ export default function CGPATargetCalculator({ w }) {
     if (isNaN(nextCredits) || nextCredits <= 0) return "-";
 
     const required = calcReqSGPA(t, pastSemesters, nextCredits);
-    // calcReqSGPA returns number, we need to format it or handle infinity
     if (!isFinite(required)) return "-";
     return required.toFixed(2);
   };

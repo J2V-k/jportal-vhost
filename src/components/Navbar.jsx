@@ -2,6 +2,7 @@ import { NavLink, useLocation } from "react-router-dom"
 import { CheckSquare, Calendar, User, Book, FileCheck, BarChart3, Calculator, DollarSign } from "lucide-react"
 import { ArtificialWebPortal } from "./scripts/artificialW"
 import { useState, useEffect } from 'react'
+import { getShowTimetableInNavbar } from '@/components/scripts/cache' 
 
 const navItems = [
   { name: "Attendance", path: "/attendance", icon: CheckSquare },
@@ -25,7 +26,7 @@ const desktopNavItems = [
 export default function Navbar({ w }) {
   const location = useLocation()
   const [showTimetableInNavbar, setShowTimetableInNavbar] = useState(() => {
-    try { return localStorage.getItem('showTimetableInNavbar') === 'true'; } catch (e) { return false; }
+    return getShowTimetableInNavbar();
   });
 
   useEffect(() => {

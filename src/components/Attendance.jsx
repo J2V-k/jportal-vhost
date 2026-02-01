@@ -8,6 +8,7 @@ import {
   getSemestersFromCache,
   saveSemestersToCache,
 } from "@/components/scripts/cache";
+import { getUsername } from '@/components/scripts/cache';
 import AttendanceCard from "./AttendanceCard";
 import AttendanceDaily from "./AttendanceDaily";
 import {
@@ -126,7 +127,7 @@ const Attendance = ({
       setIsAttendanceMetaLoading(true);
       setIsAttendanceDataLoading(true);
       try {
-        const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+        const username = (getUsername() || w.username || 'user');
         const cachedSemList = await getSemestersFromCache(username);
         if (cachedSemList) {
           const header = semestersData?.latest_header || null;
@@ -155,7 +156,7 @@ const Attendance = ({
           latest_semester: latestSem,
         });
         try {
-          const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+          const username = (getUsername() || w.username || 'user');
           await saveSemestersToCache(meta.semesters, username);
         } catch (e) { }
         const currentYear = new Date().getFullYear().toString();
@@ -163,7 +164,7 @@ const Attendance = ({
           sem.registration_code && sem.registration_code.includes(currentYear)
         );
         const semesterToLoad = currentYearSemester || latestSem;
-        const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+        const username = (getUsername() || w.username || 'user');
         const cached = await getAttendanceFromCache(username, semesterToLoad);
 
         if (cached) {
@@ -251,7 +252,7 @@ const Attendance = ({
       return;
     }
     setIsAttendanceDataLoading(true);
-    const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+    const username = (getUsername() || w.username || 'user');
     const cached = await getAttendanceFromCache(username, semester);
 
     if (cached) {
@@ -373,7 +374,7 @@ const Attendance = ({
 
   const fetchSubjectAttendance = async (subject) => {
     try {
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user';
+      const username = (getUsername() || w.username || 'user');
       const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
       if (cached) {
         setSubjectAttendanceData((prev) => ({
@@ -489,7 +490,7 @@ const Attendance = ({
       for (const r of result.responses) {
         try {
           if (r.ok && r.body && r.body.response && r.body.response.studentAttdsummarylist) {
-            await saveSubjectDataToCache(r.body.response.studentAttdsummarylist, r.key, (typeof window !== 'undefined' && localStorage.getItem('username')) || w.username || 'user', selectedSem);
+            await saveSubjectDataToCache(r.body.response.studentAttdsummarylist, r.key, (getUsername() || w.username || 'user'), selectedSem);
             setSubjectAttendanceData(prev => ({ ...prev, [r.key]: r.body.response.studentAttdsummarylist }));
             setSubjectCacheStatus(p => ({ ...p, [r.key]: 'cached' }));
           } else {

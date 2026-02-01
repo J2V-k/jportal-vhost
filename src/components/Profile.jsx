@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from 'react-helmet-async';
+import { saveProfileDataToCache } from '@/components/scripts/cache';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,11 +78,7 @@ export default function Profile({
       try {
         const data = await w.get_personal_info();
         setProfileData(data);
-        localStorage.setItem('profileData', JSON.stringify({
-          studentname: data?.generalinformation?.studentname,
-          imagepath: data?.["photo&signature"]?.photo
-        }));
-        try { localStorage.setItem('pd', JSON.stringify(data)); } catch (e) { }
+        try { await saveProfileDataToCache(data); } catch (e) { }
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
       } finally {

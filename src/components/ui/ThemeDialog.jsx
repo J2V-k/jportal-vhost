@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { applyTheme, saveTheme, loadSavedTheme } from '@/lib/theme'
+import { getThemePresetsCache, setThemePresetsCache } from '@/components/scripts/cache' 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './dialog'
 import { Palette, Check, Settings2, Moon, Sun, LayoutGrid } from 'lucide-react'
 import { Button } from './button'
@@ -21,9 +22,9 @@ export default function ThemeDialog({ open, onClose }) {
   useEffect(() => {
     const initThemes = async () => {
       try {
-        const cached = localStorage.getItem('jportal_theme_presets_v2')
+        const cached = getThemePresetsCache()
         if (cached) {
-          setThemeData(JSON.parse(cached))
+          setThemeData(cached)
           setLoading(false)
           return
         }
@@ -31,7 +32,7 @@ export default function ThemeDialog({ open, onClose }) {
         const response = await fetch('https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/theme-presets.json')
         const data = await response.json()
         setThemeData(data)
-        localStorage.setItem('jportal_theme_presets_v2', JSON.stringify(data))
+        setThemePresetsCache(data)
       } catch (error) {
         console.error('Error loading themes:', error)
       } finally {

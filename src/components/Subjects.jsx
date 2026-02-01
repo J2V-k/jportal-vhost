@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Empty } from "@/components/ui/empty"
 import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks} from "lucide-react"
 import { getRegisteredSubjectsFromCache, saveRegisteredSubjectsToCache, getSubjectChoicesFromCache, saveSubjectChoicesToCache } from '@/components/scripts/cache'
+import { getUsername } from '@/components/scripts/cache' 
 
 export default function Subjects({
   w,
@@ -82,7 +83,7 @@ export default function Subjects({
     const findFirstSemesterWithSubjects = async (semesters) => {
       for (const semester of semesters) {
         try {
-          const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+          const username = w.username || getUsername() || 'user';
 
           if (!subjectData?.[semester.registration_id]) {
             try {
@@ -130,7 +131,7 @@ export default function Subjects({
 
   useEffect(() => {
     const fetchChoicesForSelectedSemester = async () => {
-      const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+      const username = w.username || getUsername() || 'user';
       if (selectedSem && !subjectChoices?.[selectedSem.registration_id]) {
         setChoicesLoading(true)
         try {
@@ -166,7 +167,7 @@ export default function Subjects({
       const semester = semestersData?.semesters?.find((sem) => sem.registration_id === value)
       setSelectedSem(semester)
 
-      const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+      const username = w.username || getUsername() || 'user';
       const cached = await getRegisteredSubjectsFromCache(username, semester);
       if (cached) {
         setSubjectData((prev) => ({
@@ -211,7 +212,7 @@ export default function Subjects({
 
     setNextSemChoicesLoading(true)
     try {
-      const username = w.username || (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+          const username = w.username || getUsername() || 'user';
       const cachedChoices = await getSubjectChoicesFromCache(username, nextSem);
       if (cachedChoices) {
         setNextSemChoices({ semester: nextSem, choices: cachedChoices });

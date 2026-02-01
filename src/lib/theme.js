@@ -119,16 +119,16 @@ export function applyTheme(theme) {
   }
 }
 
+import { getJPTheme, setJPTheme, getThemePresetsCache, setThemePresetsCache } from '@/components/scripts/cache' 
+
 export function loadSavedTheme() {
   try {
-    const raw = localStorage.getItem('jp-theme')
-    if (!raw) return null
-    return JSON.parse(raw)
+    return getJPTheme()
   } catch (e) { return null }
 }
 
 export function saveTheme(theme) {
-  try { localStorage.setItem('jp-theme', JSON.stringify(theme)) } catch (e) { }
+  try { setJPTheme(theme) } catch (e) { }
 }
 
 let themePresetsData = null
@@ -137,16 +137,16 @@ async function loadThemePresetsFromFile() {
   if (themePresetsData) return themePresetsData
   
   try {
-    const cached = localStorage.getItem('jportal_theme_presets_v2')
+    const cached = getThemePresetsCache()
     if (cached) {
-      themePresetsData = JSON.parse(cached)
+      themePresetsData = cached
       return themePresetsData
     }
     
     const response = await fetch('https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/theme-presets.json')
     if (!response.ok) throw new Error('Failed to load theme-presets.json')
     themePresetsData = await response.json()
-    localStorage.setItem('jportal_theme_presets_v2', JSON.stringify(themePresetsData))
+    setThemePresetsCache(themePresetsData)
     return themePresetsData
   } catch (error) {
     console.error('Error loading theme presets:', error)

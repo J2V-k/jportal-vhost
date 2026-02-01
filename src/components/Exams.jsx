@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Calendar, Clock, MapPin, Armchair, Timer } from "lucide-react";
 import { ArtificialWebPortal } from "./scripts/artificialW";
+import { setExamDates } from '@/components/scripts/cache';
 import {
   Select,
   SelectContent,
@@ -37,7 +38,7 @@ export default function Exams({
   const [examEvents, setExamEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const updateExamDatesInLocalStorage = (examScheduleData) => {
+  const updateExamDates = (examScheduleData) => {
     if (!examScheduleData || examScheduleData.length === 0) {
       return;
     }
@@ -52,12 +53,11 @@ export default function Exams({
       const earliestDate = new Date(Math.min(...examDatesAsDate));
       const latestDate = new Date(Math.max(...examDatesAsDate));
 
-      localStorage.setItem("examStartDate", earliestDate.toISOString());
-      localStorage.setItem("examEndDate", latestDate.toISOString());
+      setExamDates(earliestDate.toISOString(), latestDate.toISOString());
     } catch (error) {
-      console.error("Failed to update exam dates in localStorage:", error);
+      console.error("Failed to update exam dates:", error);
     }
-  };
+  }; 
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -86,7 +86,7 @@ export default function Exams({
               setExamSchedule({
                 [firstEvent.exam_event_id]: response.subjectinfo,
               });
-              updateExamDatesInLocalStorage(response.subjectinfo);
+              updateExamDates(response.subjectinfo);
             }
           }
         } finally {
@@ -137,7 +137,7 @@ export default function Exams({
         setExamSchedule({
           [lastEvent.exam_event_id]: response.subjectinfo,
         });
-        updateExamDatesInLocalStorage(response.subjectinfo);
+        updateExamDates(response.subjectinfo);
       }
     } finally {
       setLoading(false);
@@ -158,7 +158,7 @@ export default function Exams({
           ...prev,
           [value]: response.subjectinfo,
         }));
-        updateExamDatesInLocalStorage(response.subjectinfo);
+        updateExamDates(response.subjectinfo);
       }
     } finally {
       setLoading(false);
