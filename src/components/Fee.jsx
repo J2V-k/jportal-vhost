@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { Alert, AlertDescription } from './ui/alert';
 import { Badge } from "./ui/badge";
 import axios from 'axios';
+import { proxy_url } from '@/lib/api';
 
 export default function Fee({ w, serialize_payload }) {
   const [data, setData] = useState(null);
@@ -29,7 +30,6 @@ export default function Fee({ w, serialize_payload }) {
       const headers = await w.session.get_headers();
       const payload = { instituteid: w.session.instituteid, studentid: w.session.memberid };
       const encryptedPayload = await serialize_payload(payload);
-      const { proxy_url } = await import('@/lib/api');
       const response = await axios.post(
         `${proxy_url}/feedemandreportcontroller/generatereportforpdf`,
         encryptedPayload,

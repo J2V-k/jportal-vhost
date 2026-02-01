@@ -17,6 +17,7 @@ import { Switch } from './ui/switch';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Settings, LogOut, Trash2, X } from 'lucide-react';
 import InstallPWA from './InstallPWA'; 
+import { getDefaultTheme, setDefaultTheme, getSelectedPreset, setSelectedPreset, getDefaultTab as getDefaultTabFromCache, setDefaultTab as setDefaultTabInCache, getSwipeEnabled as getSwipeEnabledFromCache, setSwipeEnabled as persistSwipeEnabled, getDefaultMessMenuView, setDefaultMessMenuView as setDefaultMessMenuViewInCache, getShowTimetableInNavbar, setShowTimetableInNavbar as persistShowTimetableInNavbar, getJPTheme, getProfileDataRaw, clearAllCache } from '@/components/scripts/cache';
 
 const TABS = [
   { key: '/attendance', label: 'Attendance' },
@@ -35,23 +36,23 @@ const MESS_MENU_VIEWS = [
 export default function SettingsDialog({ onLogout, attendanceGoal, setAttendanceGoal }) {
   const { themeMode } = useTheme();
   const [open, setOpen] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState(() => localStorage.getItem('defaultTheme') || 'light');
-  const [defaultTab, setDefaultTab] = useState(() => localStorage.getItem('defaultTab') || 'auto');
-  const [swipeEnabled, setSwipeEnabled] = useState(() => localStorage.getItem('swipeEnabled') !== 'false');
-  const [defaultMessMenuView, setDefaultMessMenuView] = useState(() => localStorage.getItem('defaultMessMenuView') || 'daily');
+  const [selectedTheme, setSelectedTheme] = useState(() => getDefaultTheme());
+  const [defaultTab, setDefaultTab] = useState(() => getDefaultTabFromCache() || 'auto');
+  const [swipeEnabled, setSwipeEnabled] = useState(() => getSwipeEnabledFromCache());
+  const [defaultMessMenuView, setDefaultMessMenuView] = useState(() => getDefaultMessMenuView());
   const [themePresets, setThemePresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState(() => {
-    const saved = localStorage.getItem('jp-theme');
+    const saved = getJPTheme();
     if (saved) {
       try {
-        return JSON.parse(saved).id || '';
+        return saved.id || '';
       } catch (e) {
         return '';
       }
     }
     return '';
   });
-  const [showTimetableInNavbar, setShowTimetableInNavbar] = useState(() => localStorage.getItem('showTimetableInNavbar') === 'true');
+  const [showTimetableInNavbar, setShowTimetableInNavbar] = useState(() => getShowTimetableInNavbar());
 
   useEffect(() => {
     const loadPresets = async () => {
@@ -75,28 +76,28 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
     applyTheme(preset);
     saveTheme(preset);
     setSelectedPresetId(preset.id);
-    localStorage.setItem('selectedPreset', preset.id);
+    setSelectedPreset(preset.id);
   }
 
   function handleClearCache() {
     if (!confirm('Are you sure you want to clear ALL cached data?')) return;
-    localStorage.clear();
+    clearAllCache();
     window.location.reload();
   }
 
   function handleDefaultTabChange(value) {
     setDefaultTab(value);
-    localStorage.setItem('defaultTab', value);
+    setDefaultTabInCache(value);
   }
 
   function handleSwipeEnabledChange(value) {
     setSwipeEnabled(value);
-    localStorage.setItem('swipeEnabled', value.toString());
+    persistSwipeEnabled(value);
   }
 
   function handleMessMenuViewChange(value) {
     setDefaultMessMenuView(value);
-    localStorage.setItem('defaultMessMenuView', value);
+    setDefaultMessMenuViewInCache(value);
   }
 
   function handleTargetAttendanceChange(e) {
@@ -111,7 +112,7 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
     if (typeof onLogout === 'function') onLogout();
   }
 
-  const profileData = JSON.parse(localStorage.getItem('profileData') || '{}');
+  const profileData = getProfileDataRaw();
   const studentName = profileData?.studentname || 'User';
   const studentImage = profileData?.imagepath;
 
@@ -172,7 +173,7 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
               <Label className="text-sm font-medium">Show timetable in navbar</Label>
               <Switch checked={showTimetableInNavbar} onCheckedChange={(val) => {
                 setShowTimetableInNavbar(val);
-                localStorage.setItem('showTimetableInNavbar', val ? 'true' : 'false');
+                persistShowTimetableInNavbar(val);
                 window.dispatchEvent(new CustomEvent('jp:settingsChange', { detail: { showTimetableInNavbar: val } }));
               }} />
             </div>

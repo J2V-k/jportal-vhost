@@ -10,6 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from ".
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
+import { getTimetableModifiedEvents, setTimetableIcs, getTimetableIcs, setTimetableModifiedEvents, removeTimetableModifiedEvents } from '@/components/scripts/cache';
 
 const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
   const [loading, setLoading] = useState(true);
@@ -110,16 +111,16 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
   useEffect(() => {
     const initTimetable = async () => {
       setLoading(true);
-      const savedEvents = localStorage.getItem('timetable_modified_events');
+      const savedEvents = getTimetableModifiedEvents();
       if (savedEvents) {
-        setIcalEvents(JSON.parse(savedEvents).map(ev => ({ 
+        setIcalEvents(savedEvents.map(ev => ({ 
           ...ev, 
           start: new Date(ev.start),
           end: ev.end ? new Date(ev.end) : new Date(new Date(ev.start).getTime() + 60 * 60 * 1000)
         })));
         setShowCustomizer(false);
       } else {
-        const savedIcs = localStorage.getItem('timetable_ics');
+        const savedIcs = getTimetableIcs();
         if (savedIcs) {
           setIcalEvents(parseIcs(savedIcs));
           setShowCustomizer(false);
@@ -155,10 +156,10 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
     if (!file) return;
     try {
       const text = await file.text();
-      localStorage.setItem('timetable_ics', text);
+      setTimetableIcs(text);
       const parsed = parseIcs(text);
       setIcalEvents(parsed);
-      localStorage.setItem('timetable_modified_events', JSON.stringify(parsed));
+      setTimetableModifiedEvents(parsed);
       setShowCustomizer(false);
     } catch (err) { console.error(err); }
   };
@@ -180,7 +181,7 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
 
     updatedEvents.sort((a, b) => a.start - b.start);
     setIcalEvents(updatedEvents);
-    localStorage.setItem('timetable_modified_events', JSON.stringify(updatedEvents));
+    setTimetableModifiedEvents(updatedEvents);
     setIsDialogOpen(false);
   };
 
@@ -330,7 +331,7 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
             <h2 className="text-xl font-bold flex items-center gap-2"><CalendarIcon className="w-5 h-5 text-primary" /> Weekly Schedule</h2>
             <div className="flex gap-2">
                <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(true)}><PlusCircle className="w-4 h-4 mr-2" /> Add</Button>
-               {icalEvents.length > 0 && <Button variant="ghost" size="sm" onClick={() => { localStorage.removeItem('timetable_modified_events'); setIcalEvents([]); }} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>}
+               {icalEvents.length > 0 && <Button variant="ghost" size="sm" onClick={() => { removeTimetableModifiedEvents(); setIcalEvents([]); }} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>}
             </div>
           </div>
           

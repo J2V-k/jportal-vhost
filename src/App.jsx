@@ -24,6 +24,7 @@ import AcademicCalendar from "./components/AcademicCalendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
+import { getMessMenuOpen as getMessMenuOpenFromCache, setMessMenuOpen as persistMessMenuOpen, getAttendanceGoal as getAttendanceGoalFromCache, setAttendanceGoal as persistAttendanceGoal, getUsername, getPassword, hasAnyPortalData, getDefaultTab, getExamStartDate, getExamEndDate, getSwipeEnabled as getSwipeEnabledFromCache } from '@/components/scripts/cache' 
 import { Loader2 } from "lucide-react";
 import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
@@ -37,7 +38,7 @@ import {
 import { serialize_payload } from "@/lib/jiitCrypto";
 import { proxy_url } from "@/lib/api";
 import { ArtificialWebPortal } from "./components/scripts/artificialW";
-
+import { saveProfileDataToCache } from '@/components/scripts/cache'
 import Feedback from "./components/Feedback";
 import CGPATargetCalculator from "./components/CGPATargetCalculator";
 
@@ -77,13 +78,10 @@ function AuthenticatedApp({
         try {
           const data = await w.get_personal_info();
           setProfileData(data);
-          localStorage.setItem(
-            "profileData",
-            JSON.stringify({
-              studentname: data?.generalinformation?.studentname,
-              imagepath: data?.["photo&signature"]?.photo,
-            }),
-          );
+          saveProfileDataToCache({
+            studentname: data?.generalinformation?.studentname,
+            imagepath: data?.["photo&signature"]?.photo,
+          });
         } catch (error) {
           console.error("Failed to fetch profile data in App:", error);
         }
@@ -152,7 +150,7 @@ function AuthenticatedApp({
   const [transitionDirection, setTransitionDirection] = useState("forward");
 
   const onTouchEndWithTransition = (e) => {
-    const swipeEnabled = localStorage.getItem("swipeEnabled") !== "false";
+    const swipeEnabled = getSwipeEnabledFromCache();
     const isDesktop = window.innerWidth >= 768;
     if (!swipeEnabled || isDesktop) return;
 
@@ -241,12 +239,10 @@ function AuthenticatedApp({
                       <Navigate
                         to={(() => {
                           let targetTab =
-                            localStorage.getItem("defaultTab") || "/attendance";
+                            getDefaultTab() || "/attendance";
                           if (targetTab === "auto") {
-                            const examStartDate =
-                              localStorage.getItem("examStartDate");
-                            const examEndDate =
-                              localStorage.getItem("examEndDate");
+                            const examStartDate = getExamStartDate();
+                            const examEndDate = getExamEndDate();
                             if (examStartDate && examEndDate) {
                               const now = new Date();
                               const examStart = new Date(examStartDate);
@@ -285,12 +281,12 @@ function AuthenticatedApp({
                       <Navigate
                         to={(() => {
                           let targetTab =
-                            localStorage.getItem("defaultTab") || "/attendance";
+                            getDefaultTab() || "/attendance";
                           if (targetTab === "auto") {
                             const examStartDate =
-                              localStorage.getItem("examStartDate");
+                              getExamStartDate();
                             const examEndDate =
-                              localStorage.getItem("examEndDate");
+                              getExamEndDate();
                             if (examStartDate && examEndDate) {
                               const now = new Date();
                               const examStart = new Date(examStartDate);
@@ -483,11 +479,11 @@ function LoginWrapper({ onLoginSuccess, w }) {
     const portal = webPortal || w;
     onLoginSuccess(portal);
     setTimeout(() => {
-      let targetTab = localStorage.getItem("defaultTab") || "/attendance";
+      let targetTab = getDefaultTab() || "/attendance";
 
       if (targetTab === "auto") {
-        const examStartDate = localStorage.getItem("examStartDate");
-        const examEndDate = localStorage.getItem("examEndDate");
+        const examStartDate = getExamStartDate();
+        const examEndDate = getExamEndDate();
 
         if (examStartDate && examEndDate) {
           const now = new Date();
@@ -550,21 +546,21 @@ function App() {
   const [currentWebPortal, setCurrentWebPortal] = useState(w);
   const [showOfflinePrompt, setShowOfflinePrompt] = useState(false);
   const [messMenuOpen, setMessMenuOpen] = useState(() => {
-    return localStorage.getItem("messMenuOpen") === "true";
+    return getMessMenuOpenFromCache();
   });
 
   const handleMessMenuChange = (open) => {
     setMessMenuOpen(open);
-    localStorage.setItem("messMenuOpen", open.toString());
+    persistMessMenuOpen(open);
   };
 
   const [attendanceGoal, setAttendanceGoal] = useState(() => {
-    const savedGoal = localStorage.getItem("attendanceGoal");
+    const savedGoal = getAttendanceGoalFromCache();
     return savedGoal ? parseInt(savedGoal) : 75;
   });
 
   useEffect(() => {
-    localStorage.setItem("attendanceGoal", attendanceGoal.toString());
+    persistAttendanceGoal(attendanceGoal);
   }, [attendanceGoal]);
 
   useEffect(() => {
@@ -581,24 +577,24 @@ function App() {
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.removeItem("messMenuOpen");
+      persistMessMenuOpen(false);
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
         setMessMenuOpen(false);
-        localStorage.removeItem("messMenuOpen");
+        persistMessMenuOpen(false);
       }
     };
 
     const handleBlur = () => {
       setMessMenuOpen(false);
-      localStorage.removeItem("messMenuOpen");
+      persistMessMenuOpen(false);
     };
 
     const handleFocus = () => {
       setMessMenuOpen(false);
-      localStorage.removeItem("messMenuOpen");
+      persistMessMenuOpen(false);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -615,8 +611,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const username = localStorage.getItem("username");
-    const password = localStorage.getItem("password");
+    const username = getUsername();
+    const password = getPassword();
 
     const performLogin = async () => {
       try {
@@ -629,18 +625,7 @@ function App() {
         }
       } catch (error) {
         console.error("Login failed:", error);
-        const keys = Object.keys(localStorage);
-        const hasCachedData = keys.some(
-          (key) =>
-            key.startsWith("attendance-") ||
-            key.startsWith("grades-") ||
-            key.startsWith("subject-") ||
-            key === "latestSemester" ||
-            key === "semestersData" ||
-            key === "gradeCardSemesters" ||
-            key === "mess-menu" ||
-            key === "profileData",
-        );
+        const hasCachedData = hasAnyPortalData();
 
         if (hasCachedData) {
           setIsAuthenticated(true);

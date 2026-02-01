@@ -12,6 +12,7 @@ import InstallPWA from './InstallPWA'
 import MessMenu from "./MessMenu"
 import ThemeBtn from "./ui/ThemeBtn"
 import { ArtificialWebPortal } from "./scripts/artificialW"
+import { setCredentials, setUsername, getUsername, getPassword, hasCachedProfile, hasAnyAttendance, hasAnyGrades } from '@/components/scripts/cache' 
 
 const formSchema = z.object({
   enrollmentNumber: z.string({
@@ -50,8 +51,7 @@ export default function Login({ onLoginSuccess, w }) {
 
         await w.student_login(attemptedUsername, attemptedPassword)
 
-        localStorage.setItem("username", attemptedUsername)
-        localStorage.setItem("password", attemptedPassword)
+        setCredentials(attemptedUsername, attemptedPassword)
 
         setLoginStatus((prev) => ({
           ...prev,
@@ -64,10 +64,7 @@ export default function Login({ onLoginSuccess, w }) {
         const attemptedUsername = loginStatus.credentials?.enrollmentNumber || ''
         const isAuthError = error instanceof LoginError
 
-        const profileData = localStorage.getItem('profileData');
-        const attendanceData = Object.keys(localStorage).some(key => key.startsWith('attendance-'));
-        const gradesData = Object.keys(localStorage).some(key => key.startsWith('grades-'));
-        const hasCache = !!(profileData || attendanceData || gradesData)
+        const hasCache = hasCachedProfile() || hasAnyAttendance() || hasAnyGrades();
 
         setLoginStatus((prev) => ({
           ...prev,
@@ -79,7 +76,7 @@ export default function Login({ onLoginSuccess, w }) {
 
         if (!isAuthError && hasCache) {
           try {
-            if (attemptedUsername) localStorage.setItem('username', attemptedUsername)
+            if (attemptedUsername) setUsername(attemptedUsername)
             const artificialW = new ArtificialWebPortal();
             onLoginSuccess(artificialW);
           } catch (e) {
@@ -93,8 +90,8 @@ export default function Login({ onLoginSuccess, w }) {
   }, [loginStatus.credentials, onLoginSuccess, w])
 
   useEffect(() => {
-    const username = localStorage.getItem("username")
-    const password = localStorage.getItem("password")
+    const username = getUsername()
+    const password = getPassword()
     if (username && password) {
       form.setValue("enrollmentNumber", username)
       form.setValue("password", password)
@@ -112,11 +109,9 @@ export default function Login({ onLoginSuccess, w }) {
   }
 
   const handleOfflineMode = () => {
-    const profileData = localStorage.getItem('profileData');
-    const attendanceData = Object.keys(localStorage).some(key => key.startsWith('attendance-'));
-    const gradesData = Object.keys(localStorage).some(key => key.startsWith('grades-'));
+    const hasCache = hasCachedProfile() || hasAnyAttendance() || hasAnyGrades();
 
-    if (!profileData && !attendanceData && !gradesData) {
+    if (!hasCache) {
       setLoginStatus((prev) => ({
         ...prev,
         error: "No cached data available. Please login online first to use offline mode.",

@@ -1,4 +1,5 @@
-import { getAttendanceFromCache, getRegisteredSubjectsFromCache, getSubjectChoicesFromCache, getSubjectDataFromCache, getSemestersFromCache, getProfileDataFromCache, getFromCache, getGradesFromCache, getGradeCardSemestersFromCache } from './cache';
+import { getAttendanceFromCache, getRegisteredSubjectsFromCache, getSubjectChoicesFromCache, getSubjectDataFromCache, getSemestersFromCache, getProfileDataFromCache, getFromCache, getGradesFromCache, getGradeCardSemestersFromCache, findGradesForUsername, findRegisteredSemestersInLocalStorage, findAttendanceInLocalStorage, findRegisteredSubjectsFromLocalStorage, findSubjectDataFromLocalStorage, findSubjectChoicesFromLocalStorage } from './cache';
+import { getUsername, getProfileDataRaw } from '@/components/scripts/cache';
 
 export class ArtificialWebPortal {
   constructor() {
@@ -15,7 +16,7 @@ export class ArtificialWebPortal {
       enrollmentno: "OFF-00001",
       get_headers: async () => ({ Authorization: `Bearer offline_token`, LocalName: "offline_local_name" })
     };
-    this.username = (typeof window !== 'undefined' && localStorage.getItem('username')) || "";
+    this.username = (typeof window !== 'undefined' && getUsername()) || "";
   }
 
   async student_login(username, password, captcha = {}) {
@@ -28,15 +29,12 @@ export class ArtificialWebPortal {
 
   async get_personal_info() {
     try {
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
       const cachedPd = await getProfileDataFromCache();
       if (typeof window !== 'undefined') {
-        const pd = localStorage.getItem('pd');
-        if (pd) {
-          try {
-            const parsed = JSON.parse(pd);
-            if (parsed) return parsed;
-          } catch (e) {}
+        const pd = getProfileDataRaw();
+        if (pd && Object.keys(pd).length > 0) {
+          return pd;
         }
       }
       if (cachedPd && cachedPd.data) return cachedPd.data || cachedPd;
@@ -47,20 +45,9 @@ export class ArtificialWebPortal {
 
   async get_sgpa_cgpa() {
     try {
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
-      const entries = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key) continue;
-        if (key.startsWith(`grades-${username}-`)) {
-          try {
-            const raw = JSON.parse(localStorage.getItem(key) || 'null');
-            const data = raw && raw.data ? raw.data : raw;
-            if (data) entries.push(data);
-          } catch (e) {}
-        }
-      }
-      if (entries.length > 0) return { semesterList: entries };
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
+      const entries = await findGradesForUsername(username);
+      if (entries && entries.length > 0) return { semesterList: entries };
     } catch (e) {}
     return null;
   }
@@ -68,7 +55,7 @@ export class ArtificialWebPortal {
   async get_attendance(header, semester) {
     try {
       const regCode = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester;
-      const browserUsername = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const browserUsername = (typeof window !== 'undefined' && getUsername()) || this.username;
         let cached = await getAttendanceFromCache(browserUsername, { registration_code: regCode });
       if (cached && cached.data) {
         const payload = Object.assign({}, cached.data);
@@ -85,20 +72,8 @@ export class ArtificialWebPortal {
         return payload;
       }
         try {
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!key) continue;
-            if (key.startsWith('attendance-') && (key.includes(regCode) || key.includes(semester?.registration_id || '') || key.includes(semester?.registrationcode || ''))) {
-              const raw = JSON.parse(localStorage.getItem(key) || 'null');
-              if (raw && raw.data) {
-                cached = raw;
-                break;
-              } else if (raw) {
-                cached = raw;
-                break;
-              }
-            }
-          }
+          const found = findAttendanceInLocalStorage((typeof window !== 'undefined' && getUsername()) || this.username, regCode);
+          if (found) cached = found;
         } catch (e) {}
     } catch (e) {
     }
@@ -109,22 +84,12 @@ export class ArtificialWebPortal {
   async get_registered_subjects_and_faculties(semester) {
     try {
       const regCode = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester;
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
         let cached = await getRegisteredSubjectsFromCache(username, { registration_code: regCode });
         if (cached) return cached;
         try {
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!key) continue;
-            if (key.startsWith('registered-subjects-') && (key.includes(regCode) || key.includes(semester?.registration_id || '') || key.includes(semester?.registrationcode || ''))) {
-              const raw = JSON.parse(localStorage.getItem(key) || 'null');
-              if (raw && raw.data) {
-                return raw.data;
-              } else if (raw) {
-                return raw;
-              }
-            }
-          }
+          const found = findRegisteredSubjectsFromLocalStorage((typeof window !== 'undefined' && getUsername()) || this.username, regCode);
+          if (found) return found;
         } catch(e) {}
     } catch (e) {
     }
@@ -133,38 +98,15 @@ export class ArtificialWebPortal {
 
   async get_registered_semesters() {
     try {
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
       const cached = await getSemestersFromCache(username);
       if (cached) {
         cached.sort((a, b) => b.registration_code.localeCompare(a.registration_code));
         return cached;
       }
 
-      const availableSemesters = [];
-      const prefix = 'registered-subjects-';
-      const seenSemKeys = new Set();
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(prefix)) {
-          const parts = key.split('-');
-          if (parts.length >= 3) {
-            const semKey = parts[parts.length - 1];
-            if (semKey && !seenSemKeys.has(semKey)) {
-              seenSemKeys.add(semKey);
-              availableSemesters.push({
-                registration_code: semKey,
-                registrationcode: semKey,
-                registrationid: semKey,
-                registration_id: semKey
-              });
-            }
-          }
-        }
-      }
-      if (availableSemesters.length > 0) {
-        availableSemesters.sort((a, b) => b.registration_code.localeCompare(a.registration_code));
-        return availableSemesters;
-      }
+      const found = findRegisteredSemestersInLocalStorage();
+      if (found) return found;
     } catch (e) {}
 
     return null;
@@ -200,15 +142,8 @@ export class ArtificialWebPortal {
 
   async get_hostel_details() {
     try {
-      if (typeof window !== 'undefined') {
-        const pd = localStorage.getItem('pd');
-        if (pd) {
-          try {
-            const parsed = JSON.parse(pd);
-            if (parsed && parsed.presenthosteldetail) return { presenthosteldetail: parsed.presenthosteldetail };
-          } catch (e) {}
-        }
-      }
+      const pd = (typeof window !== 'undefined') ? getProfileDataRaw() : null;
+      if (pd && pd.presenthosteldetail) return { presenthosteldetail: pd.presenthosteldetail };
       const cached = await getProfileDataFromCache();
       if (cached && cached.data && cached.data.presenthosteldetail) return { presenthosteldetail: cached.data.presenthosteldetail };
     } catch (e) {}
@@ -218,9 +153,9 @@ export class ArtificialWebPortal {
   
   async get_attendance_meta() {
     try {
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
       const cachedSemesters = await getSemestersFromCache(username);
-      const profile = (typeof window !== 'undefined' && localStorage.getItem('pd')) ? JSON.parse(localStorage.getItem('pd')) : (await getProfileDataFromCache()) && (await getProfileDataFromCache()).data;
+      const profile = getProfileDataRaw() || (await getProfileDataFromCache()) && (await getProfileDataFromCache()).data;
       const headerlist = profile && profile.generalinformation ? [profile.generalinformation] : null;
       if (cachedSemesters) {
         return {
@@ -238,22 +173,15 @@ export class ArtificialWebPortal {
   async get_subject_daily_attendance(semester, subjectid, individualsubjectcode, subjectcomponentids) {
     try {
       const regCode = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester;
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
       let cached = await getSubjectDataFromCache(individualsubjectcode || subjectid, username, { registration_code: regCode });
       if (cached) {
         const cachedPayload = cached.data || cached;
         return cachedPayload;
       }
       try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (!key) continue;
-          if (key.startsWith(`subject-${(individualsubjectcode || subjectid)}-${username}-`)) {
-            const raw = JSON.parse(localStorage.getItem(key) || 'null');
-            if (raw && raw.data) return raw.data;
-            if (raw) return raw;
-          }
-        }
+        const found = findSubjectDataFromLocalStorage(individualsubjectcode || subjectid, username, regCode);
+        if (found) return found;
       } catch (e) {}
     } catch (e) {
 
@@ -276,22 +204,12 @@ export class ArtificialWebPortal {
   async get_subject_choices(semester) {
     try {
       const regCode = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester;
-      const username = (typeof window !== 'undefined' && localStorage.getItem('username')) || this.username;
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
         let cached = await getSubjectChoicesFromCache(username, { registration_code: regCode });
         if (cached) return cached;
         try {
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!key) continue;
-            if (key.startsWith('subject-choices-') && (key.includes(regCode) || key.includes(semester?.registration_id || '') || key.includes(semester?.registrationcode || ''))) {
-              const raw = JSON.parse(localStorage.getItem(key) || 'null');
-              if (raw && raw.data) {
-                return raw.data;
-              } else if (raw) {
-                return raw;
-              }
-            }
-          }
+          const found = findSubjectChoicesFromLocalStorage((typeof window !== 'undefined' && getUsername()) || this.username, regCode);
+          if (found) return found;
         } catch (e) {}
     } catch (e) {
     }

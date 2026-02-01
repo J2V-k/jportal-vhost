@@ -39,6 +39,7 @@ import {
   saveToCache,
   getFromCache,
 } from "@/components/scripts/cache";
+import { getGradesActiveTab, setGradesActiveTab } from '@/components/scripts/cache';
 import GradeCard from "./GradeCard";
 import MarksCard from "./MarksCard";
 import { gradePointMap } from "@/lib/math";
@@ -98,18 +99,16 @@ export default function Grades({
     if (tabFromUrl && ["overview", "marks", "semester"].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     } else {
-      const savedTab = localStorage.getItem("grades_active_tab");
-      if (savedTab && ["overview", "marks", "semester"].includes(savedTab)) {
-        setActiveTab(savedTab);
-        setSearchParams({ tab: savedTab }, { replace: true });
-      }
+      setActiveTab("overview");
+      setSearchParams({ tab: "overview" }, { replace: true });
+      setGradesActiveTab("overview");
     }
   }, []);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
     setSearchParams({ tab: value });
-    localStorage.setItem("grades_active_tab", value);
+    setGradesActiveTab(value);
   };
 
   useEffect(() => {
