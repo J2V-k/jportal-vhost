@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from 'react-helmet-async';
-import { saveProfileDataToCache } from '@/components/scripts/cache';
+import { saveProfileDataToCache, getProfileDataFromCache, getProfileDataRaw } from '@/components/scripts/cache';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,9 +74,31 @@ export default function Profile({
         setLoading(false);
         return;
       }
+
       setLoading(true);
       try {
+        const rawPd = getProfileDataRaw();
+        if (rawPd && typeof rawPd === 'object' && Object.keys(rawPd).length > 0) {
+          setProfileData(rawPd);
+          setLoading(false);
+          return;
+        }
+
+        const cachedPd = await getProfileDataFromCache();
+        if (cachedPd) {
+          const data = cachedPd.data || cachedPd;
+          if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+            setProfileData(data);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('Error loading cached profile:', e);
+      }
+      try {
         const data = await w.get_personal_info();
+        console.log("Profile Data:", data);
         setProfileData(data);
         try { await saveProfileDataToCache(data); } catch (e) { }
       } catch (error) {
@@ -221,7 +243,7 @@ export default function Profile({
                 className="p-4 md:p-6"
               >
                 <TabsContent value="personal" className="m-0 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
                     <InfoRow icon={Calendar} label="Date of Birth" value={info.dateofbirth} />
                     <InfoRow icon={Users} label="Gender" value={info.gender} />
                     <InfoRow icon={Droplets} label="Blood Group" value={info.bloodgroup} />
@@ -230,50 +252,86 @@ export default function Profile({
                     <InfoRow icon={Hash} label="APAAR ID" value={info.apaarid} />
                   </div>
                   <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
                     <InfoRow icon={GraduationCap} label="Admission Year" value={info.admissionyear} />
+                    <InfoRow icon={Calendar} label="Academic Year" value={info.academicyear} />
                     <InfoRow icon={Home} label="Institute Code" value={info.institutecode} />
+                    <InfoRow icon={Tag} label="Designation" value={info.designation} />
                     <InfoRow icon={CreditCard} label="Bank Account" value={info.bankaccountno} />
                     <InfoRow icon={Building} label="Bank Name" value={info.bankname} />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="contact" className="m-0 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
                     <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
                     <InfoRow icon={AtSign} label="Personal Email" value={info.studentpersonalemailid} />
                     <InfoRow icon={Smartphone} label="Mobile" value={info.studentcellno} />
-                    <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno} />
-                  </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
-                    <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
-                    <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
-                    <InfoRow icon={Smartphone} label="Parent Mobile" value={info.parentcellno} />
-                    <InfoRow icon={Mail} label="Parent Email" value={info.parentemailid} />
+                    <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
                   </div>
                   <Separator />
                   <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-foreground">Permanent Address</h3>
                     <InfoRow icon={MapPin} label="Address" value={[info.paddress1, info.paddress2, info.paddress3].filter(Boolean).join(", ")} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
                       <InfoRow icon={Map} label="City" value={info.pcityname} />
                       <InfoRow icon={MapPin} label="State" value={info.pstatename} />
+                      <InfoRow icon={Hash} label="District" value={info.pdistrict} />
+                      <InfoRow icon={Hash} label="Postal Code" value={info.ppostalcode} />
                     </div>
+                  </div>
+                  <Separator />
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-foreground">Current Address</h3>
+                    <InfoRow icon={MapPin} label="Address" value={[info.caddress1, info.caddress2, info.caddress3].filter(Boolean).join(", ")} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
+                      <InfoRow icon={Map} label="City" value={info.ccityname} />
+                      <InfoRow icon={MapPin} label="State" value={info.cstatename} />
+                      <InfoRow icon={Hash} label="District" value={info.cdistrict} />
+                      <InfoRow icon={Hash} label="Postal Code" value={info.cpostalcode} />
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
+                    <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
+                    <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
+                    <InfoRow icon={Smartphone} label="Parent Mobile" value={info.parentcellno} />
+                    <InfoRow icon={Phone} label="Parent Phone" value={info.parenttelephoneno} />
+                    <InfoRow icon={Mail} label="Parent Email" value={info.parentemailid} />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="education" className="m-0 space-y-3">
                   {qualifications.map((qual, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-muted/10">
-                      <GraduationCap className="h-5 w-5 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-semibold truncate">{qual.qualificationcode}</span>
-                          <span className="text-xs font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-md">{qual.percentagemarks}%</span>
+                    <div key={index} className="flex flex-col gap-3 p-4 rounded-lg border border-border/50 bg-muted/10">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-3 flex-1">
+                          <GraduationCap className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-foreground">{qual.qualificationcode}</div>
+                            <div className="text-xs text-muted-foreground mt-1">{qual.boardname}</div>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                          <span className="truncate">{qual.boardname}</span>
-                          <span>Passed {qual.yearofpassing}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-md whitespace-nowrap">{qual.percentagemarks}%</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground font-medium">Obtained Marks</span>
+                          <span className="font-semibold text-foreground">{qual.obtainedmarks}/{qual.fullmarks}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground font-medium">Division</span>
+                          <span className="font-semibold text-foreground">{qual.division || "N/A"}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground font-medium">Grade</span>
+                          <span className="font-semibold text-foreground">{qual.grade || "N/A"}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground font-medium">Year</span>
+                          <span className="font-semibold text-foreground">{qual.yearofpassing}</span>
                         </div>
                       </div>
                     </div>
@@ -282,7 +340,7 @@ export default function Profile({
 
                 <TabsContent value="hostel" className="m-0 space-y-4">
                   {hostelData?.presenthosteldetail && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
                       <InfoRow icon={Home} label="Hostel Name" value={hostelData.presenthosteldetail.hosteldescription} />
                       <InfoRow icon={Key} label="Room Number" value={hostelData.presenthosteldetail.allotedroomno} />
                       <InfoRow icon={Bed} label="Bed Number" value={hostelData.presenthosteldetail.beddesc} />

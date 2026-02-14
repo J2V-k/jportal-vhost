@@ -31,14 +31,21 @@ export class ArtificialWebPortal {
     try {
       const username = (typeof window !== 'undefined' && getUsername()) || this.username;
       const cachedPd = await getProfileDataFromCache();
+      if (cachedPd) {
+        const data = cachedPd.data || cachedPd;
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+          return data;
+        }
+      }
       if (typeof window !== 'undefined') {
         const pd = getProfileDataRaw();
-        if (pd && Object.keys(pd).length > 0) {
+        if (pd && typeof pd === 'object' && Object.keys(pd).length > 0) {
           return pd;
         }
       }
-      if (cachedPd && cachedPd.data) return cachedPd.data || cachedPd;
-    } catch (e) {}
+    } catch (e) {
+      console.error('Error getting profile info:', e);
+    }
 
     return null;
   }

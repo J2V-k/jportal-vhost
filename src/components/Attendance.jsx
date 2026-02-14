@@ -375,36 +375,51 @@ const Attendance = ({
   const fetchSubjectAttendance = async (subject) => {
     try {
       const username = (getUsername() || w.username || 'user');
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'fetching' }));
+
       const cached = await getSubjectDataFromCache(subject.name, username, selectedSem);
       if (cached) {
         setSubjectAttendanceData((prev) => ({
           ...prev,
           [subject.name]: cached.data || cached,
         }));
-
+        setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
         if (cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
           return;
         }
 
-        const username = (getUsername() || w.username || 'user');
-        await fetchFreshSubjectData(subject, username);
+        try {
+          setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'fetching' }));
+          await fetchFreshSubjectData(subject, username);
+          setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
+        } catch (refreshErr) {
+          console.error('Failed to refresh subject data for', subject.name, refreshErr);
+          setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
+        }
+
         return;
       }
-
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'fetching' }));
       await fetchFreshSubjectData(subject, username);
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
     } catch (error) {
       console.error("Failed to fetch subject attendance:", error);
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'error' }));
     }
   };
 
   const fetchFreshSubjectData = async (subject, username) => {
     try {
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'fetching' }));
       const attendance = attendanceData[selectedSem.registration_id];
       const subjectData = attendance.studentattendancelist.find(
         (s) => s.subjectcode === subject.name
       );
 
-      if (!subjectData) return;
+      if (!subjectData) {
+        setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
+        return;
+      }
 
       const subjectcomponentids = [
         "Lsubjectcomponentid",
@@ -419,6 +434,7 @@ const Attendance = ({
           ...prev,
           [subject.name]: []
         }));
+        setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
         return;
       }
 
@@ -429,7 +445,10 @@ const Attendance = ({
         subjectcomponentids
       );
 
-      if (!data || !data.studentAttdsummarylist) return;
+      if (!data || !data.studentAttdsummarylist) {
+        setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
+        return;
+      }
 
       const freshData = data.studentAttdsummarylist;
 
@@ -439,8 +458,10 @@ const Attendance = ({
       }));
 
       await saveSubjectDataToCache(freshData, subject.name, username, selectedSem);
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
     } catch (error) {
       console.error(`Failed to fetch fresh subject attendance for ${subject.name}:`, error);
+      setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'error' }));
     }
   };
 
@@ -518,14 +539,14 @@ const Attendance = ({
       const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
       if (subjectsToFetch.length > 0) {
         subjectsToFetch.forEach(subj => {
-          if (isMounted) fetchFreshSubjectData(subj, username);
+          if (isMounted) fetchSubjectAttendance(subj);
         });
       }
     } else if (activeTab === "overview") {
       const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
       if (subjectsToFetch.length > 0) {
         subjectsToFetch.forEach(subj => {
-          if (isMounted) fetchFreshSubjectData(subj, username);
+          if (isMounted) fetchSubjectAttendance(subj);
         });
       }
     }

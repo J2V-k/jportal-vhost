@@ -77,11 +77,9 @@ function AuthenticatedApp({
       if (!profileData) {
         try {
           const data = await w.get_personal_info();
+          console.log("Profile Data:", data);
           setProfileData(data);
-          saveProfileDataToCache({
-            studentname: data?.generalinformation?.studentname,
-            imagepath: data?.["photo&signature"]?.photo,
-          });
+          try { await saveProfileDataToCache(data); } catch (e) { }
         } catch (error) {
           console.error("Failed to fetch profile data in App:", error);
         }
