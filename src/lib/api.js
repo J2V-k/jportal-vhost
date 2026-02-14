@@ -1,1 +1,1 @@
-export const proxy_url = "https://jiitproxy.jportal696.workers.dev/api/StudentPortalAPI";
+export const proxy_url = "https://render-proxy-mhit.onrender.com/api/StudentPortalAPI";

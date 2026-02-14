@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart,
   Line,
@@ -196,13 +197,23 @@ const AttendanceCard = ({
             </div>
             <div className="flex items-center gap-2">
               <div className="text-center">
-                <div className="text-sm max-[390px]:text-xs text-foreground">
-                  {attn.attended ?? '-'}
-                </div>
-                <div className="h-px w-full bg-border"></div>
-                <div className="text-sm max-[390px]:text-xs text-foreground">
-                  {attn.total ?? '-'}
-                </div>
+                {isFetching ? (
+                  <>
+                    <Skeleton className="w-8 h-5 mb-1" />
+                    <div className="h-px w-full bg-border my-1"></div>
+                    <Skeleton className="w-8 h-5" />
+                  </>
+                ) : (
+                  <>
+                    <div className="text-sm max-[390px]:text-xs text-foreground">
+                      {attn.attended ?? '-'}
+                    </div>
+                    <div className="h-px w-full bg-border"></div>
+                    <div className="text-sm max-[390px]:text-xs text-foreground">
+                      {attn.total ?? '-'}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="flex flex-col items-center">
                 <CircleProgress percentage={pct} label={`${Math.round(pct)}`} target={effTarget} />

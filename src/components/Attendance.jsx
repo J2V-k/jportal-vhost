@@ -386,11 +386,12 @@ const Attendance = ({
           return;
         }
 
-        await fetchSubjectsBatch([subject]);
+        const username = (getUsername() || w.username || 'user');
+        await fetchFreshSubjectData(subject, username);
         return;
       }
 
-      await fetchSubjectsBatch([subject]);
+      await fetchFreshSubjectData(subject, username);
     } catch (error) {
       console.error("Failed to fetch subject attendance:", error);
     }
@@ -511,13 +512,22 @@ const Attendance = ({
 
   useEffect(() => {
     let isMounted = true;
+    const username = (getUsername() || w.username || 'user');
 
     if (activeTab === "daily") {
       const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
-      if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
+      if (subjectsToFetch.length > 0) {
+        subjectsToFetch.forEach(subj => {
+          if (isMounted) fetchFreshSubjectData(subj, username);
+        });
+      }
     } else if (activeTab === "overview") {
       const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
-      if (subjectsToFetch.length > 0) fetchSubjectsBatch(subjectsToFetch);
+      if (subjectsToFetch.length > 0) {
+        subjectsToFetch.forEach(subj => {
+          if (isMounted) fetchFreshSubjectData(subj, username);
+        });
+      }
     }
 
     return () => { isMounted = false; };
