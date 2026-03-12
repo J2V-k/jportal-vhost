@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Helmet } from 'react-helmet-async';
-import { API } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.24/dist/jsjiit.esm.js";
+import { proxy_url } from "@/lib/api";
 import {
   saveToCache,
   getFromCache,
@@ -235,7 +235,7 @@ export default function Grades({
         const headers = await w.session.get_headers();
         const { getPyodideWithPackages } = await import("@/lib/pyodide");
         const pyodide = await getPyodideWithPackages();
-        const fetchRes = await fetch(API + ENDPOINT, { method: "GET", headers });
+        const fetchRes = await fetch(proxy_url + ENDPOINT, { method: "GET", headers });
         if (!fetchRes.ok) throw new Error("Failed to fetch marks PDF");
         const arrayBuffer = await fetchRes.arrayBuffer();
         const uint8 = new Uint8Array(arrayBuffer);
