@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
   output: 'static',
   site: 'https://J2V-k.github.io',
-  base: '/jportal-vhost',
+  base: '/jportal-vhost/',
   integrations: [
     starlight({
       title: 'JP Portal',
