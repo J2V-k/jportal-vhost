@@ -1,0 +1,8 @@
+---
+const { path, label } = Astro.props;
+const repoBase = "https://github.com/J2V-k/jportal-vhost/blob/main/";
+---
+
+<a href={`${repoBase}${path}`} target="_blank" rel="noopener noreferrer">
+  <code>{label ?? path}</code>
+</a>

@@ -3,6 +3,7 @@ title: API Integration
 description: Live vs offline data sources and dev endpoints.
 head: []
 ---
+import GitHubFileLink from '../../components/GitHubFileLink.astro'
 
 Live Data (Online)
 - The app imports `WebPortal` + `LoginError` from the `jsjiit` CDN ESM module:
@@ -10,9 +11,9 @@ Live Data (Online)
 - Login is attempted with `localStorage.username/password` on boot.
 
 Offline Data
-- `ArtificialWebPortal` ([src/components/scripts/artificialW.js](../../../../src/components/scripts/artificialW.js)) reads from the local cache via helpers in [cache.js](../../../../src/components/scripts/cache.js).
+- <GitHubFileLink path = "src/components/scripts/artificialW.js" label = "ArtificialWebPortal" /> reads from the local cache via helpers in <GitHubFileLink path = "src/components/scripts/cache.js" label = "Cache.js"/>
 - Only data previously cached will be available.
 
 
 Fee Serialization
-- `serialize_payload()` from [src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js) encrypts the payload with AES-CBC per-day key schedule.
+- <GitHubFileLink path = "src/lib/jiitCrypto.js" label = "serialize_payload_()" />  encrypts the payload with AES-CBC per-day key schedule.
