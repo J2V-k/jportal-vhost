@@ -3,6 +3,7 @@ title: PWA & Offline
 description: Comprehensive guide to PWA features and offline functionality.
 head: []
 ---
+import GitHubFileLink from '../../components/GitHubFileLink.astro' 
 
 ## Progressive Web App Features
 
@@ -25,7 +26,7 @@ head: []
 ## Service Worker Architecture
 
 ### Configuration
-Configured via `vite-plugin-pwa` in [vite.config.js](../../../../vite.config.js) with Workbox strategies.
+Configured via <GitHubFileLink path="vite.config.js" label = "vite-plugin-pwa"/> with Workbox strategies.
 
 ### Precaching
 Assets precached during service worker installation:
@@ -75,7 +76,7 @@ Benefits:
 ## Local Storage Cache System
 
 ### Implementation
-Comprehensive caching system in [cache.js](../../../../src/components/scripts/cache.js) with TypeScript-like interfaces.
+Comprehensive caching system in <GitHubFileLink path = "src/components/scripts/cache.js" label = "cache.js"/>with TypeScript-like interfaces.
 
 ### Cache Key Structure
 ```javascript

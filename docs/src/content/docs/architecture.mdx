@@ -3,6 +3,7 @@ title: Architecture
 description: Comprehensive architectural design and system overview.
 head: []
 ---
+import GitHubFileLink from '../../components/GitHubFileLink.astro'
 
 ## Application Bootstrap
 
@@ -66,7 +67,7 @@ head: []
 - State lifted when shared between components
 
 ### Theme State
-- Managed via `ThemeContext` ([src/context/ThemeContext.jsx](../../../../src/context/ThemeContext.jsx))
+- Theme is Managed via <GitHubFileLink path="src/context/ThemeContext.jsx" label = "ThemeContext.jsx" />
 - Provides `themeMode`, `darkTheme()`, `lightTheme()` functions
 - Persists to `localStorage.defaultTheme`
 - Applies CSS classes to document element
@@ -80,14 +81,14 @@ head: []
 - Session management with cookies and tokens
 
 ### Offline Mode
-- `ArtificialWebPortal` class ([artificialW.js](../../../../src/components/scripts/artificialW.js))
+- `ArtificialWebPortal` class <GitHubFileLink path="src/components/scripts/artificialW.js" label = "artificialW.js"/>
 - Mimics WebPortal API structure
 - Reads from localStorage cache using cache helpers
 - Returns cached data with same structure as online API
 - Activated when login fails but sufficient cache exists
 
 ### Cache Layer
-- Implemented in [cache.js](../../../../src/components/scripts/cache.js)
+- Implemented in <GitHubFileLink path="src/components/scripts/cache.js" label = "cache.js"/>
 - Key-based caching with structured keys:
   - `attendance-{username}-{semesterId}`
   - `subjects-{username}-{semesterId}`
@@ -102,7 +103,7 @@ head: []
 ## PWA & Service Worker
 
 ### Configuration
-- Powered by `vite-plugin-pwa` in [vite.config.js](../../../../vite.config.js)
+- Powered by `vite-plugin-pwa` in <GitHubFileLink path="vite.config.js" />
 - Workbox strategies for different resource types
 - Precaching of critical assets
 - Runtime caching with custom strategies
@@ -127,7 +128,7 @@ head: []
 - Enables offline PDF generation
 
 ### Implementation
-- Loader in [src/lib/pyodide.js](../../../../src/lib/pyodide.js)
+- Loader in <GitHubFileLink path="src/lib/pyodide.js"/>
 - Lazy loading - only when needed (marks download)
 - Python packages:
   - `jiit_marks`: Custom marks processing package
@@ -151,7 +152,7 @@ head: []
 - Can be disabled by removing auto-login logic
 
 ### Fee Payload Encryption
-- AES-CBC encryption in [src/lib/jiitCrypto.js](../../../../src/lib/jiitCrypto.js)
+- AES-CBC encryption in <GitHubFileLink path="src/lib/jiitCrypto.js"/>
 - Date-based key generation using `generate_key()`
 - IV (Initialization Vector): Fixed 16-byte value
 - Payload serialization before API submission
@@ -243,7 +244,7 @@ App
 5. Tree shaking removes unused code
 
 ### Deployment Targets
-- **Vercel**: Recommended (see [vercel.json](../../../../vercel.json))
+- **Vercel**: Recommended -> see <GitHubFileLink path ="vercel.json"/>
 - **GitHub Pages**: Works with HashRouter
 - **Netlify**: Compatible
 - **Static Hosting**: Any static host works
