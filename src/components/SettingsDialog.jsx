@@ -141,7 +141,6 @@ export default function SettingsDialog({ onLogout, attendanceGoal, setAttendance
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8 scrollbar-hide">
           <div className="space-y-6">
-            
             <InstallPWA />
 
             <div className="grid grid-cols-2 gap-4 items-center">

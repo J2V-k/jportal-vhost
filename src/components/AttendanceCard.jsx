@@ -47,7 +47,12 @@ const AttendanceCard = ({
     : (isFinite(comb) ? comb : 100);
   const num = Math.round(rawPct * 10) / 10;
   const pct = Number(num);
+  
   const dName = name.replace(/\s*\([^)]*\)\s*$/, '');
+  
+  const titleCasedName = dName
+    .toLowerCase()
+    .replace(/\b\w/g, char => char.toUpperCase());
 
   const calcFromDaily = useCallback((data) => {
     if (!Array.isArray(data)) return;
@@ -178,51 +183,56 @@ const AttendanceCard = ({
 
   return (
     <>
-      <Card className="cursor-pointer bg-card hover:bg-accent/50 transition-colors duration-200 border-border rounded-lg">
-        <CardContent className="p-4" onClick={handleClick}>
-          <div className="flex justify-between items-center">
-            <div className="flex-1 mr-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm max-[390px]:text-xs font-semibold text-foreground">{dName}</h2>
+      <Card className="cursor-pointer bg-card hover:bg-muted/30 border-border/50 hover:border-border/80 transition-all duration-200 rounded-lg shadow-sm hover:shadow-md group">
+        <CardContent className="p-5 md:p-6" onClick={handleClick}>
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex-1 overflow-hidden">
+              <div className="flex items-start gap-2.5 mb-2">
+                {/* Removed line-clamp-2 here */}
+                <h2 className="text-sm md:text-xl font-bold text-foreground leading-tight break-words group-hover:text-primary transition-colors">
+                  {titleCasedName}
+                </h2>
                 {isFetching && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-md mt-0.5 flex-shrink-0">
                     <Loader2 className="w-3 h-3 animate-spin" />
                     <span>Loading</span>
                   </div>
                 )}
               </div>
-              {lecture !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Lecture: {lecture}%</p>}
-              {tutorial !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Tutorial: {tutorial}%</p>}
-              {practical !== '' && <p className="text-sm max-[390px]:text-xs text-foreground">Practical: {practical}%</p>}
+              <div className="flex flex-col gap-y-1 text-xs md:text-sm text-muted-foreground mt-2">
+                {lecture !== '' && <div>Lecture: <span className="text-foreground font-medium">{lecture}%</span></div>}
+                {tutorial !== '' && <div>Tutorial: <span className="text-foreground font-medium">{tutorial}%</span></div>}
+                {practical !== '' && <div>Practical: <span className="text-foreground font-medium">{practical}%</span></div>}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-center">
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <div className="text-center px-3 py-2 bg-muted/30 rounded-lg border border-border/30">
                 {isFetching ? (
                   <>
-                    <Skeleton className="w-8 h-5 mb-1" />
-                    <div className="h-px w-full bg-border my-1"></div>
-                    <Skeleton className="w-8 h-5" />
+                    <Skeleton className="w-10 h-5 mb-2" />
+                    <div className="h-px w-full bg-border/30 my-1.5"></div>
+                    <Skeleton className="w-10 h-5" />
                   </>
                 ) : (
                   <>
-                    <div className="text-sm max-[390px]:text-xs text-foreground">
+                    <div className="text-sm font-semibold text-foreground">
                       {attn.attended ?? '-'}
                     </div>
-                    <div className="h-px w-full bg-border"></div>
-                    <div className="text-sm max-[390px]:text-xs text-foreground">
-                      {attn.total ?? '-'}
+                    <div className="h-px w-full bg-border/30 my-1.5"></div>
+                    <div className="text-xs text-muted-foreground font-medium">
+                      {attn.total ?? '-'} classes
                     </div>
                   </>
                 )}
               </div>
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center gap-1">
                 <CircleProgress percentage={pct} label={`${Math.round(pct)}`} target={effTarget} />
                 {needClass > 0 ? (
-                  <div className="text-xs mt-1 text-muted-foreground">
+                  <div className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
                     Attend {needClass}
                   </div>
                 ) : missClass > 0 && (
-                  <div className="text-xs mt-1 text-muted-foreground">
+                  <div className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-0.5 rounded-md">
                     Can miss {missClass}
                   </div>
                 )}

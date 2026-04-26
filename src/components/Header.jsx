@@ -48,7 +48,7 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
     <motion.header
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm"
     >
       <AnimatePresence>
         {notice && (
@@ -56,11 +56,12 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="w-full bg-primary/10 border-b border-primary/10 overflow-hidden"
+            transition={{ duration: 0.2 }}
+            className="w-full bg-primary/8 border-b border-primary/15 overflow-hidden"
           >
-            <div className="mx-auto px-4 py-1.5 flex items-center justify-center gap-2 max-w-[1440px] text-center">
-              <Info className="w-3.5 h-3.5 text-primary shrink-0" />
-              <p className="text-xs font-medium text-primary">
+            <div className="mx-auto px-4 py-2 flex items-center justify-center gap-2 max-w-[1440px] text-center">
+              <Info className="w-4 h-4 text-primary shrink-0" />
+              <p className="text-xs font-medium text-primary line-clamp-1">
                 {notice}
               </p>
             </div>
@@ -69,48 +70,53 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
       </AnimatePresence>
 
       <div className="mx-auto px-4 h-16 flex items-center justify-between max-w-[1440px]">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           {showBack && (
-            <button
+            <motion.button
               onClick={handleBack}
-              className="group flex items-center justify-center w-9 h-9 rounded-xl border border-border bg-card hover:bg-accent transition-all duration-200 shadow-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="group flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 bg-card hover:bg-accent transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
-            </button>
+              <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </motion.button>
           )}
 
           <div className="flex flex-col">
-            <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl text-foreground">
+            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-foreground">
               JP Portal
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isOfflineMode && (
-            <button
+            <motion.button
               onClick={() => window.location.reload()}
-              className="mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
-              title="You are viewing cached data"
+              whileHover={{ scale: 1.02 }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/15 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="You are viewing cached data - Click to reload"
             >
-              <WifiOff className="w-3.5 h-3.5" />
-              <span className="hidden md:inline text-[10px] font-bold uppercase tracking-tighter">Offline</span>
-            </button>
+              <WifiOff className="w-4 h-4" />
+              <span className="hidden md:inline text-xs font-semibold uppercase tracking-tight">Offline</span>
+            </motion.button>
           )}
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <MessMenu open={messMenuOpen} onOpenChange={onMessMenuChange}>
-              <button 
-                className="inline-flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground bg-transparent hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label="View Mess Menu"
               >
                 <Utensils className="w-5 h-5" />
-              </button>
+              </motion.button>
             </MessMenu>
 
             <ThemeBtn />
 
-            <div className="w-px h-6 bg-border mx-1" />
+            <div className="w-px h-6 bg-border/40 mx-1" />
 
             <SettingsDialog
               onLogout={handleLogout}

@@ -177,61 +177,69 @@ export default function Profile({
         initial={{ y: -20 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 120 }}
-        className="bg-card text-foreground shadow-sm rounded-lg p-4 md:p-6 border border-border"
+        className="bg-gradient-to-br from-card to-card/80 text-foreground shadow-md rounded-xl p-5 md:p-8 border border-border/50 hover:border-border/80 transition-all duration-300"
       >
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6">
-          <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
+          <div className="flex items-center gap-5 md:gap-7 w-full md:w-auto">
             {photosrc ? (
               <motion.img
                 src={photosrc}
-                whileHover={{ scale: 1.03 }}
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted object-cover shadow"
+                whileHover={{ scale: 1.05 }}
+                className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-muted object-cover shadow-lg border-2 border-primary/20"
               />
             ) : (
               <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted flex items-center justify-center text-2xl md:text-3xl font-bold text-foreground shadow"
+                whileHover={{ scale: 1.05 }}
+                className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-3xl md:text-4xl font-bold text-primary shadow-lg border-2 border-primary/20"
               >
                 {info.studentname?.charAt(0)}
               </motion.div>
             )}
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg md:text-2xl font-semibold text-foreground truncate">{info.studentname}</h1>
-              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-2"><GraduationCap className="w-4 h-4" /> {info.programcode}</span>
-                <span className="hidden md:inline">•</span>
-                <span className="flex items-center gap-2"><IdCard className="w-4 h-4" /> {info.registrationno}</span>
-                <span className="hidden md:inline">•</span>
-                <span className="flex items-center gap-2 truncate"><Mail className="w-4 h-4" /> {info.studentemailid}</span>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">{info.studentname}</h1>
+              <div className="flex flex-wrap items-center gap-2.5 mt-3 text-xs md:text-sm">
+                <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
+                  <GraduationCap className="w-3 h-3 mr-1.5" />{info.programcode}
+                </Badge>
+                <Badge variant="outline" className="border-border/50 font-medium">
+                  <IdCard className="w-3 h-3 mr-1.5" />{info.registrationno}
+                </Badge>
               </div>
+              <p className="text-xs md:text-sm text-muted-foreground mt-3 line-clamp-1">
+                <Mail className="w-3 h-3 inline mr-1.5" />{info.studentemailid}
+              </p>
             </div>
           </div>
 
-          <div className="w-full md:w-auto mt-2 md:mt-0 md:border-l md:pl-6 border-border">
-            <div className="grid grid-cols-2 md:grid-cols-2 gap-3 min-w-[220px] text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground"><BookOpen className="w-4 h-4" /> Semester</div>
-              <Badge variant="secondary" className="w-fit rounded-md">{info.semester}</Badge>
-              <div className="flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" /> Section</div>
-              <div className="font-semibold text-foreground">{info.sectioncode}</div>
-              <div className="flex items-center gap-2 text-muted-foreground"><Calendar className="w-4 h-4" /> Batch</div>
-              <div className="font-semibold text-foreground">{info.batch}</div>
+          <div className="w-full md:w-auto mt-4 md:mt-0 md:border-l md:pl-7 border-border/30 grid grid-cols-3 gap-4 min-w-[280px]">
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-1">Semester</p>
+              <Badge className="bg-primary/20 text-primary border-primary/30 font-bold text-base">{info.semester}</Badge>
+            </div>
+            <div className="text-center border-x border-border/30 px-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-1">Section</p>
+              <p className="font-bold text-foreground">{info.sectioncode}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-1">Batch</p>
+              <p className="font-bold text-foreground">{info.batch}</p>
             </div>
           </div>
         </div>
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="w-full justify-start bg-card h-auto p-1 border border-border overflow-x-auto rounded-lg">
-          <TabsTrigger value="personal" className="flex items-center gap-2 py-2 rounded-md"><User className="w-4 h-4" /> Personal</TabsTrigger>
-          <TabsTrigger value="contact" className="flex items-center gap-2 py-2 rounded-md"><Phone className="w-4 h-4" /> Contact</TabsTrigger>
-          <TabsTrigger value="education" className="flex items-center gap-2 py-2 rounded-md"><GraduationCap className="w-4 h-4" /> Education</TabsTrigger>
+        <TabsList className="w-full justify-start bg-card/50 h-auto p-2 border border-border/50 gap-1 overflow-x-auto rounded-xl backdrop-blur-sm">
+          <TabsTrigger value="personal" className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"><User className="w-4 h-4" /> Personal</TabsTrigger>
+          <TabsTrigger value="contact" className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"><Phone className="w-4 h-4" /> Contact</TabsTrigger>
+          <TabsTrigger value="education" className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"><GraduationCap className="w-4 h-4" /> Education</TabsTrigger>
           {hostelData?.presenthosteldetail && (
-            <TabsTrigger value="hostel" className="flex items-center gap-2 py-2 rounded-md"><Home className="w-4 h-4" /> Hostel</TabsTrigger>
+            <TabsTrigger value="hostel" className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"><Home className="w-4 h-4" /> Hostel</TabsTrigger>
           )}
         </TabsList>
 
-        <Card className="mt-4 border-border bg-card shadow-sm overflow-hidden rounded-lg">
+        <Card className="mt-6 border-border/50 bg-card/80 shadow-md hover:shadow-lg overflow-hidden rounded-xl transition-all duration-300">
           <CardContent className="p-0">
             <AnimatePresence mode="wait">
               <motion.div
@@ -242,62 +250,74 @@ export default function Profile({
                 transition={{ duration: 0.15 }}
                 className="p-4 md:p-6"
               >
-                <TabsContent value="personal" className="m-0 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
-                    <InfoRow icon={Calendar} label="Date of Birth" value={info.dateofbirth} />
-                    <InfoRow icon={Users} label="Gender" value={info.gender} />
-                    <InfoRow icon={Droplets} label="Blood Group" value={info.bloodgroup} />
-                    <InfoRow icon={Globe} label="Nationality" value={info.nationality} />
-                    <InfoRow icon={Tag} label="Category" value={info.category} />
-                    <InfoRow icon={Hash} label="APAAR ID" value={info.apaarid} />
+                <TabsContent value="personal" className="m-0 space-y-6">
+                  <div className="space-y-3 pb-4 border-b border-border/20">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2"><Users className="w-4 h-4" /> Personal Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                      <InfoRow icon={Calendar} label="Date of Birth" value={info.dateofbirth} />
+                      <InfoRow icon={Users} label="Gender" value={info.gender} />
+                      <InfoRow icon={Droplets} label="Blood Group" value={info.bloodgroup} />
+                      <InfoRow icon={Globe} label="Nationality" value={info.nationality} />
+                      <InfoRow icon={Tag} label="Category" value={info.category} />
+                      <InfoRow icon={Hash} label="APAAR ID" value={info.apaarid} />
+                    </div>
                   </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
-                    <InfoRow icon={GraduationCap} label="Admission Year" value={info.admissionyear} />
-                    <InfoRow icon={Calendar} label="Academic Year" value={info.academicyear} />
-                    <InfoRow icon={Home} label="Institute Code" value={info.institutecode} />
-                    <InfoRow icon={Tag} label="Designation" value={info.designation} />
-                    <InfoRow icon={CreditCard} label="Bank Account" value={info.bankaccountno} />
-                    <InfoRow icon={Building} label="Bank Name" value={info.bankname} />
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2"><GraduationCap className="w-4 h-4" /> Academic Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                      <InfoRow icon={GraduationCap} label="Admission Year" value={info.admissionyear} />
+                      <InfoRow icon={Calendar} label="Academic Year" value={info.academicyear} />
+                      <InfoRow icon={Home} label="Institute Code" value={info.institutecode} />
+                      <InfoRow icon={Tag} label="Designation" value={info.designation} />
+                      <InfoRow icon={CreditCard} label="Bank Account" value={info.bankaccountno} />
+                      <InfoRow icon={Building} label="Bank Name" value={info.bankname} />
+                    </div>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="contact" className="m-0 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
-                    <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
-                    <InfoRow icon={AtSign} label="Personal Email" value={info.studentpersonalemailid} />
-                    <InfoRow icon={Smartphone} label="Mobile" value={info.studentcellno} />
-                    <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-foreground">Permanent Address</h3>
-                    <InfoRow icon={MapPin} label="Address" value={[info.paddress1, info.paddress2, info.paddress3].filter(Boolean).join(", ")} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
-                      <InfoRow icon={Map} label="City" value={info.pcityname} />
-                      <InfoRow icon={MapPin} label="State" value={info.pstatename} />
-                      <InfoRow icon={Hash} label="District" value={info.pdistrict} />
-                      <InfoRow icon={Hash} label="Postal Code" value={info.ppostalcode} />
+                <TabsContent value="contact" className="m-0 space-y-6">
+                  <div className="space-y-3 pb-4 border-b border-border/20">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2"><Mail className="w-4 h-4" /> Contact Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                      <InfoRow icon={Mail} label="College Email" value={info.studentemailid} />
+                      <InfoRow icon={AtSign} label="Personal Email" value={info.studentpersonalemailid} />
+                      <InfoRow icon={Smartphone} label="Mobile" value={info.studentcellno} />
+                      <InfoRow icon={Phone} label="Telephone" value={info.studenttelephoneno || "N/A"} />
                     </div>
                   </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-foreground">Current Address</h3>
-                    <InfoRow icon={MapPin} label="Address" value={[info.caddress1, info.caddress2, info.caddress3].filter(Boolean).join(", ")} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
-                      <InfoRow icon={Map} label="City" value={info.ccityname} />
-                      <InfoRow icon={MapPin} label="State" value={info.cstatename} />
-                      <InfoRow icon={Hash} label="District" value={info.cdistrict} />
-                      <InfoRow icon={Hash} label="Postal Code" value={info.cpostalcode} />
+                  <div className="space-y-3 pb-4 border-b border-border/20">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2"><MapPin className="w-4 h-4" /> Permanent Address</h3>
+                    <div className="space-y-3">
+                      <InfoRow icon={MapPin} label="Address" value={[info.paddress1, info.paddress2, info.paddress3].filter(Boolean).join(", ")} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                        <InfoRow icon={Map} label="City" value={info.pcityname} />
+                        <InfoRow icon={MapPin} label="State" value={info.pstatename} />
+                        <InfoRow icon={Hash} label="District" value={info.pdistrict} />
+                        <InfoRow icon={Hash} label="Postal Code" value={info.ppostalcode} />
+                      </div>
                     </div>
                   </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
-                    <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
-                    <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
-                    <InfoRow icon={Smartphone} label="Parent Mobile" value={info.parentcellno} />
-                    <InfoRow icon={Phone} label="Parent Phone" value={info.parenttelephoneno} />
-                    <InfoRow icon={Mail} label="Parent Email" value={info.parentemailid} />
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2"><Home className="w-4 h-4" /> Current Address</h3>
+                    <div className="space-y-3">
+                      <InfoRow icon={MapPin} label="Address" value={[info.caddress1, info.caddress2, info.caddress3].filter(Boolean).join(", ")} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                        <InfoRow icon={Map} label="City" value={info.ccityname} />
+                        <InfoRow icon={MapPin} label="State" value={info.cstatename} />
+                        <InfoRow icon={Hash} label="District" value={info.cdistrict} />
+                        <InfoRow icon={Hash} label="Postal Code" value={info.cpostalcode} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2"><Users className="w-4 h-4" /> Family Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                      <InfoRow icon={User} label="Father's Name" value={info.fathersname} />
+                      <InfoRow icon={User} label="Mother's Name" value={info.mothername} />
+                      <InfoRow icon={Smartphone} label="Parent Mobile" value={info.parentcellno} />
+                      <InfoRow icon={Phone} label="Parent Phone" value={info.parenttelephoneno} />
+                      <InfoRow icon={Mail} label="Parent Email" value={info.parentemailid} />
+                    </div>
                   </div>
                 </TabsContent>
 

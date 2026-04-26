@@ -15,7 +15,33 @@
   flex: 1;
   overflow-y: auto;
   position: relative;
-  padding-bottom: 5rem;
+  padding-bottom: 3.75rem;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.main-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted) / 0.3);
+  border-radius: 3px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted) / 0.5);
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding-bottom: 0;
+    padding-left: 16rem;
+  }
 }
 
 .navbar {
@@ -26,14 +52,56 @@
   z-index: 40;
 }
 
+/* Better spacing for content sections */
+main > div,
+section {
+  padding: 1.5rem 1rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  main > div,
+  section {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  main > div,
+  section {
+    padding: 2.5rem 2rem;
+  }
+}
+
+/* Calendar styling improvements */
 .day_selected.day_today {
-  background-color: #1e40af !important;
-  color: white !important;
-  border-color: #1e40af !important;
+  background-color: rgb(var(--primary)) !important;
+  color: rgb(var(--primary-foreground)) !important;
+  border-color: rgb(var(--primary)) !important;
 }
 
 .selected-date-hover-fix:hover {
-  background-color: #1e40af !important;
-  color: #ffffff !important;
-  border-color: #1e40af !important;
+  background-color: rgb(var(--primary)) !important;
+  color: rgb(var(--primary-foreground)) !important;
+  border-color: rgb(var(--primary)) !important;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+a,
+input,
+textarea,
+select {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Enhanced focus states */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgb(var(--ring));
+  outline-offset: 2px;
 }

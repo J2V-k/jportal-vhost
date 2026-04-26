@@ -5,9 +5,9 @@ import { Separator } from "@/components/ui/separator";
 
 export default function MarksCard({ course, gradeInfo }) {
   const getProgressColor = (percentage) => {
-    if (percentage >= 75) return "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]";
-    if (percentage >= 50) return "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.3)]";
-    return "bg-orange-500 shadow-[0_0_12px_rgba(234,88,12,0.3)]";
+    if (percentage >= 75) return "bg-emerald-500/80 shadow-[0_0_12px_rgba(16,185,129,0.4)]";
+    if (percentage >= 50) return "bg-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.4)]";
+    return "bg-orange-500/80 shadow-[0_0_12px_rgba(234,88,12,0.4)]";
   };
 
   const matchingGrade = gradeInfo?.gradecard?.find(
@@ -32,19 +32,19 @@ export default function MarksCard({ course, gradeInfo }) {
       whileHover={{ y: -4 }}
       className="w-full"
     >
-      <Card className="overflow-hidden bg-card border-border/60 shadow-sm hover:shadow-md transition-all duration-300">
-        <CardContent className="p-4 md:p-6 space-y-5">
+      <Card className="overflow-hidden bg-card border-border/50 hover:border-border/80 shadow-sm hover:shadow-md transition-all duration-300 group">
+        <CardContent className="p-5 md:p-6 space-y-5">
           
-          <div className="flex flex-col gap-1.5 w-full">
-            <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight leading-tight break-words">
+          <div className="flex flex-col gap-2 w-full">
+            <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight leading-tight break-words group-hover:text-primary transition-colors">
               {course.name}
             </h3>
-            <div className="flex items-center gap-2">
-              <code className="text-[10px] md:text-xs font-mono bg-muted px-2 py-0.5 rounded-md text-muted-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-2 flex-wrap">
+              <code className="text-[10px] md:text-xs font-mono bg-muted/50 px-2.5 py-1 rounded-md text-muted-foreground uppercase tracking-wider border border-border/30">
                 {course.code}
               </code>
               {!matchingGrade && (
-                 <Badge variant="outline" className="text-[10px] font-medium border-primary/20 text-primary/80">
+                 <Badge variant="outline" className="text-[10px] font-medium border-primary/30 text-primary/80 bg-primary/5">
                    Score: {totalMarks.obtained}/{totalMarks.full}
                  </Badge>
               )}
@@ -52,7 +52,7 @@ export default function MarksCard({ course, gradeInfo }) {
           </div>
 
           {matchingGrade && (
-            <div className="w-full grid grid-cols-3 gap-2 bg-muted/30 p-3 rounded-lg border border-border/40">
+            <div className="w-full grid grid-cols-3 gap-2 bg-muted/40 p-3 rounded-lg border border-border/40">
               <StatBox label="Grade" value={matchingGrade.grade} colorClass="text-foreground" />
               <div className="flex items-center justify-center border-x border-border/40">
                 <StatBox label="Credits" value={matchingGrade.coursecreditpoint} colorClass="text-primary" />
@@ -61,10 +61,10 @@ export default function MarksCard({ course, gradeInfo }) {
             </div>
           )}
 
-          <Separator className="opacity-50" />
+          <Separator className="opacity-40" />
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">
+            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 px-1">
               <span>Assessment</span>
               <span>Weightage</span>
             </div>
@@ -78,16 +78,16 @@ export default function MarksCard({ course, gradeInfo }) {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group"
+                    className="group/exam"
                   >
-                    <div className="flex items-center justify-between mb-1.5 px-1">
-                      <span className="text-xs md:text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <span className="text-xs md:text-sm font-semibold text-muted-foreground group-hover/exam:text-foreground transition-colors">
                         {examName}
                       </span>
                       <div className="text-xs font-medium">
                         <span className="text-foreground">{marks.OM}</span>
-                        <span className="text-muted-foreground/50 mx-1">/</span>
-                        <span className="text-muted-foreground">{marks.FM}</span>
+                        <span className="text-muted-foreground/40 mx-1\">/</span>
+                        <span className="text-muted-foreground text-opacity-60\">{marks.FM}</span>
                       </div>
                     </div>
                     <ProgressBar 

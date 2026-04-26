@@ -64,8 +64,8 @@ export default function Navbar({ w }) {
 
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[52px] bg-card border-t border-border z-50 flex items-center">
-        <div className="flex w-full items-center px-0.5">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-card border-t border-border/40 z-50 flex items-center shadow-2xl shadow-black/20 dark:shadow-black/40">
+        <div className="flex w-full items-center px-1">
           <div className="flex flex-1 justify-around items-center h-full">
             {mobileItems.map((item) => {
               const Icon = item.icon
@@ -74,16 +74,16 @@ export default function Navbar({ w }) {
                 <NavLink
                   key={item.name}
                   to={item.path}
-                  className={`flex flex-col items-center justify-center flex-1 min-w-0 h-[52px] transition-all relative ${
-                    isActive ? "text-primary" : "text-muted-foreground"
+                  className={`flex flex-col items-center justify-center flex-1 min-w-0 h-[60px] transition-all relative group ${
+                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <Icon size={18} className={isActive ? "translate-y-[-2px]" : ""} />
-                  <span className="text-[9px] mt-0.5 font-bold uppercase tracking-tighter truncate w-full text-center px-0.5">
+                  <Icon size={20} className={`transition-all ${ isActive ? "translate-y-[-3px]" : "group-hover:translate-y-[-1px]" }`} />
+                  <span className="text-[8px] mt-0.5 font-bold uppercase tracking-tighter truncate w-full text-center px-0.5">
                     {item.name}
                   </span>
                   {isActive && (
-                    <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-full" />
+                    <div className="absolute bottom-1 left-1/4 right-1/4 h-0.5 bg-primary rounded-full shadow-sm" />
                   )}
                 </NavLink>
               )
@@ -92,15 +92,15 @@ export default function Navbar({ w }) {
         </div>
       </nav>
 
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-border gap-3">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border/40 z-40 flex-col shadow-lg shadow-black/5 dark:shadow-black/20">
+        <div className="h-16 flex items-center px-6 border-b border-border/40 gap-3">
           <img src="https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
           <span className="text-lg font-bold tracking-tight text-foreground uppercase">
             JP Portal
           </span>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-2">
           {desktopItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
@@ -108,10 +108,10 @@ export default function Navbar({ w }) {
               <NavLink
                 key={item.name}
                 to={item.path}
-                className={`flex items-center px-4 py-2.5 rounded-lg font-medium text-sm transition-all ${
+                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                   isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-primary text-primary-foreground shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
                 <Icon size={18} className="mr-3 shrink-0" />

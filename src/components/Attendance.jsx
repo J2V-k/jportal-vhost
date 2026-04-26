@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   getAttendanceFromCache,
@@ -69,13 +69,21 @@ const Attendance = ({
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFromCache, setIsFromCache] = useState(false);
-  const [sortOrder, setSortOrder] = useState('default');
+  
+  const fetchAttemptsRef = useRef(new Set());
+
+  const [sortOrder, setSortOrder] = useState(() => {
+    return localStorage.getItem('attendanceSortOrder') || 'default';
+  });
 
   const cycleSortOrder = () => {
     setSortOrder(current => {
-      if (current === 'default') return 'asc';
-      if (current === 'asc') return 'desc';
-      return 'default';
+      let nextOrder = 'default';
+      if (current === 'default') nextOrder = 'asc';
+      else if (current === 'asc') nextOrder = 'desc';
+      
+      localStorage.setItem('attendanceSortOrder', nextOrder);
+      return nextOrder;
     });
   };
 
@@ -319,58 +327,81 @@ const Attendance = ({
     }
   };
 
-  const subjects = useMemo(() => {
+  const baseSubjects = useMemo(() => {
     const attendanceResponse = attendanceData[selectedSem?.registration_id];
     const studentList = attendanceResponse?.response?.studentattendancelist || attendanceResponse?.studentattendancelist;
-    const mappedSubjects = (selectedSem && studentList)?.map(
-      (item) => {
-        const {
-          subjectcode,
-          Ltotalclass, Ltotalpres, Lpercentage,
-          Ttotalclass, Ttotalpres, Tpercentage,
-          Ptotalclass, Ptotalpres, Ppercentage,
-          LTpercantage,
-        } = item;
-        const isNewFormat = !Ltotalclass && !Ttotalclass && !Ptotalclass;
-        let attended = 0, total = 0;
-        if (!isNewFormat) {
-          attended = (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0);
-          total = (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0);
-        }
-        let classesNeeded = calculateClassesNeeded(attended, total, attendanceGoal);
-        let classesCanMiss = calculateClassesCanMiss(attended, total, attendanceGoal);
-        return {
-          name: subjectcode,
-          attendance: { attended, total },
-          combined: LTpercantage,
-          lecture: Lpercentage !== undefined && Lpercentage !== null ? String(Lpercentage) : "",
-          tutorial: Tpercentage !== undefined && Tpercentage !== null ? String(Tpercentage) : "",
-          practical: Ppercentage !== undefined && Ppercentage !== null ? String(Ppercentage) : "",
-          classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
-          classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
-          hasPractical: (Ptotalclass || 0) > 0,
-          isNewFormat,
-        };
+    
+    return (selectedSem && studentList)?.map((item) => {
+      const {
+        subjectcode,
+        Ltotalclass, Ltotalpres, Lpercentage,
+        Ttotalclass, Ttotalpres, Tpercentage,
+        Ptotalclass, Ptotalpres, Ppercentage,
+        LTpercantage,
+      } = item;
+      
+      const isNewFormat = !Ltotalclass && !Ttotalclass && !Ptotalclass;
+      
+      let attended = 0, total = 0;
+      if (!isNewFormat) {
+        attended = (Ltotalpres || 0) + (Ttotalpres || 0) + (Ptotalpres || 0);
+        total = (Ltotalclass || 0) + (Ttotalclass || 0) + (Ptotalclass || 0);
       }
-    ) || [];
-    if (sortOrder === 'default') {
-      const isDesktop = window.innerWidth > 768;
-      if (isDesktop) {
-        return mappedSubjects.sort((a, b) => {
+      
+      let classesNeeded = calculateClassesNeeded(attended, total, attendanceGoal);
+      let classesCanMiss = calculateClassesCanMiss(attended, total, attendanceGoal);
+      
+      return {
+        name: subjectcode,
+        attendance: { attended, total },
+        combined: LTpercantage,
+        lecture: Lpercentage !== undefined && Lpercentage !== null ? String(Lpercentage) : "",
+        tutorial: Tpercentage !== undefined && Tpercentage !== null ? String(Tpercentage) : "",
+        practical: Ppercentage !== undefined && Ppercentage !== null ? String(Ppercentage) : "",
+        classesNeeded: classesNeeded > 0 ? classesNeeded : 0,
+        classesCanMiss: classesCanMiss > 0 ? classesCanMiss : 0,
+        hasPractical: (Ptotalclass || 0) > 0,
+        isNewFormat,
+      };
+    }) || [];
+  }, [selectedSem, attendanceData, attendanceGoal]);
+
+  const sortedSubjects = useMemo(() => {
+    return [...baseSubjects].sort((a, b) => {
+      const getRealTotal = (subj) => {
+        const daily = subjectAttendanceData[subj.name];
+        if (Array.isArray(daily) && daily.length > 0) {
+          return daily.length;
+        }
+        return subj.attendance.total || 0;
+      };
+
+      const aTotal = getRealTotal(a);
+      const bTotal = getRealTotal(b);
+
+      const aIsZero = aTotal === 0;
+      const bIsZero = bTotal === 0;
+
+      if (aIsZero && !bIsZero) return 1;
+      if (!aIsZero && bIsZero) return -1;
+      if (aIsZero && bIsZero) return 0; 
+
+      if (sortOrder === 'default') {
+        const isDesktop = window.innerWidth > 768;
+        if (isDesktop) {
           if (a.hasPractical && !b.hasPractical) return 1;
           if (!a.hasPractical && b.hasPractical) return -1;
-          return 0;
-        });
+        }
+        return 0; 
       }
-      return mappedSubjects;
-    }
-    return [...mappedSubjects].sort((a, b) => {
+
       const aPerc = parseFloat(a.combined) || 0;
       const bPerc = parseFloat(b.combined) || 0;
+      
       if (sortOrder === 'asc') return aPerc - bPerc;
-      return bPerc - aPerc;
+      return bPerc - aPerc; 
     });
-  }, [selectedSem, attendanceData, attendanceGoal, sortOrder]);
+  }, [baseSubjects, sortOrder, subjectAttendanceData]);
 
   const fetchSubjectAttendance = async (subject) => {
     try {
@@ -532,27 +563,27 @@ const Attendance = ({
   };
 
   useEffect(() => {
+    fetchAttemptsRef.current.clear();
+  }, [selectedSem?.registration_id]);
+
+  useEffect(() => {
     let isMounted = true;
-    const username = (getUsername() || w.username || 'user');
+
+    const attemptFetch = (subj) => {
+        if (!subjectAttendanceData[subj.name] && !fetchAttemptsRef.current.has(subj.name)) {
+            fetchAttemptsRef.current.add(subj.name);
+            if (isMounted) fetchSubjectAttendance(subj);
+        }
+    };
 
     if (activeTab === "daily") {
-      const subjectsToFetch = subjects.filter(subj => !subjectAttendanceData[subj.name]);
-      if (subjectsToFetch.length > 0) {
-        subjectsToFetch.forEach(subj => {
-          if (isMounted) fetchSubjectAttendance(subj);
-        });
-      }
+      baseSubjects.forEach(attemptFetch);
     } else if (activeTab === "overview") {
-      const subjectsToFetch = subjects.filter(subj => subj.isNewFormat && !subjectAttendanceData[subj.name]);
-      if (subjectsToFetch.length > 0) {
-        subjectsToFetch.forEach(subj => {
-          if (isMounted) fetchSubjectAttendance(subj);
-        });
-      }
+      baseSubjects.filter(subj => subj.isNewFormat).forEach(attemptFetch);
     }
 
     return () => { isMounted = false; };
-  }, [activeTab, selectedSem?.registration_id, subjects]);
+  }, [activeTab, selectedSem?.registration_id, baseSubjects]);
 
   return (
     <>
@@ -642,7 +673,7 @@ const Attendance = ({
                 ) : (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {subjects.map((subject) => (
+                      {sortedSubjects.map((subject) => (
                         <AttendanceCard
                           key={subject.name}
                           subject={subject}
@@ -655,8 +686,6 @@ const Attendance = ({
                         />
                       ))}
                     </div>
-
-
                   </>
                 )}
               </TabsContent>
@@ -665,7 +694,7 @@ const Attendance = ({
                 <AttendanceDaily
                   dailyDate={dailyDate}
                   setDailyDate={setDailyDate}
-                  subjects={subjects}
+                  subjects={sortedSubjects}
                   subjectAttendanceData={subjectAttendanceData}
                 />
               </TabsContent>

@@ -34,7 +34,7 @@ import { HelmetProvider } from "react-helmet-async";
 import {
   WebPortal,
   LoginError,
-} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.25/dist/jsjiit.esm.js";
+} from "@/lib/jsjiit";
 import { serialize_payload } from "@/lib/jiitCrypto";
 import { proxy_url } from "@/lib/api";
 import { ArtificialWebPortal } from "./components/scripts/artificialW";
