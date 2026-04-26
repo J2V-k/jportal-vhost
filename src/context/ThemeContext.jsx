@@ -36,7 +36,7 @@ export function ThemeProvider({ children }){
         const cur = loadSavedTheme() || {}
         cur.mode = 'dark'
         saveTheme(cur)
-        applyTheme(cur)
+        applyTheme(cur, 'dark') // Pass explicit mode here
         setThemeMode('dark')
     }
 
@@ -44,7 +44,7 @@ export function ThemeProvider({ children }){
         const cur = loadSavedTheme() || {}
         cur.mode = 'light'
         saveTheme(cur)
-        applyTheme(cur)
+        applyTheme(cur, 'light') // Pass explicit mode here
         setThemeMode('light')
     }
 

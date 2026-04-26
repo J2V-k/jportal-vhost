@@ -5,8 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Palette, Check, Settings2, Moon, Sun, LayoutGrid } from 'lucide-react'
 import { Button } from './button'
 import { Separator } from './separator'
+import useTheme from '@/context/ThemeContext' 
 
 export default function ThemeDialog({ open, onClose }) {
+  const { themeMode } = useTheme(); // Get current global mode
   const [primary, setPrimary] = useState('#0b0d0d')
   const [secondary, setSecondary] = useState('#6b7280')
   const [background, setBackground] = useState('#ffffff')
@@ -18,6 +20,19 @@ export default function ThemeDialog({ open, onClose }) {
   const [themeData, setThemeData] = useState({ presets: {}, categories: {} })
   const [loading, setLoading] = useState(true)
   const [showAdjust, setShowAdjust] = useState(false)
+
+  // Helper to extract safe colors regardless of whether it's an advanced or legacy theme
+  const getThemeColors = (t, mode) => {
+    const isAdvanced = t.styles && t.styles[mode];
+    return {
+      primary: isAdvanced ? t.styles[mode].primary : t.primary,
+      secondary: isAdvanced ? t.styles[mode].secondary : t.secondary,
+      background: isAdvanced ? t.styles[mode].background : t.background,
+      foreground: isAdvanced ? (t.styles[mode].card || t.styles[mode].foreground) : t.foreground,
+      radius: isAdvanced ? t.styles[mode].radius : t.radius,
+      font: isAdvanced ? t.styles[mode]['font-sans'] : t.font
+    }
+  }
 
   useEffect(() => {
     const initThemes = async () => {
@@ -46,65 +61,64 @@ export default function ThemeDialog({ open, onClose }) {
     if (loading) return
     const saved = loadSavedTheme()
     if (saved) {
-      setPrimary(saved.primary)
-      setSecondary(saved.secondary)
-      setBackground(saved.background)
-      setForeground(saved.foreground)
-      setFont(saved.font || font)
+      const colors = getThemeColors(saved, themeMode);
+      setPrimary(colors.primary)
+      setSecondary(colors.secondary)
+      setBackground(colors.background)
+      setForeground(colors.foreground)
+      setFont(colors.font || font)
 
-      if (saved.radius) {
-        if (String(saved.radius).endsWith('px')) setRadiusVal(parseInt(saved.radius))
-        else if (String(saved.radius).endsWith('rem')) setRadiusVal(Math.round(parseFloat(saved.radius) * 16))
-        else setRadiusVal(parseInt(saved.radius) || 8)
+      if (colors.radius) {
+        if (String(colors.radius).endsWith('px')) setRadiusVal(parseInt(colors.radius))
+        else if (String(colors.radius).endsWith('rem')) setRadiusVal(Math.round(parseFloat(colors.radius) * 16))
+        else setRadiusVal(parseInt(colors.radius) || 8)
       }
       
-      let matchedId = 'custom-mod'
-      Object.values(themeData.presets).forEach(category => {
-        const found = category.find(p => 
-          p.primary.toLowerCase() === saved.primary.toLowerCase() && 
-          p.background.toLowerCase() === saved.background.toLowerCase()
-        )
-        if (found) matchedId = found.id
-      })
-      setSelectedPalette(matchedId)
+      setSelectedPalette(saved.id || 'custom-mod')
     }
-  }, [loading, themeData])
+  }, [loading, themeData, themeMode])
 
   const handleColorChange = (key, value) => {
-    const newTheme = { primary, secondary, background, foreground, font, radius: `${radiusVal}px`, [key]: value }
+    // Note: Manual adjustment strips advanced theming and converts it back to a customizable legacy math theme
+    const newTheme = { primary, secondary, background, foreground, font, radius: `${radiusVal}px`, [key]: value, mode: themeMode }
     if (key === 'primary') setPrimary(value)
     if (key === 'secondary') setSecondary(value)
     if (key === 'background') setBackground(value)
     if (key === 'foreground') setForeground(value)
     setSelectedPalette('custom-mod')
-    applyTheme(newTheme)
+    applyTheme(newTheme, themeMode)
   }
 
   const handleRadiusChange = (value) => {
     setRadiusVal(value)
-    const newTheme = { primary, secondary, background, foreground, font, radius: `${value}px` }
+    const newTheme = { primary, secondary, background, foreground, font, radius: `${value}px`, mode: themeMode }
     setSelectedPalette('custom-mod')
-    applyTheme(newTheme)
+    applyTheme(newTheme, themeMode)
   }
 
-  const CompactSwatch = ({ colors, active }) => (
-    <div className="relative w-full h-10 rounded-lg overflow-hidden flex border border-border/40 group-hover:border-primary/40 transition-all shadow-sm">
-      <div style={{ background: colors.background }} className="w-[45%]" />
-      <div style={{ background: colors.foreground }} className="w-[25%]" />
-      <div style={{ background: colors.primary }} className="w-[20%]" />
-      <div style={{ background: colors.secondary }} className="w-[10%]" />
-      <div className="absolute top-1 right-1 opacity-40 group-hover:opacity-100 transition-opacity">
-        {colors.mode === 'dark' ? <Moon size={8} className="text-white" /> : <Sun size={8} className="text-black" />}
-      </div>
-      {active && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
-          <div className="bg-primary rounded-full p-0.5 shadow-lg">
-            <Check size={10} className="text-primary-foreground" strokeWidth={4} />
-          </div>
+  const CompactSwatch = ({ preset, active }) => {
+    const isDark = themeMode === 'dark';
+    const c = getThemeColors(preset, isDark ? 'dark' : 'light');
+    
+    return (
+      <div className="relative w-full h-10 rounded-lg overflow-hidden flex border border-border/40 group-hover:border-primary/40 transition-all shadow-sm">
+        <div style={{ background: c.background }} className="w-[45%]" />
+        <div style={{ background: c.foreground }} className="w-[25%]" />
+        <div style={{ background: c.primary }} className="w-[20%]" />
+        <div style={{ background: c.secondary }} className="w-[10%]" />
+        <div className="absolute top-1 right-1 opacity-40 group-hover:opacity-100 transition-opacity">
+          {isDark ? <Moon size={8} className="text-white" /> : <Sun size={8} className="text-black" />}
         </div>
-      )}
-    </div>
-  )
+        {active && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
+            <div className="bg-primary rounded-full p-0.5 shadow-lg">
+              <Check size={10} className="text-primary-foreground" strokeWidth={4} />
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
@@ -152,7 +166,6 @@ export default function ThemeDialog({ open, onClose }) {
                   <span className="text-[10px] font-mono font-bold text-foreground/70 uppercase select-all">{radiusVal}px</span>
                 </div>
               </div>
-
             </div>
           )}
 
@@ -165,29 +178,37 @@ export default function ThemeDialog({ open, onClose }) {
               </div>
               
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                {themeData.presets[key]?.map((p) => (
-                  <button 
-                    key={p.id} 
-                    onClick={() => {
-                      setSelectedPalette(p.id); setPrimary(p.primary); setSecondary(p.secondary);
-                      setBackground(p.background); setForeground(p.foreground); setFont(p.font);
-                      if (p.radius) {
-                        if (String(p.radius).endsWith('px')) setRadiusVal(parseInt(p.radius))
-                        else if (String(p.radius).endsWith('rem')) setRadiusVal(Math.round(parseFloat(p.radius) * 16))
-                        else setRadiusVal(parseInt(p.radius) || 8)
-                      }
-                      applyTheme({ ...p });
-                    }} 
-                    className={`group flex flex-col gap-1.5 p-1.5 rounded-xl border transition-all text-left ${
-                      selectedPalette === p.id 
-                      ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' 
-                      : 'border-transparent hover:bg-muted/50 hover:border-border/50'
-                    }`}
-                  >
-                    <CompactSwatch colors={p} active={selectedPalette === p.id} />
-                    <span className="text-[10px] font-bold truncate tracking-tight text-foreground/90 px-0.5">{p.name}</span>
-                  </button>
-                ))}
+                {themeData.presets[key]?.map((p) => {
+                  const colors = getThemeColors(p, themeMode);
+                  return (
+                    <button 
+                      key={p.id} 
+                      onClick={() => {
+                        setSelectedPalette(p.id); 
+                        setPrimary(colors.primary); 
+                        setSecondary(colors.secondary);
+                        setBackground(colors.background); 
+                        setForeground(colors.foreground); 
+                        setFont(colors.font);
+                        if (colors.radius) {
+                          if (String(colors.radius).endsWith('px')) setRadiusVal(parseInt(colors.radius))
+                          else if (String(colors.radius).endsWith('rem')) setRadiusVal(Math.round(parseFloat(colors.radius) * 16))
+                          else setRadiusVal(parseInt(colors.radius) || 8)
+                        }
+                        // Important: Send the full preset to applyTheme!
+                        applyTheme({ ...p, mode: themeMode }, themeMode);
+                      }} 
+                      className={`group flex flex-col gap-1.5 p-1.5 rounded-xl border transition-all text-left ${
+                        selectedPalette === p.id 
+                        ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' 
+                        : 'border-transparent hover:bg-muted/50 hover:border-border/50'
+                      }`}
+                    >
+                      <CompactSwatch preset={p} active={selectedPalette === p.id} />
+                      <span className="text-[10px] font-bold truncate tracking-tight text-foreground/90 px-0.5">{p.name || p.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -202,7 +223,21 @@ export default function ThemeDialog({ open, onClose }) {
           <div className="flex gap-2 w-full sm:w-auto">
             <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-8 text-[10px] font-bold uppercase tracking-wider px-4" onClick={onClose}>Discard</Button>
             <Button size="sm" className="flex-1 sm:flex-none h-8 text-[10px] font-bold uppercase tracking-wider px-8 shadow-md shadow-primary/20" 
-              onClick={() => { saveTheme({ primary, secondary, background, foreground, font, radius: `${radiusVal}px` }); onClose?.() }}>
+              onClick={() => { 
+                // If they manually adjusted, save the manual theme. Otherwise, save the full selected preset.
+                if (selectedPalette === 'custom-mod') {
+                  saveTheme({ id: 'custom-mod', primary, secondary, background, foreground, font, radius: `${radiusVal}px`, mode: themeMode });
+                } else {
+                  // Find the selected preset object
+                  let selectedObj = null;
+                  Object.values(themeData.presets).forEach(cat => {
+                    const found = cat.find(p => p.id === selectedPalette);
+                    if (found) selectedObj = found;
+                  });
+                  if(selectedObj) saveTheme({ ...selectedObj, mode: themeMode });
+                }
+                onClose?.() 
+              }}>
               Confirm Selection
             </Button>
           </div>
