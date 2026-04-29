@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArtificialWebPortal } from "./scripts/artificialW";
 import { motion } from "framer-motion";
+import { showErrorToast, showSuccessToast, showWarningToast } from "@/lib/toastUtils";
 import useTheme from "@/context/ThemeContext";
 import {
   LineChart,
@@ -127,8 +128,10 @@ export default function Grades({
         setSemesterData(data.semesterList);
       } catch (err) {
         if (err?.message?.includes("Unexpected end of JSON input")) {
+          showWarningToast("Grade Sheet", "Grade sheet is not available yet");
           setGradesError("Grade sheet is not available");
         } else {
+          showErrorToast("Grade Data Error", "Failed to fetch grade data");
           setGradesError("Failed to fetch grade data");
         }
       } finally {
@@ -162,6 +165,7 @@ export default function Grades({
           }
         } catch (err) {
           console.error("Failed to fetch grade card semesters:", err);
+          showWarningToast("Grade Card Warning", "Could not load grade card data");
         } finally {
           setGradeCardLoading(false);
         }
@@ -178,6 +182,7 @@ export default function Grades({
           setMarksSemesters(sems);
         } catch (err) {
           console.error("Failed to fetch marks semesters:", err);
+          showWarningToast("Marks Data", "Could not load marks semesters");
         }
       }
     };
@@ -267,6 +272,7 @@ export default function Grades({
         }
       } catch (error) {
         console.error("Failed to load marks:", error);
+        showErrorToast("Marks Load Error", error.message || "Could not load marks data");
       } finally {
         if (mounted) setMarksLoading(false);
         try { marksFetchInFlight.current.delete(selectedMarksSem.registration_id); } catch { }

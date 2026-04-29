@@ -11,6 +11,24 @@ import { Loader2, Calendar, Eye, ArrowLeft, BookOpen, ListChecks} from "lucide-r
 import { getRegisteredSubjectsFromCache, saveRegisteredSubjectsToCache, getSubjectChoicesFromCache, saveSubjectChoicesToCache } from '@/components/scripts/cache'
 import { getUsername } from '@/components/scripts/cache' 
 
+const getSubjectSemesterStorageKey = (username) => `lastSelectedSubjectSemester-${username || 'user'}`;
+const getStoredSubjectSemesterId = (username) => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(getSubjectSemesterStorageKey(username));
+  } catch (err) {
+    return null;
+  }
+};
+const saveStoredSubjectSemester = (username, semester) => {
+  if (typeof window === 'undefined' || !semester) return;
+  try {
+    window.localStorage.setItem(getSubjectSemesterStorageKey(username), semester.registration_id);
+  } catch (err) {
+    // ignore localStorage failures
+  }
+};
+
 export default function Subjects({
   w,
   subjectData,
@@ -81,10 +99,18 @@ export default function Subjects({
     }
 
     const findFirstSemesterWithSubjects = async (semesters) => {
-      for (const semester of semesters) {
-        try {
-          const username = w.username || getUsername() || 'user';
+      const username = w.username || getUsername() || 'user';
+      const storedSemesterId = getStoredSubjectSemesterId(username);
+      const orderedSemesters = storedSemesterId
+        ? (() => {
+            const index = semesters.findIndex(sem => sem.registration_id === storedSemesterId);
+            if (index === -1) return semesters;
+            return [semesters[index], ...semesters.slice(0, index), ...semesters.slice(index + 1)];
+          })()
+        : semesters;
 
+      for (const semester of orderedSemesters) {
+        try {
           if (!subjectData?.[semester.registration_id]) {
             try {
               const cachedRegSubjects = await getRegisteredSubjectsFromCache(username, semester);
@@ -128,6 +154,12 @@ export default function Subjects({
 
     fetchSemesters()
   }, [w, setSubjectData, semestersData, setSemestersData])
+
+  useEffect(() => {
+    if (!selectedSem) return;
+    const username = w.username || getUsername() || 'user';
+    saveStoredSubjectSemester(username, selectedSem);
+  }, [selectedSem, w]);
 
   useEffect(() => {
     const fetchChoicesForSelectedSemester = async () => {

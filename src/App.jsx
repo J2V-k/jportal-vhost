@@ -30,6 +30,7 @@ import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
 import { HelmetProvider } from "react-helmet-async";
+import { Toaster } from "sonner";
 
 import {
   WebPortal,
@@ -729,6 +730,13 @@ function App() {
     <HelmetProvider>
       <ThemeProvider>
         <Router>
+          <Toaster 
+            position="top-right" 
+            richColors 
+            expand 
+            closeButton
+            theme="system"
+          />
           <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
             <Routes>
               <Route

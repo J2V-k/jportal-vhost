@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { showErrorToast, showWarningToast, showSuccessToast } from "@/lib/toastUtils";
 import {
   getAttendanceFromCache,
   saveAttendanceToCache,
@@ -36,6 +37,24 @@ import { proxy_url } from '@/lib/api';
 import { calculateClassesNeeded, calculateClassesCanMiss } from '@/lib/math';
 
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
+
+const getAttendanceSemesterStorageKey = (username) => `lastSelectedAttendanceSemester-${username || 'user'}`;
+const getStoredAttendanceSemesterId = (username) => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(getAttendanceSemesterStorageKey(username));
+  } catch (err) {
+    return null;
+  }
+};
+const saveStoredAttendanceSemester = (username, semester) => {
+  if (typeof window === 'undefined' || !semester) return;
+  try {
+    window.localStorage.setItem(getAttendanceSemesterStorageKey(username), semester.registration_id);
+  } catch (err) {
+    // ignore localStorage failures
+  }
+};
 
 const Attendance = ({
   w,
@@ -124,11 +143,16 @@ const Attendance = ({
     const fetchSemesters = async () => {
       if (semestersData) {
         if (semestersData.semesters.length > 0 && !selectedSem) {
+          const username = (getUsername() || w.username || 'user');
+          const storedSemesterId = getStoredAttendanceSemesterId(username);
+          const storedSemester = storedSemesterId
+            ? semestersData.semesters.find(sem => sem.registration_id === storedSemesterId)
+            : null;
           const currentYear = new Date().getFullYear().toString();
           const currentYearSemester = semestersData.semesters.find(sem =>
             sem.registration_code && sem.registration_code.includes(currentYear)
           );
-          setSelectedSem(currentYearSemester || semestersData.latest_semester);
+          setSelectedSem(storedSemester || currentYearSemester || semestersData.latest_semester);
         }
         return;
       }
@@ -138,12 +162,20 @@ const Attendance = ({
         const username = (getUsername() || w.username || 'user');
         const cachedSemList = await getSemestersFromCache(username);
         if (cachedSemList) {
+          const username = (getUsername() || w.username || 'user');
+          const storedSemesterId = getStoredAttendanceSemesterId(username);
+          const storedSemester = storedSemesterId
+            ? cachedSemList.find(sem => sem.registration_id === storedSemesterId)
+            : null;
           const header = semestersData?.latest_header || null;
           setSemestersData({
             semesters: cachedSemList,
             latest_header: header,
             latest_semester: cachedSemList[0] || null,
           });
+          if (!selectedSem && cachedSemList.length > 0) {
+            setSelectedSem(storedSemester || cachedSemList[0]);
+          }
           setIsAttendanceMetaLoading(false);
           setIsAttendanceDataLoading(false);
         }
@@ -163,16 +195,19 @@ const Attendance = ({
           latest_header: header,
           latest_semester: latestSem,
         });
+        const username = (getUsername() || w.username || 'user');
         try {
-          const username = (getUsername() || w.username || 'user');
           await saveSemestersToCache(meta.semesters, username);
         } catch (e) { }
+        const storedSemesterId = getStoredAttendanceSemesterId(username);
+        const storedSemester = storedSemesterId
+          ? meta.semesters.find(sem => sem.registration_id === storedSemesterId)
+          : null;
         const currentYear = new Date().getFullYear().toString();
         const currentYearSemester = meta.semesters.find(sem =>
           sem.registration_code && sem.registration_code.includes(currentYear)
         );
-        const semesterToLoad = currentYearSemester || latestSem;
-        const username = (getUsername() || w.username || 'user');
+        const semesterToLoad = storedSemester || currentYearSemester || latestSem;
         const cached = await getAttendanceFromCache(username, semesterToLoad);
 
         if (cached) {
@@ -209,6 +244,7 @@ const Attendance = ({
             setCacheTimestamp(Date.now());
             setIsFromCache(false);
           } catch (error) {
+            showErrorToast("Failed to fetch attendance", error.message || "Could not load cached attendance data");
             setAttendanceData((prev) => ({
               ...prev,
               [semesterToLoad.registration_id]: {
@@ -229,6 +265,7 @@ const Attendance = ({
           await saveAttendanceToCache(data, username, semesterToLoad);
           setCacheTimestamp(Date.now());
         } catch (error) {
+          showErrorToast("Failed to fetch attendance", error.message || "Unable to load attendance data");
           setAttendanceData((prev) => ({
             ...prev,
             [semesterToLoad.registration_id]: {
@@ -239,6 +276,7 @@ const Attendance = ({
         }
       } catch (error) {
         console.error("Failed to fetch attendance:", error);
+        showErrorToast("Attendance Error", "Could not fetch attendance data. Please check your connection.");
       } finally {
         setIsAttendanceMetaLoading(false);
         setIsAttendanceDataLoading(false);
@@ -252,7 +290,9 @@ const Attendance = ({
     const semester = semestersData.semesters.find(
       (sem) => sem.registration_id === value
     );
+    const username = (getUsername() || w.username || 'user');
     setSelectedSem(semester);
+    saveStoredAttendanceSemester(username, semester);
     if (attendanceData[value]) {
       setIsFromCache(false);
       setCacheTimestamp(null);
@@ -260,7 +300,7 @@ const Attendance = ({
       return;
     }
     setIsAttendanceDataLoading(true);
-    const username = (getUsername() || w.username || 'user');
+
     const cached = await getAttendanceFromCache(username, semester);
 
     if (cached) {
@@ -291,6 +331,7 @@ const Attendance = ({
         setCacheTimestamp(Date.now());
         setIsFromCache(false);
       } catch (error) {
+        showErrorToast("Fetch Error", error.message || "Could not load attendance data");
         setAttendanceData((prev) => ({
           ...prev,
           [value]: { error: error.message },
@@ -310,6 +351,7 @@ const Attendance = ({
       await saveAttendanceToCache(data, username, semester);
       setCacheTimestamp(Date.now());
     } catch (error) {
+      showErrorToast("Fetch Error", error.message || "Could not load attendance data");
       setAttendanceData((prev) => ({
         ...prev,
         [value]: { error: error.message },
@@ -319,6 +361,12 @@ const Attendance = ({
       setIsRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    if (!selectedSem) return;
+    const username = (getUsername() || w.username || 'user');
+    saveStoredAttendanceSemester(username, selectedSem);
+  }, [selectedSem, w]);
 
   const handleGoalChange = (e) => {
     const value = e.target.value === "" ? "" : parseInt(e.target.value);
@@ -425,6 +473,7 @@ const Attendance = ({
           setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
         } catch (refreshErr) {
           console.error('Failed to refresh subject data for', subject.name, refreshErr);
+          showErrorToast("Refresh Failed", `Could not refresh data for ${subject.name}`);
           setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
         }
 
@@ -435,6 +484,7 @@ const Attendance = ({
       setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'cached' }));
     } catch (error) {
       console.error("Failed to fetch subject attendance:", error);
+      showErrorToast("Subject Attendance Error", error.message || "Could not load subject attendance");
       setSubjectCacheStatus(p => ({ ...p, [subject.name]: 'error' }));
     }
   };

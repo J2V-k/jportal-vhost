@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Helmet } from 'react-helmet-async';
+import { showErrorToast, showSuccessToast, showWarningToast } from '@/lib/toastUtils';
 
 import { proxy_url } from '@/lib/api';
 const API = proxy_url;
@@ -102,6 +103,7 @@ const Feedback = ({ w, serialize_payload }) => {
           }
         } catch (error) {
           console.error('Failed to get questions for', question_feedback_payload, error);
+          showWarningToast("Fetch Warning", `Could not load all feedback questions`);
         }
       }
 
@@ -123,6 +125,7 @@ const Feedback = ({ w, serialize_payload }) => {
 
     } catch (err) {
       console.error(err);
+      showErrorToast("Feedback Load Error", err.message || 'Failed to load feedback data.');
       setMessage(err.message || 'Failed to load feedback data.');
     } finally {
       setFetching(false);
@@ -271,6 +274,7 @@ const Feedback = ({ w, serialize_payload }) => {
           await w.__hit("POST", API + SAVE_ENDPOINT, { json: save_data_payload, authenticated: true });
         } catch (err) {
           if (isAlreadySubmitted(err)) {
+            showWarningToast("Already Submitted", "Your feedback has already been submitted for this semester.");
             setFeedbackSubmitted(true);
             setMessage('Your feedback has already been submitted for this semester.');
             setDialogType('already_submitted');
@@ -285,8 +289,10 @@ const Feedback = ({ w, serialize_payload }) => {
       setFeedbackSubmitted(true);
       setDialogType('success');
       setDialogOpen(true);
+      showSuccessToast("Feedback Submitted", "Your feedback has been successfully submitted!");
     } catch (err) {
       console.error('Submit error:', err);
+      showErrorToast("Submission Error", err.message || 'Failed to submit feedback.');
       setMessage(err.message || 'Failed to submit feedback.');
       setDialogType('error');
       setDialogOpen(true);
