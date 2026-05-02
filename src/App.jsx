@@ -207,12 +207,12 @@ function AuthenticatedApp({
         onMessMenuChange={onMessMenuChange}
       />
       <div
-        className="h-screen flex flex-col"
+        className="min-h-screen flex flex-col"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEndWithTransition}
       >
-        <div className="flex-none z-30 bg-background -mt-[2px] md:ml-64">
+        <div className="flex-none z-30 bg-background md:ml-64">
           <Header
             setIsAuthenticated={setIsAuthenticated}
             messMenuOpen={messMenuOpen}

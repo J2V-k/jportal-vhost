@@ -48,7 +48,7 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
     <motion.header
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm"
+      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm"
     >
       <AnimatePresence>
         {notice && (
@@ -69,7 +69,7 @@ const Header = ({ setIsAuthenticated, messMenuOpen, onMessMenuChange, attendance
         )}
       </AnimatePresence>
 
-      <div className="mx-auto px-4 h-16 flex items-center justify-between max-w-[1440px]">
+      <div className="mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
         <div className="flex items-center gap-6">
           {showBack && (
             <motion.button

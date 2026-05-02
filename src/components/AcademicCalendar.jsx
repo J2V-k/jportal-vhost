@@ -178,9 +178,8 @@ const AcademicCalendar = () => {
       </Helmet>
       <h1 className="sr-only">Academic Calendar</h1>
       <div className="min-h-screen bg-background text-foreground">
-        <div className="w-full bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 py-2">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+        <div className="max-w-6xl mx-auto px-4 py-2 bg-background border-b border-border shadow-sm">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
               <div className="flex items-center gap-2 pr-4 border-r border-border shrink-0">
                 <Filter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Filters</span>

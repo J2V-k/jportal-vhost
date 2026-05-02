@@ -1,6 +1,12 @@
-body, #root {
-  background-color: black;
-  min-height: 100vh;  
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+body {
+  font-family: var(--font-family);
 }
 
 /* Smooth transitions */
