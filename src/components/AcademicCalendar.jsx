@@ -178,9 +178,10 @@ const AcademicCalendar = () => {
       </Helmet>
       <h1 className="sr-only">Academic Calendar</h1>
       <div className="min-h-screen bg-background text-foreground">
-        <div className="max-w-6xl mx-auto px-4 py-2 bg-background border-b border-border shadow-sm">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              <div className="flex items-center gap-2 pr-4 border-r border-border shrink-0">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="mb-6">
+            <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
                 <Filter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Filters</span>
                 {(selectedSemesters.length > 0 || selectedCategories.length > 0) && (
@@ -199,7 +200,7 @@ const AcademicCalendar = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
                 <Button
                   variant={selectedSemesters.length === 0 && selectedCategories.length === 0 ? "secondary" : "ghost"}
                   size="sm"
@@ -247,9 +248,6 @@ const AcademicCalendar = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 py-8">
 
           <div className="space-y-4">
             {filteredEvents.map((event, index) => {
@@ -340,7 +338,7 @@ const AcademicCalendar = () => {
         >
           <Target className={`w-4 h-4 ${filteredEvents.length === 0 ? 'text-muted-foreground' : 'text-primary-foreground'}`} />
         </Button>
-      </div >
+      </div>
     </>
   );
 };
