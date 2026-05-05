@@ -41,7 +41,8 @@ const Feedback = ({ w, serialize_payload }) => {
 
       const SEMESTER_ENDPOINT = "/feedbackformcontroller/getFeedbackEvent";
       const payload = {
-        instituteid: w.session.instituteid
+        instituteid: w.session.instituteid,
+        studentid: w.session.memberid
       };
       const resp = await w.__hit("POST", API + SEMESTER_ENDPOINT, { json: payload, authenticated: true });
       let semesters = resp["response"]["eventList"];
