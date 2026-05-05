@@ -85,7 +85,9 @@ const Feedback = ({ w, serialize_payload }) => {
           subjectcomponentcode: data.subjectcomponentcode,
           subjectcomponentid: data.subjectcomponentid,
           subjectdescription: data.subjectdesc,
-          subjectid: data.subjectid
+          subjectid: data.subjectid,
+          feedbackcode: "S_FACULTY FEEDBACK",
+          gridDataAcademicYearAndProgramWise: 0
         };
 
         try {
