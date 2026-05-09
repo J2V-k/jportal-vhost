@@ -59,6 +59,13 @@ export default function Exams({
     }
   }; 
 
+  // Persist selected exam event to localStorage
+  useEffect(() => {
+    if (selectedExamEvent) {
+      localStorage.setItem('selectedExamEventId', selectedExamEvent.exam_event_id);
+    }
+  }, [selectedExamEvent?.exam_event_id]);
+
   useEffect(() => {
     const fetchInitialData = async () => {
       if (examSemesters.length === 0) {
@@ -79,12 +86,21 @@ export default function Exams({
             setExamEvents(events);
 
             if (events.length > 0) {
-              const firstEvent = events[events.length - 1];
-              setSelectedExamEvent(firstEvent);
+              const storedEventId = localStorage.getItem('selectedExamEventId');
+              let eventToSelect = null;
+              
+              if (storedEventId) {
+                eventToSelect = events.find(evt => evt.exam_event_id === storedEventId);
+              }
+              
+              // Fallback to last event if stored event not found
+              eventToSelect = eventToSelect || events[events.length - 1];
+              
+              setSelectedExamEvent(eventToSelect);
 
-              const response = await w.get_exam_schedule(firstEvent);
+              const response = await w.get_exam_schedule(eventToSelect);
               setExamSchedule({
-                [firstEvent.exam_event_id]: response.subjectinfo,
+                [eventToSelect.exam_event_id]: response.subjectinfo,
               });
               updateExamDates(response.subjectinfo);
             }
@@ -98,7 +114,18 @@ export default function Exams({
           const events = await w.get_exam_events(selectedExamSem);
           setExamEvents(events);
           if (events.length > 0 && !selectedExamEvent) {
-            setSelectedExamEvent(events[events.length - 1]);
+            // Try to restore from localStorage
+            const storedEventId = localStorage.getItem('selectedExamEventId');
+            let eventToSelect = null;
+            
+            if (storedEventId) {
+              eventToSelect = events.find(evt => evt.exam_event_id === storedEventId);
+            }
+            
+            // Fallback to last event if stored event not found
+            eventToSelect = eventToSelect || events[events.length - 1];
+            
+            setSelectedExamEvent(eventToSelect);
           }
         } finally {
           setLoading(false);
@@ -128,6 +155,7 @@ export default function Exams({
       const events = await w.get_exam_events(semester);
       setExamEvents(events);
       setSelectedExamEvent(null);
+      localStorage.removeItem('selectedExamEventId'); // Clear stored event when semester changes
       setExamSchedule({});
 
       if (events.length > 0) {
@@ -151,6 +179,8 @@ export default function Exams({
         (evt) => evt.exam_event_id === value
       );
       setSelectedExamEvent(selectedEvent);
+      // Store selected event to localStorage
+      localStorage.setItem('selectedExamEventId', value);
 
       if (!examSchedule[value]) {
         const response = await w.get_exam_schedule(selectedEvent);
