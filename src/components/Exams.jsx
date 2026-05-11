@@ -110,17 +110,7 @@ export default function Exams({
     
     loadCachedData();
   }, [isOffline]);
-  
-  if (isOffline && examSemesters.length === 0) {
-    return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-auto text-center">
-          <h2 className="text-xl font-semibold text-foreground">Exam Schedule Unavailable</h2>
-          <p className="text-muted-foreground mt-2">Exam schedule is not available while offline. Connect to the internet to view exam schedules.</p>
-        </div>
-      </div>
-    );
-  }
+
   const updateExamDates = (examScheduleData) => {
     if (!examScheduleData || examScheduleData.length === 0) {
       return;
@@ -256,6 +246,17 @@ export default function Exams({
     isOffline,
   ]);
 
+  if (isOffline && examSemesters.length === 0) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-auto text-center">
+          <h2 className="text-xl font-semibold text-foreground">Exam Schedule Unavailable</h2>
+          <p className="text-muted-foreground mt-2">Exam schedule is not available while offline. Connect to the internet to view exam schedules.</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleSemesterChange = async (value) => {
     setLoading(true);
     try {
@@ -348,24 +349,6 @@ export default function Exams({
         <link rel="canonical" href="https://jportal2-0.vercel.app/#/exams" />
       </Helmet>
       <div className="container mx-auto p-4 space-y-8 max-w-[1440px] pb-24">
-        {/* Header Section */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-            <Calendar className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-4xl font-bold text-foreground">Exam Schedule</h1>
-          {isFromCache && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded-full text-sm font-medium">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-              Offline Mode - Showing Cached Data
-            </div>
-          )}
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Stay organized with your exam timetable. Track upcoming exams, room assignments, and important deadlines.
-          </p>
-        </div>
-
-        {/* Selection Controls */}
         <div className="bg-card shadow-xl rounded-2xl p-8 border border-border">
           <div className="flex flex-col lg:flex-row lg:space-x-6 space-y-4 lg:space-y-0">
             <div className="flex-1">
@@ -476,48 +459,54 @@ function ExamScheduleGrid({ currentSchedule, formatDate }) {
     return dateA - dateB;
   });
 
+  const totalExams = sortedSchedule.length;
+  const completedCount = sortedSchedule.filter((exam) => {
+    const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
+    const diff = examTime.getTime() - now.getTime();
+    return diff <= -2 * 60 * 60 * 1000;
+  }).length;
+  const startingSoonCount = sortedSchedule.filter((exam) => {
+    const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
+    const diff = examTime.getTime() - now.getTime();
+    return diff > 0 && diff <= fourHours;
+  }).length;
+  const ongoingCount = sortedSchedule.filter((exam) => {
+    const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
+    const diff = examTime.getTime() - now.getTime();
+    return diff <= 0 && diff > -2 * 60 * 60 * 1000;
+  }).length;
+  const upcomingCount = Math.max(totalExams - completedCount - startingSoonCount - ongoingCount, 0);
+
+  const completedWidth = totalExams ? (completedCount / totalExams) * 100 : 0;
+  const ongoingWidth = totalExams ? (ongoingCount / totalExams) * 100 : 0;
+  const soonWidth = totalExams ? (startingSoonCount / totalExams) * 100 : 0;
+  const upcomingWidth = totalExams ? (upcomingCount / totalExams) * 100 : 0;
+
   return (
     <div className="space-y-6">
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-primary">{sortedSchedule.length}</div>
-          <div className="text-sm text-muted-foreground">Total Exams</div>
-        </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-green-600">
-            {sortedSchedule.filter(exam => parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00") > now).length}
-          </div>
-          <div className="text-sm text-muted-foreground">Upcoming</div>
-        </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600">
-            {sortedSchedule.filter(exam => {
-              const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
-              const timeDiff = examTime.getTime() - now.getTime();
-              return timeDiff > 0 && timeDiff <= fourHours;
-            }).length}
-          </div>
-          <div className="text-sm text-muted-foreground">Starting Soon</div>
-        </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">
-            {sortedSchedule.filter(exam => parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00") <= now).length}
-          </div>
-          <div className="text-sm text-muted-foreground">Completed</div>
-        </div>
-      </div>
-
-      {/* Exam Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {sortedSchedule.map((exam, index) => (
+        {sortedSchedule.map((exam) => (
           <ExamCard
             key={`${exam.subjectcode}-${exam.datetime}-${exam.datetimefrom}`}
             exam={exam}
             formatDate={formatDate}
-            index={index}
           />
         ))}
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Exam progress</p>
+          </div>
+        </div>
+
+        <div className="mt-4 h-3 flex overflow-hidden rounded-full bg-muted border border-border">
+          <div className="h-full bg-primary transition-all" style={{ width: `${completedWidth}%` }} />
+          <div className="h-full bg-accent transition-all" style={{ width: `${ongoingWidth}%` }} />
+          <div className="h-full bg-secondary transition-all" style={{ width: `${soonWidth}%` }} />
+          <div className="h-full bg-muted/60 transition-all" style={{ width: `${upcomingWidth}%` }} />
+        </div>
       </div>
     </div>
   );
@@ -593,37 +582,23 @@ function ExamCard({ exam, formatDate, index }) {
 
   const { timeLeft } = useCountdown(examDateTime);
 
-  const getStatusColor = () => {
-    if (isCompleted) return "bg-gray-100 border-gray-200 dark:bg-gray-800 dark:border-gray-700";
-    if (isOngoing) return "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800";
-    if (isStartingSoon) return "bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800";
-    return "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800";
-  };
-
-  const getStatusBadge = () => {
-    if (isCompleted) return { text: "Completed", color: "bg-gray-500" };
-    if (isOngoing) return { text: "Ongoing", color: "bg-blue-500" };
-    if (isStartingSoon) return { text: "Starting Soon", color: "bg-orange-500" };
-    return { text: "Upcoming", color: "bg-green-500" };
-  };
-
-  const statusBadge = getStatusBadge();
+  const statusClasses = isCompleted
+    ? "bg-muted/70 text-muted-foreground"
+    : isOngoing
+    ? "bg-primary/10 text-primary"
+    : isStartingSoon
+    ? "bg-accent/10 text-accent-foreground"
+    : "bg-secondary/10 text-secondary-foreground";
 
   return (
-    <div className={`relative bg-card shadow-lg rounded-xl p-6 border-2 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${getStatusColor()}`}>
-      {/* Status Badge */}
-      <div className="absolute top-4 right-4">
-        <span className={`px-3 py-1 text-xs font-semibold text-white rounded-full ${statusBadge.color}`}>
-          {statusBadge.text}
-        </span>
-      </div>
+    <div className="relative bg-card text-card-foreground shadow-lg rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border border-border">
 
       {/* Countdown Timer for upcoming exams */}
       {isUpcoming && timeLeft && (
-        <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+        <div className="mb-4 p-3 bg-muted/20 rounded-lg border border-border">
           <div className="flex items-center justify-center gap-2 text-primary">
             <Timer className="w-4 h-4" />
-            <span className="font-semibold text-sm">
+            <span className="font-semibold text-sm text-foreground">
               Starts in: {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
             </span>
           </div>
@@ -637,7 +612,7 @@ function ExamCard({ exam, formatDate, index }) {
             {exam.subjectdesc.split("(")[0].trim()}
           </h3>
         </div>
-        <p className="text-sm font-medium text-primary bg-primary/10 px-2 py-1 rounded-md inline-block">
+        <p className="text-sm font-medium text-foreground bg-muted/20 px-2 py-1 rounded-md inline-block">
           {exam.subjectcode}
         </p>
       </div>
@@ -646,14 +621,14 @@ function ExamCard({ exam, formatDate, index }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {/* Date & Time */}
         <div className="space-y-3">
-          <div className="flex items-center p-3 bg-muted/30 rounded-lg">
+          <div className="flex items-center p-3 bg-muted/20 rounded-lg border border-border">
             <Calendar className="mr-3 h-5 w-5 text-primary flex-shrink-0" />
             <div>
               <div className="font-medium text-foreground">{formatDate(exam.datetime)}</div>
               <div className="text-sm text-muted-foreground">Exam Date</div>
             </div>
           </div>
-          <div className="flex items-center p-3 bg-muted/30 rounded-lg">
+          <div className="flex items-center p-3 bg-muted/20 rounded-lg border border-border">
             <Clock className="mr-3 h-5 w-5 text-primary flex-shrink-0" />
             <div>
               <div className="font-medium text-foreground">{exam.datetimeupto}</div>
@@ -666,20 +641,20 @@ function ExamCard({ exam, formatDate, index }) {
         {(exam.roomcode || exam.seatno) && (
           <div className="space-y-3">
             {exam.roomcode && (
-              <div className="flex items-center p-3 bg-accent/20 rounded-lg border border-accent/30">
-                <MapPin className="mr-3 h-5 w-5 text-accent-foreground flex-shrink-0" />
+              <div className="flex items-center p-3 bg-muted/20 rounded-lg border border-border">
+                <MapPin className="mr-3 h-5 w-5 text-foreground flex-shrink-0" />
                 <div>
-                  <div className="font-semibold text-accent-foreground">{exam.roomcode}</div>
-                  <div className="text-sm text-accent-foreground/70">Room</div>
+                  <div className="font-semibold text-foreground">{exam.roomcode}</div>
+                  <div className="text-sm text-muted-foreground">Room</div>
                 </div>
               </div>
             )}
             {exam.seatno && (
-              <div className="flex items-center p-3 bg-secondary/20 rounded-lg border border-secondary/30">
-                <Armchair className="mr-3 h-5 w-5 text-secondary-foreground flex-shrink-0" />
+              <div className="flex items-center p-3 bg-muted/20 rounded-lg border border-border">
+                <Armchair className="mr-3 h-5 w-5 text-foreground flex-shrink-0" />
                 <div>
-                  <div className="font-semibold text-secondary-foreground">{exam.seatno}</div>
-                  <div className="text-sm text-secondary-foreground/70">Seat</div>
+                  <div className="font-semibold text-foreground">{exam.seatno}</div>
+                  <div className="text-sm text-muted-foreground">Seat</div>
                 </div>
               </div>
             )}
@@ -687,28 +662,6 @@ function ExamCard({ exam, formatDate, index }) {
         )}
       </div>
 
-      {/* Progress Indicator */}
-      <div className="mt-4 pt-4 border-t border-border">
-        <div className="flex justify-between text-sm text-muted-foreground mb-2">
-          <span>Exam Progress</span>
-          <span>
-            {isCompleted ? "100%" :
-             isOngoing ? "In Progress" :
-             isStartingSoon ? "Starting Soon" :
-             "Not Started"}
-          </span>
-        </div>
-        <div className="w-full bg-muted rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all duration-500 ${
-              isCompleted ? "bg-gray-500 w-full" :
-              isOngoing ? "bg-blue-500 w-3/4" :
-              isStartingSoon ? "bg-orange-500 w-1/4" :
-              "bg-green-500 w-0"
-            }`}
-          ></div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -716,16 +669,6 @@ function ExamCard({ exam, formatDate, index }) {
 function LoadingSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Stats Skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-card border border-border rounded-lg p-4 text-center animate-pulse">
-            <div className="h-8 w-12 bg-muted/20 rounded mx-auto mb-2"></div>
-            <div className="h-4 w-16 bg-muted/20 rounded mx-auto"></div>
-          </div>
-        ))}
-      </div>
-
       {/* Exam Cards Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[...Array(4)].map((_, i) => (

@@ -49,7 +49,7 @@ export default function Navbar({ w }) {
   const isOffline = w && (w instanceof ArtificialWebPortal || (w?.constructor?.name === 'ArtificialWebPortal'))
   
   const filterItems = (items) => isOffline 
-    ? items.filter(item => !['Fee', 'Faculty Feedback', 'Grades', 'Exams'].includes(item.name)) 
+    ? items.filter(item => !['Fee', 'Faculty Feedback', 'Grades'].includes(item.name)) 
     : items;
 
   const mobileItems = filterItems([...navItems]);
