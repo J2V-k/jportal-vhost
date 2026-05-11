@@ -298,6 +298,42 @@ export const setDefaultMessMenuView = (view) => { try { localStorage.setItem('de
 export const getMessMenuOpen = () => { try { return localStorage.getItem('messMenuOpen') === 'true'; } catch (e) { return false; } };
 export const setMessMenuOpen = (open) => { try { localStorage.setItem('messMenuOpen', open ? 'true' : 'false'); } catch (e) { } };
 
+export const saveExamSemestersToCache = async (examSemesters, username, expirationHours = 48) => {
+  const key = `exam-semesters-${username}`;
+  await saveToCache(key, examSemesters, expirationHours);
+};
+
+export const getExamSemestersFromCache = async (username) => {
+  const key = `exam-semesters-${username}`;
+  const cached = await getFromCache(key);
+  if (!cached) return null;
+  return cached.data || cached;
+};
+
+export const saveExamEventsToCache = async (examEvents, semesterId, username, expirationHours = 48) => {
+  const key = `exam-events-${semesterId}-${username}`;
+  await saveToCache(key, examEvents, expirationHours);
+};
+
+export const getExamEventsFromCache = async (semesterId, username) => {
+  const key = `exam-events-${semesterId}-${username}`;
+  const cached = await getFromCache(key);
+  if (!cached) return null;
+  return cached.data || cached;
+};
+
+export const saveExamScheduleToCache = async (examSchedule, eventId, username, expirationHours = 48) => {
+  const key = `exam-schedule-${eventId}-${username}`;
+  await saveToCache(key, examSchedule, expirationHours);
+};
+
+export const getExamScheduleFromCache = async (eventId, username) => {
+  const key = `exam-schedule-${eventId}-${username}`;
+  const cached = await getFromCache(key);
+  if (!cached) return null;
+  return cached.data || cached;
+};
+
 export const getAttendanceGoal = () => { try { const v = localStorage.getItem('attendanceGoal'); return v ? Number(v) : null; } catch (e) { return null; } };
 export const setAttendanceGoal = (goal) => { try { localStorage.setItem('attendanceGoal', Number(goal).toString()); } catch (e) { } };
 export const removeAttendanceGoal = () => { try { localStorage.removeItem('attendanceGoal'); } catch (e) { } };
