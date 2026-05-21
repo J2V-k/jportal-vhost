@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Empty } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
+import { showErrorToast } from '@/lib/toastUtils';
+import { showErrorToast } from '@/lib/toastUtils';
 
 const AcademicCalendar = () => {
   const [calendarData, setCalendarData] = useState(null);
@@ -24,6 +26,7 @@ const AcademicCalendar = () => {
         setCalendarData(data);
       } catch (err) {
         console.error('Failed to load academic calendar:', err);
+        showErrorToast('Academic Calendar', err?.message || 'Failed to load academic calendar.');
         setCalendarData({ timelineEvents: [] });
       } finally {
         setLoading(false);

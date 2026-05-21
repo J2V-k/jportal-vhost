@@ -8,6 +8,7 @@ import { getFromCache } from "@/components/scripts/cache"
 import { getCgpaCalculatorSemesters, setCgpaCalculatorSemesters, getCgpaCalculatorTargetCgpa, setCgpaCalculatorTargetCgpa, getCgpaCalculatorSelectedSemester, setCgpaCalculatorSelectedSemester, getSubjectSemestersData, setSubjectSemestersData } from '@/components/scripts/cache' 
 import { getUsername } from '@/components/scripts/cache' 
 import { Helmet } from 'react-helmet-async'
+import { showErrorToast, showWarningToast } from '@/lib/toastUtils'
 import {
   calculateSGPA as calcSGPA,
   calculateCGPA as calcCGPA,
@@ -55,6 +56,7 @@ export default function CGPATargetCalculator({ w }) {
           }
         } catch (err) {
           console.warn('Failed to fetch sgpa/cgpa from portal for CGPA calculator, will try cache:', err);
+          showWarningToast('CGPA Calculator', 'Could not load semester totals from the portal. Using cached values if available.');
         }
 
         const cached = getCgpaCalculatorSemesters();
@@ -140,9 +142,11 @@ export default function CGPATargetCalculator({ w }) {
         }
       } catch (err) {
         console.error('Failed to load cached subject semesters:', err);
+        showWarningToast('CGPA Calculator', 'Could not load cached semester options.');
       }
     } catch (error) {
       console.error('Failed to fetch subject semesters:', error);
+      showErrorToast('CGPA Calculator', error?.message || 'Failed to load registered semester list.');
     } finally {
       setIsLoadingSemesters(false);
     }
@@ -160,24 +164,42 @@ export default function CGPATargetCalculator({ w }) {
       if (subjects?.subjects) {
         const processedSubjects = processSubjectsForSGPA(subjects.subjects);
 
+        if (processedSubjects.length === 0 && subjectSemesters.length > 1) {
+          const currentIndex = subjectSemesters.findIndex(
+            (sem) => sem.registration_id === semester.registration_id
+          );
+          const nextSemester = subjectSemesters[currentIndex + 1] || subjectSemesters[1];
+
+          if (nextSemester && nextSemester.registration_id !== semester.registration_id) {
+            setSelectedSemester(nextSemester);
+            return;
+          }
+        }
+
         try {
           const username = w?.username || getUsername() || "user";
           const cacheKey = `marks-${semester.registration_code}-${username}`;
           const cached = await getFromCache(cacheKey);
           const marksMap = {};
-          if (cached && cached.data && Array.isArray(cached.data.courses)) {
-            cached.data.courses.forEach((course) => {
+          const cachedCourses = cached?.data?.courses || cached?.courses || [];
+
+          if (Array.isArray(cachedCourses)) {
+            cachedCourses.forEach((course) => {
+              const courseCode = normalizeCourseCode(course.code || course.subjectcode || course.subjectCode);
+              if (!courseCode) return;
+
               const total = Object.values(course.exams || {}).reduce((acc, exam) => ({
-                obtained: acc.obtained + (exam.OM || 0),
-                full: acc.full + (exam.FM || 0)
+                obtained: acc.obtained + Number(exam?.OM ?? exam?.om ?? 0),
+                full: acc.full + Number(exam?.FM ?? exam?.fm ?? 0)
               }), { obtained: 0, full: 0 });
-              marksMap[course.code] = total;
+
+              marksMap[courseCode] = total;
             });
           }
 
           const withMarksAndGrades = processedSubjects.map((s) => ({
             ...s,
-            marks: marksMap[s.code] || null,
+            marks: marksMap[normalizeCourseCode(s.code)] || null,
             grade: s.grade
           }));
           setSgpaSubjects(withMarksAndGrades);
@@ -188,6 +210,7 @@ export default function CGPATargetCalculator({ w }) {
       }
     } catch (error) {
       console.error('Failed to fetch subjects:', error);
+      showErrorToast('CGPA Calculator', error?.message || 'Failed to load subject data for SGPA calculation.');
     } finally {
       setIsLoadingSubjects(false);
     }
@@ -211,6 +234,9 @@ export default function CGPATargetCalculator({ w }) {
     return Object.values(groupedSubjects);
   };
 
+  const normalizeCourseCode = (code) => {
+    return String(code || "").trim().replace(/\s+/g, "").toUpperCase();
+  };
 
 
   const gradeOptions = ["A+", "A", "B+", "B", "C+", "C", "D", "F"];

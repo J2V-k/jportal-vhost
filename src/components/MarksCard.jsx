@@ -22,8 +22,6 @@ export default function MarksCard({ course, gradeInfo }) {
     { obtained: 0, full: 0 }
   );
 
-  const totalPercentage = (totalMarks.obtained / totalMarks.full) * 100;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -38,17 +36,15 @@ export default function MarksCard({ course, gradeInfo }) {
           <div className="flex flex-col gap-2 w-full">
             <h3 className="font-bold text-base md:text-lg text-foreground tracking-tight leading-tight break-words group-hover:text-primary transition-colors">
               {course.name}
-            </h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              <code className="text-[10px] md:text-xs font-mono bg-muted/50 px-2.5 py-1 rounded-md text-muted-foreground uppercase tracking-wider border border-border/30">
+              <span className="ml-3 inline-flex items-center rounded-md bg-muted/50 px-2.5 py-1 text-[10px] md:text-xs font-mono uppercase tracking-wider text-muted-foreground border border-border/30">
                 {course.code}
-              </code>
-              {!matchingGrade && (
-                 <Badge variant="outline" className="text-[10px] font-medium border-primary/30 text-primary/80 bg-primary/5">
-                   Score: {totalMarks.obtained}/{totalMarks.full}
-                 </Badge>
-              )}
-            </div>
+              </span>
+            </h3>
+            {!matchingGrade && (
+              <Badge variant="outline" className="text-[10px] font-medium border-primary/30 text-primary/80 bg-primary/5 inline-flex">
+                Score: {totalMarks.obtained}/{totalMarks.full}
+              </Badge>
+            )}
           </div>
 
           {matchingGrade && (
@@ -57,7 +53,7 @@ export default function MarksCard({ course, gradeInfo }) {
               <div className="flex items-center justify-center border-x border-border/40">
                 <StatBox label="Credits" value={matchingGrade.coursecreditpoint} colorClass="text-primary" />
               </div>
-              <StatBox label="Total Score" value={`${totalPercentage.toFixed(0)}%`} colorClass="text-foreground" />
+              <StatBox label="Total Marks" value={`${totalMarks.obtained}/${totalMarks.full}`} colorClass="text-foreground" />
             </div>
           )}
 

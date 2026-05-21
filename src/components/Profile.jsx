@@ -386,7 +386,7 @@ export default function Profile({
           { icon: Calendar, label: "Calendar", path: "/academic-calendar" },
           { icon: Calculator, label: "GPA Calc", path: "/gpa-calculator" },
           { icon: Calendar, label: "Timetable", path: "/timetable" },
-          { icon: MessageSquare, label: "Feedback", path: "/feedback", hideOnPortal: true },
+          { icon: MessageSquare, label: "Auto-Feedback Filler", path: "/feedback", hideOnPortal: true },
           { icon: DollarSign, label: "Fee", path: "/fee", hideOnPortal: true },
         ].filter(btn => !btn.hideOnPortal || !((w && w.constructor.name === 'ArtificialWebPortal'))).map((btn, i) => (
           <motion.button

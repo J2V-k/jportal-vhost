@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
+import { showErrorToast } from '@/lib/toastUtils'
 import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from 'react-helmet-async'
 import SubjectInfoCard from "./SubjectInfoCard"
@@ -91,6 +92,7 @@ export default function Subjects({
         await findFirstSemesterWithSubjects(semestersList)
       } catch (err) {
         console.error(err)
+        showErrorToast('Subjects', err?.message || 'Could not load your registered subjects.');
       } finally {
         setLoading(false)
         setSubjectsLoading(false)
@@ -140,6 +142,7 @@ export default function Subjects({
             return;
           }
         } catch (err) {
+          showErrorToast('Subjects', err?.message || 'Failed to load subjects for this semester.');
           setSubjectData((prev) => ({
             ...prev,
             [semester.registration_id]: { error: err.message },
@@ -184,6 +187,7 @@ export default function Subjects({
           try { await saveSubjectChoicesToCache(choicesData, username, selectedSem); } catch (e) {}
         } catch (err) {
           console.error("Error fetching subject choices:", err)
+          showErrorToast('Subject Choices', err?.message || 'Could not load subject choices.');
         } finally {
           setChoicesLoading(false)
         }
@@ -218,6 +222,7 @@ export default function Subjects({
         try { await saveRegisteredSubjectsToCache(data, username, semester); } catch (e) {}
       }
     } catch (err) {
+      showErrorToast('Subjects', err?.message || 'Failed to load subjects for this semester.');
       setSubjectData((prev) => ({
         ...prev,
         [semester.registration_id]: { error: err.message },
@@ -259,6 +264,7 @@ export default function Subjects({
       try { await saveSubjectChoicesToCache(choicesData, username, nextSem); } catch (e) {}
     } catch (err) {
       console.error("Error fetching next semester choices:", err)
+      showErrorToast('Subject Choices', err?.message || 'Could not load next semester choices.');
       setNextSemChoices(null)
     } finally {
       setNextSemChoicesLoading(false)

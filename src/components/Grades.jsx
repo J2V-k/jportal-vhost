@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArtificialWebPortal } from "./scripts/artificialW";
 import { motion } from "framer-motion";
-import { showErrorToast, showSuccessToast, showWarningToast } from "@/lib/toastUtils";
+import { showErrorToast, showSuccessToast, showWarningToast, showLoadingToast, updateToastError, updateToastSuccess } from "@/lib/toastUtils";
 import useTheme from "@/context/ThemeContext";
 import {
   LineChart,
@@ -92,6 +92,7 @@ export default function Grades({
   const [creditSort, setCreditSort] = useState('default');
   const [isMarksRefreshing, setIsMarksRefreshing] = useState(false);
   const [isMarksFromCache, setIsMarksFromCache] = useState(false);
+  const [marksError, setMarksError] = useState(null);
   const marksFetchInFlight = React.useRef(new Set());
   const lastRefreshRef = React.useRef({});
 
@@ -230,12 +231,14 @@ export default function Grades({
       await fetchFreshMarksData();
     };
     const fetchFreshMarksData = async () => {
+      const regId = selectedMarksSem.registration_id;
+      let toastId;
       try {
-        const regId = selectedMarksSem.registration_id;
         if (marksFetchInFlight.current.has(regId)) return;
         const last = lastRefreshRef.current[regId];
         if (last && Date.now() - last < 10 * 60 * 1000) return;
         marksFetchInFlight.current.add(regId);
+        toastId = showLoadingToast(`Loading marks for ${selectedMarksSem.registration_code}...`, `marks-loading-${regId}`);
         const ENDPOINT = `/studentsexamview/printstudent-exammarks/${w.session.instituteid}/${selectedMarksSem.registration_id}/${selectedMarksSem.registration_code}`;
         const headers = await w.session.get_headers();
         const { getPyodideWithPackages } = await import("@/lib/pyodide");
@@ -269,10 +272,24 @@ export default function Grades({
           setMarksCacheTimestamp(Date.now());
           setIsMarksFromCache(false);
           lastRefreshRef.current[regId] = Date.now();
+          updateToastSuccess(toastId, "Marks loaded", "Marks data has been refreshed.");
         }
       } catch (error) {
         console.error("Failed to load marks:", error);
-        showErrorToast("Marks Load Error", error.message || "Could not load marks data");
+        const rawMessage = String(error?.message || "Could not load marks data");
+        const normalized = rawMessage.toLowerCase();
+        let userMessage = rawMessage;
+
+        if (normalized.includes("table not on page") || normalized.includes("indexerror") || normalized.includes("no table")) {
+          userMessage = "No marks table was found in the downloaded PDF for this semester.";
+        } else if (normalized.includes("failed to fetch marks pdf")) {
+          userMessage = "Could not download the marks PDF for this semester.";
+        }
+
+        setMarksError(userMessage);
+        if (mounted) setMarksSemesterData({ courses: [] });
+        if (toastId) updateToastError(toastId, "Marks load failed", userMessage);
+        showErrorToast("Marks Load Error", userMessage);
       } finally {
         if (mounted) setMarksLoading(false);
         try { marksFetchInFlight.current.delete(selectedMarksSem.registration_id); } catch { }
@@ -335,6 +352,7 @@ export default function Grades({
     try {
       const semester = marksSemesters.find((sem) => sem.registration_id === value);
       setSelectedMarksSem(semester);
+      setMarksError(null);
       if (!gradeCards[value]) {
         try {
           const data = await w.get_grade_card(semester);
@@ -357,6 +375,7 @@ export default function Grades({
       }
     } catch (error) {
       console.error("Failed to change marks semester:", error);
+      showErrorToast("Marks Semester Error", error?.message || "Could not switch marks semester.");
     }
   };
 
@@ -389,11 +408,15 @@ export default function Grades({
 
   const handleDownloadMarks = async (semester) => {
     setIsDownloading(true);
+    const toastId = showLoadingToast("Downloading marks...", "Preparing the marks PDF.");
     try {
       await w.download_marks(semester);
       setIsDownloadDialogOpen(false);
+      updateToastSuccess(toastId, "Download started", "Your marks PDF is downloading.");
     } catch (err) {
       console.error("Failed to download marks:", err);
+      updateToastError(toastId, "Download failed", err?.message || "Unable to download marks.");
+      showErrorToast("Marks Download Error", err?.message || "Failed to download marks.");
     } finally {
       setIsDownloading(false);
     }
@@ -593,7 +616,12 @@ export default function Grades({
                     )}
                     {marksLoading ? (
                       <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div>
-                    ) : marksSemesterData?.courses && (
+                    ) : marksError ? (
+                      <div className="text-center py-10">
+                        <p className="text-lg font-semibold text-destructive">{marksError}</p>
+                        <p className="text-sm text-muted-foreground mt-2">Try selecting a different semester or download the marks PDF manually.</p>
+                      </div>
+                    ) : marksSemesterData?.courses?.length > 0 ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {marksSemesterData.courses.map(c => (
@@ -606,6 +634,11 @@ export default function Grades({
                             Download Marks
                           </Button>
                         </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-10">
+                        <p className="text-xl">No marks found for this semester.</p>
+                        <p className="text-sm text-muted-foreground mt-2">If the PDF contains no table or marks, try another semester or download the PDF directly.</p>
                       </div>
                     )}
                   </>

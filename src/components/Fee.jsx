@@ -8,6 +8,7 @@ import { Card, CardContent } from "./ui/card";
 import { motion } from "framer-motion";
 import axios from 'axios';
 import { proxy_url } from '@/lib/api';
+import { showErrorToast, showSuccessToast, showLoadingToast, updateToastError, updateToastSuccess } from '@/lib/toastUtils';
 
 export default function Fee({ w, serialize_payload }) {
   const [data, setData] = useState(null);
@@ -27,8 +28,12 @@ export default function Fee({ w, serialize_payload }) {
   };
 
   const downloadFeeDemandReport = async () => {
-    if (!w?.session) return alert("Please login first");
+    if (!w?.session) {
+      showErrorToast("Login Required", "Please login first to download the fee report.");
+      return;
+    }
     setDownloadingReport(true);
+    const toastId = showLoadingToast("Generating fee report...", "Please wait while the report is prepared.");
     try {
       const headers = await w.session.get_headers();
       const payload = { instituteid: w.session.instituteid, studentid: w.session.memberid };
@@ -43,7 +48,10 @@ export default function Fee({ w, serialize_payload }) {
       a.href = url;
       a.download = `Fee_Report_${w.session.memberid}.pdf`;
       a.click();
+      updateToastSuccess(toastId, "Report ready", "Fee report download started.");
     } catch (error) {
+      updateToastError(toastId, "Download failed", "Failed to download fee report.");
+      showErrorToast("Fee Report Error", error?.message || "Failed to download report. Please try again.");
       setError("Failed to download report. Please try again.");
     } finally {
       setDownloadingReport(false);
@@ -64,6 +72,7 @@ export default function Fee({ w, serialize_payload }) {
         setData(feeResult);
         setFines(Array.isArray(finesResult) ? finesResult : []);
       } catch (err) {
+        showErrorToast("Fee Summary Error", err.message || "Failed to load fee summary.");
         setError(err.message);
       } finally {
         setLoading(false);

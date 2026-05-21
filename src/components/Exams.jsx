@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Helmet } from 'react-helmet-async';
+import { showErrorToast } from '@/lib/toastUtils';
 
 export default function Exams({
   w,
@@ -103,6 +104,7 @@ export default function Exams({
         }
       } catch (error) {
         console.error("Failed to load cached exam data:", error);
+        showErrorToast('Exams', error?.message || 'Failed to load cached exam data.');
       } finally {
         setLoading(false);
       }
@@ -429,7 +431,6 @@ export default function Exams({
 
 function ExamScheduleGrid({ currentSchedule, formatDate }) {
   const now = new Date();
-  const fourHours = 4 * 60 * 60 * 1000;
 
   const parseExamDateTime = (dateStr, timeStr) => {
     const [day, month, year] = dateStr.split("/");
@@ -459,29 +460,6 @@ function ExamScheduleGrid({ currentSchedule, formatDate }) {
     return dateA - dateB;
   });
 
-  const totalExams = sortedSchedule.length;
-  const completedCount = sortedSchedule.filter((exam) => {
-    const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
-    const diff = examTime.getTime() - now.getTime();
-    return diff <= -2 * 60 * 60 * 1000;
-  }).length;
-  const startingSoonCount = sortedSchedule.filter((exam) => {
-    const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
-    const diff = examTime.getTime() - now.getTime();
-    return diff > 0 && diff <= fourHours;
-  }).length;
-  const ongoingCount = sortedSchedule.filter((exam) => {
-    const examTime = parseExamDateTime(exam.datetime, exam.datetimefrom || "00:00");
-    const diff = examTime.getTime() - now.getTime();
-    return diff <= 0 && diff > -2 * 60 * 60 * 1000;
-  }).length;
-  const upcomingCount = Math.max(totalExams - completedCount - startingSoonCount - ongoingCount, 0);
-
-  const completedWidth = totalExams ? (completedCount / totalExams) * 100 : 0;
-  const ongoingWidth = totalExams ? (ongoingCount / totalExams) * 100 : 0;
-  const soonWidth = totalExams ? (startingSoonCount / totalExams) * 100 : 0;
-  const upcomingWidth = totalExams ? (upcomingCount / totalExams) * 100 : 0;
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -492,21 +470,6 @@ function ExamScheduleGrid({ currentSchedule, formatDate }) {
             formatDate={formatDate}
           />
         ))}
-      </div>
-
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Exam progress</p>
-          </div>
-        </div>
-
-        <div className="mt-4 h-3 flex overflow-hidden rounded-full bg-muted border border-border">
-          <div className="h-full bg-primary transition-all" style={{ width: `${completedWidth}%` }} />
-          <div className="h-full bg-accent transition-all" style={{ width: `${ongoingWidth}%` }} />
-          <div className="h-full bg-secondary transition-all" style={{ width: `${soonWidth}%` }} />
-          <div className="h-full bg-muted/60 transition-all" style={{ width: `${upcomingWidth}%` }} />
-        </div>
       </div>
     </div>
   );

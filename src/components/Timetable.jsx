@@ -3,6 +3,7 @@ import {
   Calendar as CalendarIcon, RefreshCw, 
   Trash2, X, Plus, Clock, Layers, Settings2, EyeOff, Palmtree, Edit3, PlusCircle
 } from "lucide-react";
+import { showErrorToast } from '@/lib/toastUtils';
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from 'react-helmet-async';
 import { Button } from "./ui/button";
@@ -137,7 +138,10 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
             currentSems = { semesters: registered, latest_semester: registered[0] };
             setLocalSemestersData(currentSems);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error('Failed to fetch registered semesters for timetable:', e);
+          showErrorToast('Timetable', e?.message || 'Failed to load schedule information.');
+        }
       }
 
       if (currentSems?.semesters?.length && !selectedSemesterId) {
@@ -161,7 +165,10 @@ const Timetable = ({ w, profileData, subjectData, subjectSemestersData }) => {
       setIcalEvents(parsed);
       setTimetableModifiedEvents(parsed);
       setShowCustomizer(false);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      showErrorToast('Timetable', err?.message || 'Failed to import timetable file.');
+    }
   };
 
   const saveClass = () => {

@@ -30,7 +30,7 @@ import MessMenu from "./components/MessMenu";
 import InstallPWA from "./components/InstallPWA";
 import { UtensilsCrossed } from "lucide-react";
 import { HelmetProvider } from "react-helmet-async";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 import {
   WebPortal,

@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { LoginError } from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.26/dist/jsjiit.esm.js"
+import { showErrorToast, showSuccessToast, showWarningToast, showLoadingToast, updateToastError, updateToastSuccess } from '@/lib/toastUtils'
 import { Lock, User, UtensilsCrossed, Calendar, Heart, Laugh, Eye, EyeOff, Smartphone } from "lucide-react"
 import InstallPWA from './InstallPWA'
 import MessMenu from "./MessMenu"
@@ -44,6 +45,8 @@ export default function Login({ onLoginSuccess, w }) {
   useEffect(() => {
     if (!loginStatus.credentials) return
 
+    const toastId = showLoadingToast("Logging in...", "Please wait while we sign you in.")
+
     const performLogin = async () => {
       try {
         const attemptedUsername = loginStatus.credentials.enrollmentNumber
@@ -58,6 +61,7 @@ export default function Login({ onLoginSuccess, w }) {
           isLoading: false,
           credentials: null,
         }))
+        updateToastSuccess(toastId, "Login successful", "Welcome back!")
         onLoginSuccess(w)
       } catch (error) {
         console.error("Login failed:", error)
@@ -73,6 +77,17 @@ export default function Login({ onLoginSuccess, w }) {
           credentials: null,
           canFallbackOffline: (!isAuthError && hasCache),
         }))
+
+        if (isAuthError) {
+          updateToastError(toastId, "Login failed", error.message || "Please check your enrollment number and password.")
+          showErrorToast("Login Failed", error.message || "Please check your credentials.")
+        } else if (hasCache) {
+          updateToastError(toastId, "Offline mode enabled", "Using cached data for offline access.")
+          showWarningToast("Offline Mode", "Login failed. Using cached data for offline access.")
+        } else {
+          updateToastError(toastId, "Login failed", error.message || "Unable to login.")
+          showErrorToast("Login Failed", error.message || "Unable to login. Please try again.")
+        }
 
         if (!isAuthError && hasCache) {
           try {
@@ -113,12 +128,14 @@ export default function Login({ onLoginSuccess, w }) {
     const hasCache = hasCachedProfile() || hasAnyAttendance() || hasAnyGrades();
 
     if (!hasCache) {
+      showErrorToast("Offline unavailable", "No cached data available. Please login online first to use offline mode.")
       setLoginStatus((prev) => ({
         ...prev,
         error: "No cached data available. Please login online first to use offline mode.",
       }));
       return;
     }
+    showSuccessToast("Offline mode enabled", "Using cached data for offline access.")
     const artificialW = new ArtificialWebPortal();
     onLoginSuccess(artificialW);
   }
