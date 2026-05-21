@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Empty } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
 import { showErrorToast } from '@/lib/toastUtils';
-import { showErrorToast } from '@/lib/toastUtils';
 
 const AcademicCalendar = () => {
   const [calendarData, setCalendarData] = useState(null);
