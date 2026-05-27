@@ -5,7 +5,7 @@ import { Plus, Trash2, BookOpen, GraduationCap, Loader2, Target, TrendingUp, Awa
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getFromCache } from "@/components/scripts/cache"
-import { getCgpaCalculatorSemesters, setCgpaCalculatorSemesters, getCgpaCalculatorTargetCgpa, setCgpaCalculatorTargetCgpa, getCgpaCalculatorSelectedSemester, setCgpaCalculatorSelectedSemester, getSubjectSemestersData, setSubjectSemestersData } from '@/components/scripts/cache' 
+import { getCgpaCalculatorSemesters, setCgpaCalculatorSemesters, getCgpaCalculatorTargetCgpa, setCgpaCalculatorTargetCgpa, getCgpaCalculatorSelectedSemester, setCgpaCalculatorSelectedSemester, getSubjectSemestersData } from '@/components/scripts/cache' 
 import { getUsername } from '@/components/scripts/cache' 
 import { Helmet } from 'react-helmet-async'
 import { showErrorToast, showWarningToast } from '@/lib/toastUtils'
@@ -178,7 +178,7 @@ export default function CGPATargetCalculator({ w }) {
 
         try {
           const username = w?.username || getUsername() || "user";
-          const cacheKey = `marks-${semester.registration_code}-${username}`;
+          const cacheKey = getSemesterCacheKey(semester, username);
           const cached = await getFromCache(cacheKey);
           const marksMap = {};
           const cachedCourses = cached?.data?.courses || cached?.courses || [];
@@ -235,9 +235,16 @@ export default function CGPATargetCalculator({ w }) {
   };
 
   const normalizeCourseCode = (code) => {
-    return String(code || "").trim().replace(/\s+/g, "").toUpperCase();
+    return String(code || "")
+      .trim()
+      .replace(/[^A-Z0-9]/gi, "")
+      .toUpperCase();
   };
 
+  const getSemesterCacheKey = (semester, username) => {
+    const semIdentifier = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester?.registrationid || "unknown";
+    return `marks-${semIdentifier}-${username}`;
+  };
 
   const gradeOptions = ["A+", "A", "B+", "B", "C+", "C", "D", "F"];
 
@@ -351,7 +358,6 @@ export default function CGPATargetCalculator({ w }) {
     if (!isFinite(required)) return "-";
     return required.toFixed(2);
   };
-
 
   return (
     <>
