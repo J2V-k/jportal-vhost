@@ -197,17 +197,20 @@ export default function CGPATargetCalculator({ w }) {
           const username = w?.username || getUsername() || "user";
           const subjectCodes = processedSubjects.map((subject) => subject.code).filter(Boolean);
           const cached = await findMarksCacheForSemester(semester, username, subjectCodes);
+          const cachedPayload = cached?.data || cached;
           const marksMap = {};
-          const cachedCourses = cached?.data?.courses || cached?.courses || [];
+          
+          // Broadened payload search to handle various cached shapes
+          const cachedCourses = cachedPayload?.courses || cachedPayload?.marks || cachedPayload?.subjectMarks || [];
 
           if (Array.isArray(cachedCourses)) {
             cachedCourses.forEach((course) => {
-              const courseCode = normalizeCourseCode(course.code || course.subjectcode || course.subjectCode);
+              const courseCode = normalizeCourseCode(course.code || course.subjectcode || course.subjectCode || course.subject_code);
               if (!courseCode) return;
 
               const total = Object.values(course.exams || {}).reduce((acc, exam) => ({
-                obtained: acc.obtained + Number(exam?.OM ?? exam?.om ?? 0),
-                full: acc.full + Number(exam?.FM ?? exam?.fm ?? 0)
+                obtained: acc.obtained + Number(exam?.OM ?? exam?.om ?? exam?.obtained ?? exam?.obtained_marks ?? 0),
+                full: acc.full + Number(exam?.FM ?? exam?.fm ?? exam?.full ?? exam?.full_marks ?? 0)
               }), { obtained: 0, full: 0 });
 
               marksMap[courseCode] = total;
@@ -268,29 +271,57 @@ export default function CGPATargetCalculator({ w }) {
       getSemesterCacheKey(semester, username),
       `marks-${semester?.registration_id || ""}-${username}`,
       `marks-${semester?.registration_code || ""}-${username}`,
+      `marks-${username}`,
+      `marks`, 
+      `marksData`
     ].filter(Boolean);
 
-    for (const candidate of candidates) {
-      const cached = await getFromCache(candidate);
-      if (cached) return cached;
+    const uniqueCandidates = [...new Set(candidates)];
+    const normalizedSubjectCodes = new Set(subjectCodes.map(normalizeCourseCode));
+
+    const checkPayload = (raw) => {
+      if (!raw) return false;
+      const payload = raw?.data || raw;
+      const courses = payload?.courses || payload?.marks || payload?.subjectMarks || [];
+      if (!Array.isArray(courses)) return false;
+      if (subjectCodes.length === 0) return true;
+      
+      return courses.some((course) => {
+        const code = normalizeCourseCode(course?.code || course?.subjectcode || course?.subjectCode || course?.subject_code);
+        return code && normalizedSubjectCodes.has(code);
+      });
+    };
+
+    // First, test predefined indexedDB/cache candidates
+    for (const candidate of uniqueCandidates) {
+      try {
+        const cached = await getFromCache(candidate);
+        if (cached && checkPayload(cached)) {
+          return cached;
+        }
+      } catch (e) {
+        // Continue to the next candidate
+      }
     }
 
+    // Fallback: Aggressive localStorage scan for valid payloads
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (!key || !key.startsWith('marks-') || !key.endsWith(`-${username}`)) continue;
+        if (!key) continue;
 
-        const raw = JSON.parse(localStorage.getItem(key) || 'null');
-        const payload = raw?.data || raw;
-        const courses = payload?.courses || [];
+        const rawStr = localStorage.getItem(key);
+        // Quick filter to ensure string has json-like structure before parsing
+        if (!rawStr || (!rawStr.includes('{') && !rawStr.includes('['))) continue;
 
-        const normalizedSubjectCodes = new Set(subjectCodes.map(normalizeCourseCode));
-        const hasMatchingCourse = Array.isArray(courses) && courses.some((course) => {
-          const code = normalizeCourseCode(course?.code || course?.subjectcode || course?.subjectCode || course?.subject_code);
-          return code && normalizedSubjectCodes.has(code);
-        });
-
-        if (hasMatchingCourse) return raw;
+        try {
+          const raw = JSON.parse(rawStr);
+          if (checkPayload(raw)) {
+            return raw;
+          }
+        } catch (e) {
+          // ignore parsing errors and continue search
+        }
       }
     } catch (e) {
       console.warn('Failed to scan cached marks entries:', e);
@@ -487,9 +518,9 @@ export default function CGPATargetCalculator({ w }) {
                               <div className="flex items-center gap-3 text-xs md:text-sm">
                                 <span className="px-2 py-1 bg-muted text-muted-foreground rounded-lg text-xs font-medium">{subject.code}</span>
                                 <span className="text-muted-foreground">{subject.credits} credits</span>
-                                {subject.marks && (
+                                {subject.marks && (subject.marks.obtained !== undefined || subject.marks.full !== undefined) && (
                                   <span className="text-xs text-muted-foreground ml-2">
-                                    {subject.marks.obtained}/{subject.marks.full}
+                                    {subject.marks.obtained ?? 0}/{subject.marks.full ?? 0}
                                   </span>
                                 )}
                               </div>
