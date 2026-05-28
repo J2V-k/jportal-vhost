@@ -176,11 +176,9 @@ export default function Login({ onLoginSuccess, w }) {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-muted/80 p-3 text-sm text-muted-foreground">
-                  {hasCache ? (
-                    <p className="font-medium text-foreground">Cached data is available for offline use.</p>
-                  ) : (
-                    <p className="font-medium text-foreground">No offline cache detected yet. Sign in once to unlock offline access.</p>
-                  )}
+                  <p className="font-medium text-foreground">
+                    {hasCache ? 'Cached data is available for offline use.' : 'Sign in to refresh your data.'}
+                  </p>
                 </div>
               </div>
 

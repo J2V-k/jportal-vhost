@@ -124,11 +124,18 @@ export default function CGPATargetCalculator({ w }) {
         const semesters = await w.get_registered_semesters();
         if (semesters && semesters.length > 0) {
           setSubjectSemesters(semesters);
+          const cachedSemester = getCgpaCalculatorSelectedSemester();
+          const matchedSemester = cachedSemester
+            ? semesters.find(sem =>
+                sem.registration_id === cachedSemester.registration_id ||
+                sem.registration_code === cachedSemester.registration_code
+              )
+            : null;
           const currentYear = new Date().getFullYear().toString();
           const currentYearSemester = semesters.find(sem =>
             sem.registration_code && sem.registration_code.includes(currentYear)
           );
-          setSelectedSemester(currentYearSemester || semesters[0]);
+          setSelectedSemester(matchedSemester || currentYearSemester || semesters[0]);
           return;
         }
       } catch (err) {
@@ -139,6 +146,16 @@ export default function CGPATargetCalculator({ w }) {
         const cached = getSubjectSemestersData();
         if (cached) {
           setSubjectSemesters(cached || []);
+          const cachedSemester = getCgpaCalculatorSelectedSemester();
+          const matchedSemester = cachedSemester
+            ? (cached || []).find(sem =>
+                sem.registration_id === cachedSemester.registration_id ||
+                sem.registration_code === cachedSemester.registration_code
+              )
+            : null;
+          if (!selectedSemester && matchedSemester) {
+            setSelectedSemester(matchedSemester);
+          }
         }
       } catch (err) {
         console.error('Failed to load cached subject semesters:', err);
@@ -178,8 +195,8 @@ export default function CGPATargetCalculator({ w }) {
 
         try {
           const username = w?.username || getUsername() || "user";
-          const cacheKey = getSemesterCacheKey(semester, username);
-          const cached = await getFromCache(cacheKey);
+          const subjectCodes = processedSubjects.map((subject) => subject.code).filter(Boolean);
+          const cached = await findMarksCacheForSemester(semester, username, subjectCodes);
           const marksMap = {};
           const cachedCourses = cached?.data?.courses || cached?.courses || [];
 
@@ -244,6 +261,42 @@ export default function CGPATargetCalculator({ w }) {
   const getSemesterCacheKey = (semester, username) => {
     const semIdentifier = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester?.registrationid || "unknown";
     return `marks-${semIdentifier}-${username}`;
+  };
+
+  const findMarksCacheForSemester = async (semester, username, subjectCodes = []) => {
+    const candidates = [
+      getSemesterCacheKey(semester, username),
+      `marks-${semester?.registration_id || ""}-${username}`,
+      `marks-${semester?.registration_code || ""}-${username}`,
+    ].filter(Boolean);
+
+    for (const candidate of candidates) {
+      const cached = await getFromCache(candidate);
+      if (cached) return cached;
+    }
+
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith('marks-') || !key.endsWith(`-${username}`)) continue;
+
+        const raw = JSON.parse(localStorage.getItem(key) || 'null');
+        const payload = raw?.data || raw;
+        const courses = payload?.courses || [];
+
+        const normalizedSubjectCodes = new Set(subjectCodes.map(normalizeCourseCode));
+        const hasMatchingCourse = Array.isArray(courses) && courses.some((course) => {
+          const code = normalizeCourseCode(course?.code || course?.subjectcode || course?.subjectCode || course?.subject_code);
+          return code && normalizedSubjectCodes.has(code);
+        });
+
+        if (hasMatchingCourse) return raw;
+      }
+    } catch (e) {
+      console.warn('Failed to scan cached marks entries:', e);
+    }
+
+    return null;
   };
 
   const gradeOptions = ["A+", "A", "B+", "B", "C+", "C", "D", "F"];

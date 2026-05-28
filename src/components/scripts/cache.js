@@ -340,6 +340,8 @@ export const removeAttendanceGoal = () => { try { localStorage.removeItem('atten
 
 export const getGradesActiveTab = () => { try { return localStorage.getItem('grades_active_tab'); } catch (e) { return null; } };
 export const setGradesActiveTab = (tab) => { try { localStorage.setItem('grades_active_tab', tab); } catch (e) { } };
+export const getMarksSelectedSemester = () => { try { const raw = localStorage.getItem('marksSelectedSemester'); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } };
+export const setMarksSelectedSemester = (sem) => { try { localStorage.setItem('marksSelectedSemester', JSON.stringify(sem)); } catch (e) { } };
 
 export const getJPTheme = () => { try { const raw = localStorage.getItem('jp-theme'); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } };
 export const setJPTheme = (theme) => { try { localStorage.setItem('jp-theme', JSON.stringify(theme)); } catch (e) { } };

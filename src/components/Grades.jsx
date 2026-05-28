@@ -40,7 +40,7 @@ import {
   saveToCache,
   getFromCache,
 } from "@/components/scripts/cache";
-import { getGradesActiveTab, setGradesActiveTab } from '@/components/scripts/cache';
+import { getGradesActiveTab, setGradesActiveTab, getMarksSelectedSemester, setMarksSelectedSemester } from '@/components/scripts/cache';
 import GradeCard from "./GradeCard";
 import MarksCard from "./MarksCard";
 import { gradePointMap } from "@/lib/math";
@@ -95,6 +95,7 @@ export default function Grades({
   const [marksError, setMarksError] = useState(null);
   const marksFetchInFlight = React.useRef(new Set());
   const lastRefreshRef = React.useRef({});
+  const marksRequestIdRef = React.useRef(0);
 
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab");
@@ -191,27 +192,47 @@ export default function Grades({
   }, [w, isOffline]);
 
   useEffect(() => {
-    if (activeTab === 'marks' && marksSemesters.length > 0 && !selectedMarksSem) {
-      const currentYear = new Date().getFullYear().toString();
-      const currentYearSemester = marksSemesters.find(sem =>
-        sem.registration_code && sem.registration_code.includes(currentYear)
-      );
-      const selectedSemester = currentYearSemester || marksSemesters[0];
-      setSelectedMarksSem(selectedSemester);
+    if (activeTab === 'marks' && marksSemesters.length > 0) {
+      const storedSemester = getMarksSelectedSemester();
+      const matchedSemester = storedSemester
+        ? marksSemesters.find(sem =>
+            sem.registration_id === storedSemester.registration_id ||
+            sem.registration_code === storedSemester.registration_code
+          )
+        : null;
+
+      if (!selectedMarksSem && matchedSemester) {
+        setSelectedMarksSem(matchedSemester);
+        return;
+      }
+
+      if (!selectedMarksSem) {
+        const currentYear = new Date().getFullYear().toString();
+        const currentYearSemester = marksSemesters.find(sem =>
+          sem.registration_code && sem.registration_code.includes(currentYear)
+        );
+        setSelectedMarksSem(currentYearSemester || marksSemesters[0]);
+      }
     }
-  }, [marksSemesters, activeTab]);
+  }, [marksSemesters, activeTab, selectedMarksSem]);
 
   useEffect(() => {
     if (activeTab !== 'marks' || isOffline) return;
     setMounted(true);
     const processPdfMarks = async () => {
       if (!selectedMarksSem) return;
-      if (marksData[selectedMarksSem.registration_id]) return;
+      const requestId = ++marksRequestIdRef.current;
+      setMarksError(null);
+      if (marksData[selectedMarksSem.registration_id]) {
+        setMarksSemesterData(marksData[selectedMarksSem.registration_id]);
+        setMarksLoading(false);
+        return;
+      }
       setMarksLoading(true);
       const username = w.username || "user";
       const cacheKey = `marks-${selectedMarksSem.registration_code}-${username}`;
       const cached = await getFromCache(cacheKey);
-      if (cached && mounted) {
+      if (cached && mounted && requestId === marksRequestIdRef.current) {
         setMarksSemesterData(cached.data || cached);
         setMarksData((prev) => ({
           ...prev,
@@ -223,17 +244,18 @@ export default function Grades({
         const cacheTs = cached.timestamp || 0;
         if (Date.now() - cacheTs > 10 * 60 * 1000) {
           setIsMarksRefreshing(true);
-          await fetchFreshMarksData();
+          await fetchFreshMarksData(requestId);
           setIsMarksRefreshing(false);
         }
         return;
       }
-      await fetchFreshMarksData();
+      await fetchFreshMarksData(requestId);
     };
-    const fetchFreshMarksData = async () => {
+    const fetchFreshMarksData = async (requestId) => {
       const regId = selectedMarksSem.registration_id;
       let toastId;
       try {
+        if (!mounted || requestId !== marksRequestIdRef.current) return;
         if (marksFetchInFlight.current.has(regId)) return;
         const last = lastRefreshRef.current[regId];
         if (last && Date.now() - last < 10 * 60 * 1000) return;
@@ -256,6 +278,7 @@ export default function Grades({
           marks
         `);
         try { pyodide.globals.delete("data"); } catch (e) { }
+        if (!mounted || requestId !== marksRequestIdRef.current) return;
         if (mounted) {
           const result = res.toJs({
             dict_converter: Object.fromEntries,
@@ -275,6 +298,7 @@ export default function Grades({
           updateToastSuccess(toastId, "Marks loaded", "Marks data has been refreshed.");
         }
       } catch (error) {
+        if (!mounted || requestId !== marksRequestIdRef.current) return;
         console.error("Failed to load marks:", error);
         const rawMessage = String(error?.message || "Could not load marks data");
         const normalized = rawMessage.toLowerCase();
@@ -291,7 +315,7 @@ export default function Grades({
         if (toastId) updateToastError(toastId, "Marks load failed", userMessage);
         showErrorToast("Marks Load Error", userMessage);
       } finally {
-        if (mounted) setMarksLoading(false);
+        if (mounted && requestId === marksRequestIdRef.current) setMarksLoading(false);
         try { marksFetchInFlight.current.delete(selectedMarksSem.registration_id); } catch { }
       }
     };
@@ -352,6 +376,7 @@ export default function Grades({
     try {
       const semester = marksSemesters.find((sem) => sem.registration_id === value);
       setSelectedMarksSem(semester);
+      setMarksSelectedSemester(semester);
       setMarksError(null);
       if (!gradeCards[value]) {
         try {
