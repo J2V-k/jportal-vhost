@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Plus, Trash2, BookOpen, GraduationCap, Loader2, Target, TrendingUp, Award } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import PropTypes from 'prop-types'
 import { getFromCache } from "@/components/scripts/cache"
 import { getCgpaCalculatorSemesters, setCgpaCalculatorSemesters, getCgpaCalculatorTargetCgpa, setCgpaCalculatorTargetCgpa, getCgpaCalculatorSelectedSemester, setCgpaCalculatorSelectedSemester, getSubjectSemestersData } from '@/components/scripts/cache' 
 import { getUsername } from '@/components/scripts/cache' 
@@ -35,89 +36,119 @@ export default function CGPATargetCalculator({ w }) {
 
   const [sgpaSubjects, setSgpaSubjects] = useState([]);
   const [targetCgpa, setTargetCgpa] = useState("");
+  const [gradeCardCache, setGradeCardCache] = useState({});
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchSemesters = async () => {
-      try {
-        try {
-          const data = await w.get_sgpa_cgpa();
-          if (!mounted) return;
-          if (data && Array.isArray(data.semesterList) && data.semesterList.length > 0) {
-            setFetchedSemesters(data.semesterList);
-            const updatedSemesters = data.semesterList.map((s) => ({
-              g: s.sgpa ? s.sgpa.toString() : "",
-              c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
-            }));
-            const lastCredits = data.semesterList[data.semesterList.length - 1]?.totalcoursecredit || "";
-            updatedSemesters.push({ g: "", c: lastCredits ? lastCredits.toString() : "" });
-            setCgpaSemesters(updatedSemesters);
-            return;
-          }
-        } catch (err) {
-          console.warn('Failed to fetch sgpa/cgpa from portal for CGPA calculator, will try cache:', err);
-          showWarningToast('CGPA Calculator', 'Could not load semester totals from the portal. Using cached values if available.');
-        }
+  const getGradeCardForSemester = useCallback(async (semester) => {
+    if (!semester || !w || !w.get_semesters_for_grade_card || !w.get_grade_card) {
+      return null;
+    }
 
-        const cached = getCgpaCalculatorSemesters();
-        if (cached) {
-          try {
-            if (Array.isArray(cached) && cached.length > 0) setCgpaSemesters(cached);
-          } catch (e) { }
-        }
-      } catch (error) {
-        console.error('Failed to fetch semester data for CGPA calculator:', error);
+    const cacheKey = semester.registration_id || semester.registration_code || semester.registrationcode || semester.registrationid || null;
+    if (cacheKey && gradeCardCache[cacheKey]) {
+      return gradeCardCache[cacheKey];
+    }
+
+    try {
+      const gradeCardSemesters = await w.get_semesters_for_grade_card();
+      const matchingSemester = Array.isArray(gradeCardSemesters)
+        ? gradeCardSemesters.find((s) =>
+            (s.registration_id && s.registration_id === semester.registration_id) ||
+            (s.registration_id && s.registration_id === semester.registrationcode) ||
+            (s.registration_code && s.registration_code === semester.registration_code) ||
+            (s.registration_code && s.registration_code === semester.registrationcode) ||
+            (s.registrationcode && s.registrationcode === semester.registration_code) ||
+            (s.registrationcode && s.registrationcode === semester.registrationcode)
+          )
+        : null;
+
+      if (!matchingSemester) return null;
+      const gradeCard = await w.get_grade_card(matchingSemester);
+      if (cacheKey && gradeCard) {
+        setGradeCardCache((prev) => ({ ...prev, [cacheKey]: gradeCard }));
       }
+      return gradeCard;
+    } catch (error) {
+      console.warn('No grade card available for semester:', error);
+      return null;
+    }
+  }, [w, gradeCardCache]);
+
+  const normalizeCourseCode = (code) => {
+    return String(code || "")
+      .trim()
+      .replace(/[^A-Z0-9]/gi, "")
+      .toUpperCase();
+  };
+
+  const getSemesterCacheKey = (semester, username) => {
+    const semIdentifier = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester?.registrationid || "unknown";
+    return `marks-${semIdentifier}-${username}`;
+  };
+
+  const findMarksCacheForSemester = useCallback(async (semester, username, subjectCodes = []) => {
+    const candidates = [
+      getSemesterCacheKey(semester, username),
+      `marks-${semester?.registration_id || ""}-${username}`,
+      `marks-${semester?.registration_code || ""}-${username}`,
+      `marks-${username}`,
+      `marks`, 
+      `marksData`
+    ].filter(Boolean);
+
+    const uniqueCandidates = [...new Set(candidates)];
+    const normalizedSubjectCodes = new Set(subjectCodes.map(normalizeCourseCode));
+
+    const checkPayload = (raw) => {
+      if (!raw) return false;
+      const payload = raw?.data || raw;
+      const courses = payload?.courses || payload?.marks || payload?.subjectMarks || [];
+      if (!Array.isArray(courses)) return false;
+      if (subjectCodes.length === 0) return true;
+      
+      return courses.some((course) => {
+        const code = normalizeCourseCode(course?.code || course?.subjectcode || course?.subjectCode || course?.subject_code);
+        return code && normalizedSubjectCodes.has(code);
+      });
     };
 
-    fetchSemesters();
-    return () => { mounted = false; };
-  }, [w]);
-
-  useEffect(() => {
-    setCgpaCalculatorSemesters(cgpaSemesters);
-  }, [cgpaSemesters]);
-
-
-  useEffect(() => {
-    const cachedTargetCgpa = getCgpaCalculatorTargetCgpa();
-    if (cachedTargetCgpa) {
-      setTargetCgpa(cachedTargetCgpa);
-    }
-
-    const cachedSelectedSemester = getCgpaCalculatorSelectedSemester();
-    if (cachedSelectedSemester) {
+    // First, test predefined indexedDB/cache candidates
+    for (const candidate of uniqueCandidates) {
       try {
-        setSelectedSemester(cachedSelectedSemester);
-      } catch (e) {
-        console.error('Failed to parse cached selected semester:', e);
+        const cached = await getFromCache(candidate);
+        if (cached && checkPayload(cached)) {
+          return cached;
+        }
+      } catch {
+        // Continue to the next candidate
       }
     }
+    // Fallback: Aggressive localStorage scan for valid payloads
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+
+        const rawStr = localStorage.getItem(key);
+        // Quick filter to ensure string has json-like structure before parsing
+        if (!rawStr || (!rawStr.includes('{') && !rawStr.includes('['))) continue;
+
+        try {
+          const raw = JSON.parse(rawStr);
+          if (checkPayload(raw)) {
+            return raw;
+          }
+        } catch {
+          // ignore parsing errors and continue search
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to scan cached marks entries:', e);
+    }
+
+    return null;
   }, []);
 
-  useEffect(() => {
-    setCgpaCalculatorTargetCgpa(targetCgpa);
-  }, [targetCgpa]);
-
-  useEffect(() => {
-    if (selectedSemester) {
-      setCgpaCalculatorSelectedSemester(selectedSemester);
-    }
-  }, [selectedSemester]);
-
-  useEffect(() => {
-    if (selectedSemester && w && !subjectData[selectedSemester.registration_id]) {
-      fetchSubjectsForSemester(selectedSemester);
-    }
-  }, [selectedSemester, w]);
-
-  useEffect(() => {
-    if (activeTab === "sgpa" && w && subjectSemesters.length === 0) {
-      fetchSubjectSemesters();
-    }
-  }, [activeTab, w, subjectSemesters.length]);
-
-  const fetchSubjectSemesters = async () => {
+  const fetchSubjectSemesters = useCallback(async () => {
     setIsLoadingSemesters(true);
     try {
       try {
@@ -167,9 +198,9 @@ export default function CGPATargetCalculator({ w }) {
     } finally {
       setIsLoadingSemesters(false);
     }
-  };
+  }, [w, selectedSemester]);
 
-  const fetchSubjectsForSemester = async (semester) => {
+  const fetchSubjectsForSemester = useCallback(async (semester) => {
     setIsLoadingSubjects(true);
     try {
       const subjects = await w.get_registered_subjects_and_faculties(semester);
@@ -199,10 +230,8 @@ export default function CGPATargetCalculator({ w }) {
           const cached = await findMarksCacheForSemester(semester, username, subjectCodes);
           const cachedPayload = cached?.data || cached;
           const marksMap = {};
-          
-          // Broadened payload search to handle various cached shapes
-          const cachedCourses = cachedPayload?.courses || cachedPayload?.marks || cachedPayload?.subjectMarks || [];
 
+          const cachedCourses = cachedPayload?.courses || cachedPayload?.marks || cachedPayload?.subjectMarks || [];
           if (Array.isArray(cachedCourses)) {
             cachedCourses.forEach((course) => {
               const courseCode = normalizeCourseCode(course.code || course.subjectcode || course.subjectCode || course.subject_code);
@@ -217,14 +246,31 @@ export default function CGPATargetCalculator({ w }) {
             });
           }
 
-          const withMarksAndGrades = processedSubjects.map((s) => ({
-            ...s,
-            marks: marksMap[normalizeCourseCode(s.code)] || null,
-            grade: s.grade
-          }));
+          const gradeCard = await getGradeCardForSemester(semester);
+          const gradeMap = {};
+          if (gradeCard?.gradecard && Array.isArray(gradeCard.gradecard)) {
+            gradeCard.gradecard.forEach((course) => {
+              const courseCode = normalizeCourseCode(course.subjectcode || course.subject_code || course.subjectCode || course.code);
+              if (courseCode && course.grade) {
+                gradeMap[courseCode] = course.grade;
+              }
+            });
+          }
+
+          const withMarksAndGrades = processedSubjects.map((s) => {
+            const normalizedCode = normalizeCourseCode(s.code);
+            const prefillerGrade = gradeMap[normalizedCode] || s.grade;
+            return {
+              ...s,
+              marks: marksMap[normalizedCode] || null,
+              grade: prefillerGrade,
+              gradePoints: gradePointMap[prefillerGrade] || 0,
+            };
+          });
+
           setSgpaSubjects(withMarksAndGrades);
         } catch (e) {
-          console.error('Failed to attach marks cache:', e);
+          console.error('Failed to attach marks cache or grade data:', e);
           setSgpaSubjects(processedSubjects);
         }
       }
@@ -234,7 +280,90 @@ export default function CGPATargetCalculator({ w }) {
     } finally {
       setIsLoadingSubjects(false);
     }
-  };
+  }, [w, subjectSemesters, getGradeCardForSemester, findMarksCacheForSemester]);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchSemesters = async () => {
+      try {
+        try {
+          const data = await w.get_sgpa_cgpa();
+          if (!mounted) return;
+          if (data && Array.isArray(data.semesterList) && data.semesterList.length > 0) {
+            setFetchedSemesters(data.semesterList);
+            const updatedSemesters = data.semesterList.map((s) => ({
+              g: s.sgpa ? s.sgpa.toString() : "",
+              c: s.totalcoursecredit ? s.totalcoursecredit.toString() : "",
+            }));
+            const lastCredits = data.semesterList[data.semesterList.length - 1]?.totalcoursecredit || "";
+            updatedSemesters.push({ g: "", c: lastCredits ? lastCredits.toString() : "" });
+            setCgpaSemesters(updatedSemesters);
+            return;
+          }
+        } catch (err) {
+          console.warn('Failed to fetch sgpa/cgpa from portal for CGPA calculator, will try cache:', err);
+          showWarningToast('CGPA Calculator', 'Could not load semester totals from the portal. Using cached values if available.');
+        }
+
+        const cached = getCgpaCalculatorSemesters();
+        if (cached) {
+          try {
+            if (Array.isArray(cached) && cached.length > 0) setCgpaSemesters(cached);
+          } catch {
+            // ignore malformed cached semester data
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch semester data for CGPA calculator:', error);
+      }
+    };
+
+    fetchSemesters();
+    return () => { mounted = false; };
+  }, [w]);
+
+  useEffect(() => {
+    setCgpaCalculatorSemesters(cgpaSemesters);
+  }, [cgpaSemesters]);
+
+
+  useEffect(() => {
+    const cachedTargetCgpa = getCgpaCalculatorTargetCgpa();
+    if (cachedTargetCgpa) {
+      setTargetCgpa(cachedTargetCgpa);
+    }
+
+    const cachedSelectedSemester = getCgpaCalculatorSelectedSemester();
+    if (cachedSelectedSemester) {
+      try {
+        setSelectedSemester(cachedSelectedSemester);
+      } catch (e) {
+        console.error('Failed to parse cached selected semester:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    setCgpaCalculatorTargetCgpa(targetCgpa);
+  }, [targetCgpa]);
+
+  useEffect(() => {
+    if (selectedSemester) {
+      setCgpaCalculatorSelectedSemester(selectedSemester);
+    }
+  }, [selectedSemester]);
+
+  useEffect(() => {
+    if (selectedSemester && w && !subjectData[selectedSemester.registration_id]) {
+      fetchSubjectsForSemester(selectedSemester);
+    }
+  }, [selectedSemester, w, subjectData, fetchSubjectsForSemester]);
+
+  useEffect(() => {
+    if (activeTab === "sgpa" && w && subjectSemesters.length === 0) {
+      fetchSubjectSemesters();
+    }
+  }, [activeTab, w, subjectSemesters.length, fetchSubjectSemesters]);
 
   const processSubjectsForSGPA = (subjects) => {
     const groupedSubjects = subjects.reduce((acc, subject) => {
@@ -252,82 +381,6 @@ export default function CGPATargetCalculator({ w }) {
     }, {});
 
     return Object.values(groupedSubjects);
-  };
-
-  const normalizeCourseCode = (code) => {
-    return String(code || "")
-      .trim()
-      .replace(/[^A-Z0-9]/gi, "")
-      .toUpperCase();
-  };
-
-  const getSemesterCacheKey = (semester, username) => {
-    const semIdentifier = semester?.registration_code || semester?.registrationcode || semester?.registration_id || semester?.registrationid || "unknown";
-    return `marks-${semIdentifier}-${username}`;
-  };
-
-  const findMarksCacheForSemester = async (semester, username, subjectCodes = []) => {
-    const candidates = [
-      getSemesterCacheKey(semester, username),
-      `marks-${semester?.registration_id || ""}-${username}`,
-      `marks-${semester?.registration_code || ""}-${username}`,
-      `marks-${username}`,
-      `marks`, 
-      `marksData`
-    ].filter(Boolean);
-
-    const uniqueCandidates = [...new Set(candidates)];
-    const normalizedSubjectCodes = new Set(subjectCodes.map(normalizeCourseCode));
-
-    const checkPayload = (raw) => {
-      if (!raw) return false;
-      const payload = raw?.data || raw;
-      const courses = payload?.courses || payload?.marks || payload?.subjectMarks || [];
-      if (!Array.isArray(courses)) return false;
-      if (subjectCodes.length === 0) return true;
-      
-      return courses.some((course) => {
-        const code = normalizeCourseCode(course?.code || course?.subjectcode || course?.subjectCode || course?.subject_code);
-        return code && normalizedSubjectCodes.has(code);
-      });
-    };
-
-    // First, test predefined indexedDB/cache candidates
-    for (const candidate of uniqueCandidates) {
-      try {
-        const cached = await getFromCache(candidate);
-        if (cached && checkPayload(cached)) {
-          return cached;
-        }
-      } catch (e) {
-        // Continue to the next candidate
-      }
-    }
-
-    // Fallback: Aggressive localStorage scan for valid payloads
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key) continue;
-
-        const rawStr = localStorage.getItem(key);
-        // Quick filter to ensure string has json-like structure before parsing
-        if (!rawStr || (!rawStr.includes('{') && !rawStr.includes('['))) continue;
-
-        try {
-          const raw = JSON.parse(rawStr);
-          if (checkPayload(raw)) {
-            return raw;
-          }
-        } catch (e) {
-          // ignore parsing errors and continue search
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to scan cached marks entries:', e);
-    }
-
-    return null;
   };
 
   const gradeOptions = ["A+", "A", "B+", "B", "C+", "C", "D", "F"];
@@ -755,3 +808,14 @@ export default function CGPATargetCalculator({ w }) {
     </>
   );
 }
+
+CGPATargetCalculator.propTypes = {
+  w: PropTypes.shape({
+    get_sgpa_cgpa: PropTypes.func,
+    get_registered_semesters: PropTypes.func,
+    get_registered_subjects_and_faculties: PropTypes.func,
+    get_semesters_for_grade_card: PropTypes.func,
+    get_grade_card: PropTypes.func,
+    username: PropTypes.string,
+  }),
+};
