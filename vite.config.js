@@ -8,15 +8,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (!id) return;
-          if (id.includes('node_modules')) {
-            if (id.includes('react') && id.includes('react-dom')) return 'vendor';
-            if (id.includes('react-dom') || id.includes('/react/')) return 'vendor';
-            if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-tabs')) return 'ui';
-            if (id.includes('recharts')) return 'charts';
-            if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) return 'utils';
-          }
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+          charts: ['recharts'],
+          utils: ['date-fns', 'clsx', 'tailwind-merge'],
         },
       },
     },
