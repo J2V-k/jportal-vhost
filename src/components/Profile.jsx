@@ -144,6 +144,25 @@ export default function Profile({
     ? `data:image/jpg;base64,${profileData["photo&signature"].photo}`
     : null;
 
+  const formatHostelDate = (value) => {
+    if (!value) return "N/A";
+
+    if (typeof value === "number") {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? "N/A"
+        : date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    const text = String(value).trim();
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text)) return text;
+
+    const parsed = new Date(text);
+    return Number.isNaN(parsed.getTime())
+      ? text
+      : parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-4 pb-24 md:pb-8 space-y-6">
@@ -363,10 +382,14 @@ export default function Profile({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 gap-x-8">
                       <InfoRow icon={Home} label="Hostel Name" value={hostelData.presenthosteldetail.hosteldescription} />
                       <InfoRow icon={Key} label="Room Number" value={hostelData.presenthosteldetail.allotedroomno} />
+                      <InfoRow icon={Shield} label="Room Type" value={hostelData.presenthosteldetail.roomtype} />
+                      <InfoRow icon={Shield} label="Hostel Type" value={hostelData.presenthosteldetail.hosteltypedesc} />
                       <InfoRow icon={Bed} label="Bed Number" value={hostelData.presenthosteldetail.beddesc} />
                       <InfoRow icon={Building} label="Floor" value={hostelData.presenthosteldetail.floor} />
-                      <InfoRow icon={Shield} label="Hostel Type" value={hostelData.presenthosteldetail.hosteltypedesc} />
+                      <InfoRow icon={Users} label="Hosteller Type" value={hostelData.presenthosteldetail.hostellertype} />
                       <InfoRow icon={Calendar} label="Allotted From" value={hostelData.presenthosteldetail.allotedfromdate} />
+                      <InfoRow icon={Calendar} label="Allotted Till" value={hostelData.presenthosteldetail.allotedtilldate} />
+                      <InfoRow icon={Calendar} label="Date of Allotment" value={formatHostelDate(hostelData.presenthosteldetail.dateofallotment)} />
                     </div>
                   )}
                 </TabsContent>

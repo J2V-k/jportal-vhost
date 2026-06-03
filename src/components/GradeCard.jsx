@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const GradeCard = ({ subject, getGradeColor }) => {
   return (
@@ -11,20 +12,32 @@ const GradeCard = ({ subject, getGradeColor }) => {
     >
       <Card className="bg-card border border-border/50 hover:border-border/80 transition-all duration-200 hover:shadow-md">
         <CardContent className="p-4 md:p-6">
-          <div className="flex items-center justify-between py-2 gap-4">
-            <div className="md:col-span-2 flex-1 mr-4 w-full">
+          <div className="flex items-start justify-between gap-4 py-2">
+            <div className="min-w-0 flex-1">
               <h2 className="text-base md:text-lg font-semibold text-foreground leading-tight">{subject.subjectdesc}</h2>
               <p className="text-xs md:text-sm text-muted-foreground mt-1">{subject.subjectcode}</p>
             </div>
-            <div className="flex items-center gap-5">
+
+            <div className="flex items-center gap-3 md:gap-5 shrink-0">
               <div className="text-center">
                 <div className={`text-xl md:text-2xl font-bold ${getGradeColor(subject.grade)}`}>{subject.grade}</div>
                 <div className="text-xs text-muted-foreground font-medium mt-0.5">Grade</div>
               </div>
               <div className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-blue-400/80 dark:text-blue-400">{subject.coursecreditpoint}</div>
+                <div className="text-xl md:text-2xl font-bold text-blue-400/80 dark:text-blue-400">{subject.coursecreditpoint ?? subject.credits ?? 0}</div>
                 <div className="text-xs text-muted-foreground font-medium mt-0.5">Credits</div>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5">
+              <div className="text-[11px] uppercase tracking-[0.18em]">Points Secured</div>
+              <div className="mt-1 text-sm font-semibold text-foreground">{subject.pointsecured ?? subject.sgpapoints ?? 0}</div>
+            </div>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5">
+              <div className="text-[11px] uppercase tracking-[0.18em]">Grade Point</div>
+              <div className="mt-1 text-sm font-semibold text-foreground">{subject.gradepoint ?? "-"}</div>
             </div>
           </div>
         </CardContent>

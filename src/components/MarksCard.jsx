@@ -10,9 +10,8 @@ export default function MarksCard({ course, gradeInfo }) {
     return "bg-orange-500/80 shadow-[0_0_12px_rgba(234,88,12,0.4)]";
   };
 
-  const matchingGrade = gradeInfo?.gradecard?.find(
-    (g) => g.subjectcode === course.code
-  );
+  const gradeList = gradeInfo?.response?.gradecard || gradeInfo?.gradecard || [];
+  const matchingGrade = gradeList.find((g) => g.subjectcode === course.code);
 
   const totalMarks = Object.values(course.exams).reduce(
     (acc, exam) => ({

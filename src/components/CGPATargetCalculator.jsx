@@ -247,9 +247,10 @@ export default function CGPATargetCalculator({ w }) {
           }
 
           const gradeCard = await getGradeCardForSemester(semester);
+          const gradeList = gradeCard?.response?.gradecard || gradeCard?.gradecard || [];
           const gradeMap = {};
-          if (gradeCard?.gradecard && Array.isArray(gradeCard.gradecard)) {
-            gradeCard.gradecard.forEach((course) => {
+          if (Array.isArray(gradeList)) {
+            gradeList.forEach((course) => {
               const courseCode = normalizeCourseCode(course.subjectcode || course.subject_code || course.subjectCode || course.code);
               if (courseCode && course.grade) {
                 gradeMap[courseCode] = course.grade;

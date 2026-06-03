@@ -118,6 +118,33 @@ const AttendanceCard = ({
     }
   };
 
+  const formatAttendanceSlot = (value) => {
+    if (!value) return "N/A";
+
+    const match = String(value).match(/^(\d{2}\/\d{2}\/\d{4})\s*\(([^)]+)\)$/i);
+    if (!match) return value;
+
+    const [, datePart, timePart] = match;
+    return `${datePart} • ${timePart.trim()}`;
+  };
+
+  const getClassTypeBadge = (classData) => {
+    const classType = String(classData?.classtype || "").trim().toLowerCase();
+    const isExtra = classType.includes("extra") || classType.includes("makeup") || classType.includes("remedial");
+
+    if (isExtra) {
+      return {
+        label: "Extra Class",
+        className: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30",
+      };
+    }
+
+    return {
+      label: "Regular Class",
+      className: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30",
+    };
+  };
+
   const getDayStatus = (date) => {
     if (!subjectAttendanceData[subject.name]) return null;
 
@@ -373,19 +400,33 @@ const AttendanceCard = ({
                     {getClassesForDate(selDate).map((classData, index) => (
                       <div
                         key={index}
-                        className={`p-2 rounded-md ${classData.present === "Present"
-                          ? "bg-green-600/40 dark:bg-green-200/40"
-                          : "bg-red-600/40 dark:bg-red-200/40"
+                        className={`p-3 rounded-md border ${classData.present === "Present"
+                          ? "border-green-500/30 bg-green-600/20 dark:bg-green-200/20"
+                          : "border-red-500/30 bg-red-600/20 dark:bg-red-200/20"
                           }`}
                       >
-                        <p className="text-sm max-[390px]:text-xs text-foreground">
-                          {classData.attendanceby}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {classData.classtype} - {classData.present}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-600">
-                          {classData.datetime}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-sm max-[390px]:text-xs font-semibold text-foreground">
+                              {classData.attendanceby || "Teacher"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {classData.present || "Unknown"} • {classData.classtype || "Regular"}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`text-[11px] font-medium px-2 py-1 rounded-full ${classData.present === "Present"
+                              ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                              : "bg-red-500/15 text-red-700 dark:text-red-300"}`}>
+                              {classData.attendancestatus || "Current"}
+                            </span>
+                            <span className={`text-[11px] font-medium px-2 py-1 rounded-full ${getClassTypeBadge(classData).className}`}>
+                              {getClassTypeBadge(classData).label}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                          {formatAttendanceSlot(classData.datetime)}
                         </p>
                       </div>
                     ))}

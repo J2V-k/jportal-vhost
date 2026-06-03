@@ -407,9 +407,9 @@ export default function Subjects({
                     ))}
                   </div>
 
-                  <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary border border-primary/20 rounded-full text-xs font-bold">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary border border-primary/20 rounded-full text-xs font-bold">
                     <BookOpen className="w-3.5 h-3.5" />
-                    {currentSubjects?.total_credits || 0} CREDITS
+                    Total Credits: {currentSubjects?.total_credits || 0}
                   </div>
                 </div>
               </div>

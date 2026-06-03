@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
-import { Download, Loader2, ChevronRight, Archive, Calculator, BarChart3, GraduationCap, ArrowUpDown, Grid3x3, ListFilter, SortAsc, SortDesc } from "lucide-react";
+import { Download, Loader2, ChevronRight, Archive, Calculator, BarChart3, GraduationCap, ListFilter, SortAsc, SortDesc, HelpCircle, FileText, AlertTriangle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog,
@@ -43,9 +43,11 @@ import {
 import { getGradesActiveTab, setGradesActiveTab, getMarksSelectedSemester, setMarksSelectedSemester } from '@/components/scripts/cache';
 import GradeCard from "./GradeCard";
 import MarksCard from "./MarksCard";
+import SemCard from "./SemCard";
 import { gradePointMap } from "@/lib/math";
 
-
+// Consolidated payload serializer import from isolated utility module
+import { serialize_payload } from "@/lib/jiitCrypto";
 
 export default function Grades({
   w,
@@ -86,6 +88,7 @@ export default function Grades({
   const [searchParams, setSearchParams] = useSearchParams();
   const { themeMode } = useTheme();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadingGradeReport, setIsDownloadingGradeReport] = useState(false);
   const [mounted, setMounted] = useState(true);
   const [marksCacheTimestamp, setMarksCacheTimestamp] = useState(null);
   const [gradeSort, setGradeSort] = useState('default');
@@ -93,6 +96,50 @@ export default function Grades({
   const [isMarksRefreshing, setIsMarksRefreshing] = useState(false);
   const [isMarksFromCache, setIsMarksFromCache] = useState(false);
   const [marksError, setMarksError] = useState(null);
+  const [selectedSemesterDetail, setSelectedSemesterDetail] = useState(null);
+  const [isSemesterDialogOpen, setIsSemesterDialogOpen] = useState(false);
+
+  // Safely references dynamic session tokens extracted straight from the auth payload state
+  const getGradesRawData = () => {
+    if (!w?.session) return {};
+    return {
+      studentname: w.session.name || "",
+      enrollmentno: w.session.enrollmentno || "",
+      instituteid: w.session.instituteid || "",
+      programmcode: w.session.regdata?.programcode || w.session.programcode || "BTECH", 
+      branchcode: w.session.regdata?.branchcode || w.session.branchdesc || ""
+    };
+  };
+
+  // DEEP STRUCTURE PARSER: Captures raw subject objects under any key permutation or flat list returns
+  const getGradeCardItems = (card) => {
+    if (!card) return [];
+    if (Array.isArray(card)) return card;
+    if (Array.isArray(card?.response?.gradecard)) return card.response.gradecard;
+    if (Array.isArray(card?.gradecard)) return card.gradecard;
+    if (Array.isArray(card?.response)) return card.response;
+    
+    // Checks for alternate naming configurations or key mutations deployed dynamically
+    const nestedOption = card?.response?.response || card?.response?.studentInfo || card?.studentInfo || card?.registrations || card?.response?.registrations || card?.courses || card?.response?.courses;
+    if (Array.isArray(nestedOption)) return nestedOption;
+
+    // Direct object key scanner fallback layout rule
+    for (const key in card) {
+      if (Array.isArray(card[key]) && card[key].length > 0) {
+        return card[key];
+      }
+      if (card[key] && typeof card[key] === 'object') {
+        for (const subKey in card[key]) {
+          if (Array.isArray(card[key][subKey])) return card[key][subKey];
+        }
+      }
+    }
+    return [];
+  };
+
+  const getGradeCardCreditsTotal = (card) => {
+    return getGradeCardItems(card).reduce((sum, item) => sum + (Number(item?.coursecreditpoint ?? item?.credits ?? item?.earnedcredit ?? 0) || 0), 0);
+  };
   const marksFetchInFlight = React.useRef(new Set());
   const lastRefreshRef = React.useRef({});
   const marksRequestIdRef = React.useRef(0);
@@ -323,17 +370,6 @@ export default function Grades({
     return () => { setMounted(false); };
   }, [selectedMarksSem, activeTab]);
 
-  if (isOffline) {
-    return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-auto text-center">
-          <h2 className="text-xl font-semibold text-foreground">Grades Unavailable</h2>
-          <p className="text-muted-foreground mt-2">Grades are not available while offline. Connect to the internet to view grade reports.</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleSemesterChange = async (value) => {
     setGradeCardLoading(true);
     try {
@@ -349,10 +385,175 @@ export default function Grades({
       }
     } catch (error) {
       console.error("Failed to fetch grade card:", error);
+      showErrorToast("Grade Card Error", "Could not load component data parameters for the selected semester.");
     } finally {
       setGradeCardLoading(false);
     }
   };
+
+  // CRYPTO PRODUCTION REFIT: Re-maps key parameters to align cleanly with the Portal engine's expected layouts
+  const handleDownloadGradeReport = async (targetSemCard = null) => {
+    const semNumber = targetSemCard ? targetSemCard.stynumber : (selectedGradeCardSem ? selectedGradeCardSem.registration_code.charAt(0) : "1");
+    
+    setIsDownloadingGradeReport(true);
+    const toastId = showLoadingToast(`Compiling Report structure for Semester ${semNumber}...`, "grade-report-dl");
+    try {
+      let currentGradeCardSems = gradeCardSemesters;
+      if (currentGradeCardSems.length === 0) {
+        currentGradeCardSems = await w.get_semesters_for_grade_card();
+        setGradeCardSemesters(currentGradeCardSems);
+      }
+
+      let activeRegistrationSem = selectedGradeCardSem;
+      if (targetSemCard) {
+        activeRegistrationSem = currentGradeCardSems.find(s => 
+          String(s.registration_code).includes(`SEM${semNumber}`) || 
+          String(s.registration_code).startsWith(semNumber) ||
+          String(s.registration_id) === String(targetSemCard.registration_id)
+        );
+      }
+
+      if (!activeRegistrationSem && currentGradeCardSems.length > 0) {
+        activeRegistrationSem = currentGradeCardSems.find(s => String(s.registration_code).includes(String(semNumber))) || currentGradeCardSems[0];
+      }
+
+      if (!activeRegistrationSem) {
+        throw new Error("Could not map active registration keys for this semester timeline entry.");
+      }
+
+      let detailedCoursesObj = gradeCards[activeRegistrationSem.registration_id];
+      if (!detailedCoursesObj) {
+        // FIXED ROUTINE: Directly await fresh extraction downstream into state references
+        const freshlyFetchedCard = await w.get_grade_card(activeRegistrationSem);
+        if (freshlyFetchedCard) {
+          freshlyFetchedCard.semesterId = activeRegistrationSem.registration_id;
+          setGradeCards(prev => ({ ...prev, [activeRegistrationSem.registration_id]: freshlyFetchedCard }));
+          detailedCoursesObj = freshlyFetchedCard;
+        }
+      }
+
+      const rawCoursesArray = getGradeCardItems(detailedCoursesObj);
+      if (!rawCoursesArray || rawCoursesArray.length === 0) {
+        throw new Error("The portal returned an empty file table block for this semester code.");
+      }
+
+      let totalGradePoints = 0, totalCourseCredits = 0, totalEarnedCredits = 0, totalSgpaPoints = 0, totalCgpaPoints = 0;
+      
+      const formattedCoursesList = rawCoursesArray.map(c => {
+        const gp = parseFloat(c.gradepoint ?? c.gradePoint ?? gradePointMap[c.grade] ?? 0);
+        const cr = parseFloat(c.coursecreditpoint ?? c.credits ?? c.course_credits ?? 0);
+        const ec = parseFloat(c.earnedcredit ?? c.earned_credit ?? cr);
+        const sp = parseFloat(c.sgpapoint ?? c.sgpaPoint ?? (gp * cr));
+        const cp = parseFloat(c.cgpapoint ?? c.cgpaPoint ?? sp);
+
+        totalGradePoints += gp;
+        totalCourseCredits += cr;
+        totalEarnedCredits += ec;
+        totalSgpaPoints += sp;
+        totalCgpaPoints += cp;
+
+        return {
+          subjectcode: c.subjectcode || c.subject_code || c.subjectid || "",
+          subjectdesc: c.subjectdesc || c.subject_desc || c.subjectname || "",
+          gradepoint: String(gp),
+          course_credits: String(cr),  
+          earned_credit: String(ec),   
+          sgpapoint: String(sp),       
+          cgpapoint: String(cp),       
+          grade: c.grade || "",
+          passfail: c.passfail || (c.grade === "F" ? "Y" : "N"),
+          minorsubject: c.minorsubject || "N"
+        };
+      });
+
+      // Appends explicit "Total" row structural tracking values
+      formattedCoursesList.push({
+        subjectdesc: "Total",
+        gradepoint: String(totalGradePoints),
+        course_credits: String(totalCourseCredits),
+        earned_credit: String(totalEarnedCredits),
+        sgpapoint: String(totalSgpaPoints),
+        cgpapoint: String(totalCgpaPoints),
+        grade: "",
+        passfail: "",
+        minorsubject: ""
+      });
+
+      const ENDPOINT = "/studentsgpacgpa/semesterwisestudentresultreport";
+      const currentHeaders = await w.session.get_headers();
+      const localname = currentHeaders.LocalName || currentHeaders.localname;
+      const studentMeta = getGradesRawData();
+
+      const rawPayload = {
+        studentname: studentMeta.studentname,
+        instituteid: studentMeta.instituteid,
+        studentinfolist: formattedCoursesList, 
+        sgpa: targetSemCard ? String(targetSemCard.sgpa) : (semesterData?.find(s => String(s.stynumber) === String(semNumber))?.sgpa || ""),
+        cgpa: targetSemCard ? String(targetSemCard.cgpa) : (semesterData?.find(s => String(s.stynumber) === String(semNumber))?.cgpa || ""),
+        enrollmentno: studentMeta.enrollmentno,
+        programmcode: studentMeta.programmcode, 
+        branchcode: studentMeta.branchcode,
+        stynumber: String(semNumber)
+      };
+
+      const securePayload = await serialize_payload(rawPayload);
+
+      let downloadUrl = w.apiUrl + ENDPOINT;
+      if (w.useProxy) {
+        let endpoint = downloadUrl.replace(w.apiUrl, "");
+        downloadUrl = `${w.proxyUrl}/proxy${endpoint}`;
+      }
+
+      const resp = await fetch(downloadUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...currentHeaders,
+          "LocalName": localname
+        },
+        body: JSON.stringify(securePayload)
+      });
+
+      if (!resp.ok) throw new Error(`Portal returned error status ${resp.status}`);
+
+      const blob = await resp.blob();
+      
+      if (blob.size <= 400) { 
+        const errContext = await blob.text();
+        console.error("Intercepted exception response stream text:", errContext);
+        throw new Error("Portal backend compiled a blank document block. Confirm all selected parameters match structural verification sets.");
+      }
+
+      const contentType = resp.headers.get("content-type") || "";
+      if (contentType.toLowerCase().includes("json")) {
+        throw new Error("Server processed an internal layout parsing error container instead of an official asset file stream.");
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `grade_report_semester_${semNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+      updateToastSuccess(toastId, "Download complete", "Your official Grade Report PDF has been downloaded successfully.");
+    } catch (err) {
+      console.error("Grade Report handling exception:", err);
+      updateToastError(toastId, "Download failed", err?.message || "Failed to finalize official document streaming.");
+      showErrorToast("Document Download Error", err?.message || "Portal server sent down an unreadable layout container.");
+    } finally {
+      setIsDownloadingGradeReport(false);
+    }
+  };
+
+  const DetailStat = ({ label, value }) => (
+    <div className="rounded-lg border border-border bg-muted/40 p-3">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-base font-semibold text-foreground">{value}</p>
+    </div>
+  );
 
   const getGradeColor = (grade) => {
     const gradeColors = {
@@ -442,10 +643,13 @@ export default function Grades({
       console.error("Failed to download marks:", err);
       updateToastError(toastId, "Download failed", err?.message || "Unable to download marks.");
       showErrorToast("Marks Download Error", err?.message || "Failed to download marks.");
-    } finally {
+    } filll: {
       setIsDownloading(false);
     }
   };
+
+  const isCurrentSemPartial = selectedGradeCardSem?.is_grade_card_complete === false || 
+                             selectedGradeCardSem?.grade_card_source === "studentchoiceprint";
 
   return (
     <>
@@ -529,24 +733,20 @@ export default function Grades({
                       </ResponsiveContainer>
                     </motion.div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {semesterData.map((sem, idx) => (
-                        <motion.div key={sem.stynumber} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className="bg-card rounded-lg p-4 border border-border shadow-md">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="text-base font-semibold">Semester {sem.stynumber}</h4>
-                              <p className="text-xs text-muted-foreground">GP: {sem.earnedgradepoints.toFixed(1)}/{sem.totalcoursecredit * 10}</p>
-                            </div>
-                            <div className="flex gap-3">
-                              <div className="text-center">
-                                <div className="text-lg font-bold text-green-400">{sem.sgpa}</div>
-                                <div className="text-[10px] text-muted-foreground uppercase">SGPA</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-lg font-bold text-blue-400">{sem.cgpa}</div>
-                                <div className="text-[10px] text-muted-foreground uppercase">CGPA</div>
-                              </div>
-                            </div>
-                          </div>
+                      {semesterData?.map((sem, idx) => (
+                        <motion.div
+                          key={sem.stynumber}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                        >
+                          <SemCard
+                            semester={sem}
+                            onClick={() => {
+                              setSelectedSemesterDetail(sem);
+                              setIsSemesterDialogOpen(true);
+                            }}
+                          />
                         </motion.div>
                       ))}
                     </div>
@@ -577,44 +777,86 @@ export default function Grades({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <Select onValueChange={handleSemesterChange} value={selectedGradeCardSem?.registration_id}>
-                        <SelectTrigger className="w-full md:w-[250px]">
-                          <SelectValue placeholder="Select semester" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {gradeCardSemesters.map(s => <SelectItem key={s.registration_id} value={s.registration_id}>{s.registration_code}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex items-center gap-4 flex-wrap justify-between bg-card border border-border rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <Select onValueChange={handleSemesterChange} value={selectedGradeCardSem?.registration_id}>
+                          <SelectTrigger className="w-full md:w-[250px]">
+                            <SelectValue placeholder="Select semester" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {gradeCardSemesters.map(s => {
+                              const isPartial = s.is_grade_card_complete === false || s.grade_card_source === "studentchoiceprint";
+                              return (
+                                <SelectItem key={s.registration_id} value={s.registration_id}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{s.registration_code}</span>
+                                    {isPartial && (
+                                      <span className="text-[10px] text-amber-500 border border-amber-500/30 bg-amber-500/15 px-1.5 py-0.5 rounded-md font-semibold tracking-wide">
+                                        Tentative
+                                      </span>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        {gradeCard && (
+                          <Badge variant="outline" className="px-3 py-2 text-sm gap-1">
+                            Total Credits: <span className="font-bold">{getGradeCardCreditsTotal(gradeCard).toFixed(1)}</span>
+                          </Badge>
+                        )}
+                        <ButtonGroup className="rounded-lg overflow-hidden border border-border">
+                          <Button variant="ghost" size="sm" onClick={toggleGradeSort} className="gap-1 h-9">
+                            <span className="text-xs">Grade</span>
+                            {gradeSort === "asc" ? <SortAsc className="w-3.5 h-3.5" /> : gradeSort === "desc" ? <SortDesc className="w-3.5 h-3.5" /> : <ListFilter className="w-3.5 h-3.5" />}
+                          </Button>
+                          <ButtonGroupSeparator />
+                          <Button variant="ghost" size="sm" onClick={toggleCreditSort} className="gap-1 h-9">
+                            <span className="text-xs">Credit</span>
+                            {creditSort === "asc" ? <SortAsc className="w-3.5 h-3.5" /> : creditSort === "desc" ? <SortDesc className="w-3.5 h-3.5" /> : <ListFilter className="w-3.5 h-3.5" />}
+                          </Button>
+                        </ButtonGroup>
+                      </div>
+
                       {gradeCard && (
-                        <Badge variant="outline" className="px-4 py-2">
-                          Total Credits: {gradeCard.gradecard?.reduce((sum, sub) => sum + (sub.coursecreditpoint || 0), 0).toFixed(1)}
-                        </Badge>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 ml-auto text-primary hover:bg-primary/5 border-primary/20"
+                          onClick={() => handleDownloadGradeReport(null)}
+                          disabled={isDownloadingGradeReport}
+                        >
+                          {isDownloadingGradeReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                          <span>Download Grade Report</span>
+                        </Button>
                       )}
-                      <ButtonGroup className="rounded-lg overflow-hidden border border-border">
-                        <Button variant="ghost" size="sm" onClick={toggleGradeSort} className="gap-1 h-9">
-                          <span className="text-xs">Grade</span>
-                          {gradeSort === "asc" ? <SortAsc className="w-3.5 h-3.5" /> : gradeSort === "desc" ? <SortDesc className="w-3.5 h-3.5" /> : <ListFilter className="w-3.5 h-3.5" />}
-                        </Button>
-                        <ButtonGroupSeparator />
-                        <Button variant="ghost" size="sm" onClick={toggleCreditSort} className="gap-1 h-9">
-                          <span className="text-xs">Credit</span>
-                          {creditSort === "asc" ? <SortAsc className="w-3.5 h-3.5" /> : creditSort === "desc" ? <SortDesc className="w-3.5 h-3.5" /> : <ListFilter className="w-3.5 h-3.5" />}
-                        </Button>
-                      </ButtonGroup>
                     </div>
+                    
+                    {isCurrentSemPartial && (
+                      <Alert className="border-amber-500/20 bg-amber-500/5 text-amber-600 dark:text-amber-400 max-w-7xl mx-auto py-3 shadow-sm rounded-xl">
+                        <AlertDescription className="text-xs flex items-start gap-2.5 leading-relaxed">
+                          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-amber-500 mt-0.5" />
+                          <div>
+                            <span className="font-semibold block mb-0.5 text-amber-700 dark:text-amber-300">Tentative Semester Records Detected</span>
+                            This file set was mapped using preliminary choice configuration arrays. Component totals and full records remain structural estimates until official verification sets are locked by the system administrators.
+                          </div>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {gradeCard?.gradecard?.sort((a, b) => {
+                      {getGradeCardItems(gradeCard).sort((a, b) => {
                         if (gradeSort !== 'default') {
                           const diff = gradePointMap[a.grade] - gradePointMap[b.grade];
                           return gradeSort === 'asc' ? diff : -diff;
                         }
                         if (creditSort !== 'default') {
-                          const diff = a.coursecreditpoint - b.coursecreditpoint;
+                          const diff = (a.coursecreditpoint ?? a.credits ?? 0) - (b.coursecreditpoint ?? b.credits ?? 0);
                           return creditSort === 'asc' ? diff : -diff;
                         }
                         return 0;
-                      }).map(s => <GradeCard key={s.subjectcode} subject={s} getGradeColor={getGradeColor} />)}
+                      }).map(s => <GradeCard key={s.subjectcode || s.subjectid} subject={s} getGradeColor={getGradeColor} />)}
                     </div>
                   </div>
                 )}
@@ -672,6 +914,56 @@ export default function Grades({
             </TabsContent>
           </div>
         </Tabs>
+        
+        {/* Quick Summary Semester Modal Dialog Container */}
+        <Dialog open={isSemesterDialogOpen} onOpenChange={(open) => {
+          setIsSemesterDialogOpen(open);
+          if (!open) setSelectedSemesterDetail(null);
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader className="space-y-1">
+              <div className="flex items-center justify-between pr-6">
+                <div>
+                  <DialogTitle className="text-base">Semester {selectedSemesterDetail?.stynumber || "Details"}</DialogTitle>
+                  <DialogDescription className="text-xs">Quick semester summary.</DialogDescription>
+                </div>
+                
+                {/* Embedded Action Download Trigger Header Button */}
+                {selectedSemesterDetail && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-primary hover:bg-primary/5 border-primary/20 shadow-sm"
+                    onClick={() => handleDownloadGradeReport(selectedSemesterDetail)}
+                    disabled={isDownloadingGradeReport}
+                  >
+                    {isDownloadingGradeReport ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
+                    )}
+                    <span className="text-xs">Download Report</span>
+                  </Button>
+                )}
+              </div>
+            </DialogHeader>
+            {selectedSemesterDetail && (
+              <div className="space-y-3 text-sm text-foreground pt-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <DetailStat label="SGPA" value={Number(selectedSemesterDetail.sgpa || 0).toFixed(2)} />
+                  <DetailStat label="CGPA" value={Number(selectedSemesterDetail.cgpa || 0).toFixed(2)} />
+                  <DetailStat label="Credits Registered" value={Number(selectedSemesterDetail.totalregisteredcredit || selectedSemesterDetail.registeredcredit || 0).toFixed(1)} />
+                  <DetailStat label="Credits Earned" value={Number(selectedSemesterDetail.totalearnedcredit || selectedSemesterDetail.totalearnedcredits || 0).toFixed(1)} />
+                  <DetailStat label="Earned Grade Points" value={Number(selectedSemesterDetail.earnedgradepoints || selectedSemesterDetail.totalpointsecuredsgpa || 0).toFixed(1)} />
+                  <DetailStat label="Total Grade Points" value={Number(selectedSemesterDetail.totalgradepoints || selectedSemesterDetail.prograde || 0).toFixed(1)} />
+                  <DetailStat label="SGPA Points" value={Number(selectedSemesterDetail.totalpointsecuredsgpa || 0).toFixed(1)} />
+                  <DetailStat label="CGPA Points" value={Number(selectedSemesterDetail.totalpointsecuredcgpa || 0).toFixed(1)} />
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={isDownloadDialogOpen} onOpenChange={setIsDownloadDialogOpen}>
           <DialogContent>
             <DialogHeader>
