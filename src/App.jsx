@@ -35,7 +35,7 @@ import { Toaster } from "@/components/ui/sonner";
 import {
   WebPortal,
   LoginError,
-} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.26/dist/jsjiit.esm.js";
+} from "https://cdn.jsdelivr.net/npm/jsjiit@0.0.27/dist/jsjiit.esm.js";
 import { serialize_payload } from "@/lib/jiitCrypto";
 import { proxy_url } from "@/lib/api";
 import { ArtificialWebPortal } from "./components/scripts/artificialW";
