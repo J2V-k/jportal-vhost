@@ -1,1 +1,1 @@
-export const proxy_url = "https://render-proxy-mhit.onrender.com/api/StudentPortalAPI";
+export const proxy_url = "https://render-proxy-gfn4.onrender.com/api/StudentPortalAPI";
