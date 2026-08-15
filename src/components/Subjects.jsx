@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Helmet } from 'react-helmet-async'
 import SubjectInfoCard from "./SubjectInfoCard"
 import SubjectChoices from "./SubjectChoices"
+import AddDropStatus from "./AddDropStatus"
+import MoocStatus from "./MoocStatus"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Empty } from "@/components/ui/empty"
@@ -47,6 +49,11 @@ export default function Subjects({
   const [choicesLoading, setChoicesLoading] = useState(false)
   const [nextSemChoices, setNextSemChoices] = useState(null)
   const [nextSemChoicesLoading, setNextSemChoicesLoading] = useState(false)
+  const [moocSemesters, setMoocSemesters] = useState([])
+  const [addDropSemesters, setAddDropSemesters] = useState([])
+  const [moocStatusDetail, setMoocStatusDetail] = useState(null)
+  const [addDropStatusDetail, setAddDropStatusDetail] = useState(null)
+  const [statusLoading, setStatusLoading] = useState({ mooc: false, adddrop: false })
   const [componentFilters, setComponentFilters] = useState({
     L: true,
     T: true,
@@ -55,10 +62,11 @@ export default function Subjects({
 
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && ['registered', 'choices'].includes(tabFromUrl)) {
-      setActiveTab(tabFromUrl);
+    const normalizedTab = tabFromUrl === 'mooc' || tabFromUrl === 'adddrop' ? 'status' : tabFromUrl;
+    if (normalizedTab && ['registered', 'choices', 'status'].includes(normalizedTab)) {
+      setActiveTab(normalizedTab);
     }
-  }, []);
+  }, [searchParams]);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -165,6 +173,120 @@ export default function Subjects({
   }, [selectedSem, w]);
 
   useEffect(() => {
+    if (!w?.session) {
+      setMoocSemesters([])
+      setAddDropSemesters([])
+      setMoocStatusDetail(null)
+      setAddDropStatusDetail(null)
+      return
+    }
+
+    const instituteId = w.session.instituteid
+    if (!instituteId) {
+      setMoocSemesters([])
+      setAddDropSemesters([])
+      setMoocStatusDetail(null)
+      setAddDropStatusDetail(null)
+      return
+    }
+
+    const normalizeStatusList = (value) => {
+      if (!value) return [];
+      if (Array.isArray(value)) return value;
+      if (Array.isArray(value.response)) return value.response;
+      if (Array.isArray(value.semestercodelist)) return value.semestercodelist;
+      if (Array.isArray(value.registrationcodelist)) return value.registrationcodelist;
+      if (Array.isArray(value.subjectstatus)) return value.subjectstatus;
+      if (Array.isArray(value.response?.totalsubjectDetailList)) return value.response.totalsubjectDetailList;
+      if (Array.isArray(value.response?.totalRejsubjectDetailList)) return value.response.totalRejsubjectDetailList;
+
+      const nestedResponse = value.response;
+      if (nestedResponse && typeof nestedResponse === 'object') {
+        const combined = [
+          ...(Array.isArray(nestedResponse.totalsubjectDetailList) ? nestedResponse.totalsubjectDetailList : []),
+          ...(Array.isArray(nestedResponse.totalRejsubjectDetailList) ? nestedResponse.totalRejsubjectDetailList : []),
+          ...(Array.isArray(nestedResponse.subjectstatus) ? nestedResponse.subjectstatus : []),
+        ];
+        if (combined.length > 0) return combined;
+      }
+
+      return [];
+    };
+
+    let active = true;
+
+    const loadStatus = async () => {
+      try {
+        const [moocRes, addDropRes] = await Promise.allSettled([
+          w.get_mooc_subject_status_semesters?.({ instituteid: instituteId }),
+          w.get_add_drop_status_semesters?.({ instituteid: instituteId }),
+        ])
+
+        if (!active) return
+
+        const finalMooc = moocRes.status === 'fulfilled'
+          ? normalizeStatusList(moocRes.value)
+          : []
+
+        const finalAddDrop = addDropRes.status === 'fulfilled'
+          ? normalizeStatusList(addDropRes.value)
+          : []
+
+        setMoocSemesters(finalMooc)
+        setAddDropSemesters(finalAddDrop)
+      } catch (error) {
+        if (!active) return
+        console.warn('Academic status fetch failed; continuing with empty state.', error)
+        setMoocSemesters([])
+        setAddDropSemesters([])
+      }
+    }
+
+    loadStatus()
+
+    return () => {
+      active = false;
+    };
+  }, [w]);
+
+  useEffect(() => {
+    if (!w || !selectedSem || !['status', 'mooc', 'adddrop'].includes(activeTab)) return
+
+    const loadSubjectStatusDetail = async () => {
+      const targets = activeTab === 'status' ? ['mooc', 'adddrop'] : [activeTab]
+
+      for (const target of targets) {
+        const isMooc = target === 'mooc'
+        const loader = isMooc ? w.get_mooc_subject_status : w.get_add_drop_status
+
+        if (!loader) continue
+
+        setStatusLoading((prev) => ({ ...prev, [isMooc ? 'mooc' : 'adddrop']: true }))
+
+        try {
+          const data = await loader.call(w, selectedSem)
+          if (isMooc) {
+            setMoocStatusDetail(data || null)
+          } else {
+            setAddDropStatusDetail(data || null)
+          }
+        } catch (error) {
+          console.warn(`Failed to load ${isMooc ? 'MOOC' : 'Add/Drop'} status for selected semester`, error)
+          if (isMooc) {
+            setMoocStatusDetail(null)
+          } else {
+            setAddDropStatusDetail(null)
+          }
+        } finally {
+          setStatusLoading((prev) => ({ ...prev, [isMooc ? 'mooc' : 'adddrop']: false }))
+        }
+      }
+    }
+
+    loadSubjectStatusDetail()
+  }, [w, selectedSem, activeTab])
+
+  useEffect(() => {
     const fetchChoicesForSelectedSemester = async () => {
       const username = w.username || getUsername() || 'user';
       if (selectedSem && !subjectChoices?.[selectedSem.registration_id]) {
@@ -235,6 +357,9 @@ export default function Subjects({
   const currentSubjects = selectedSem && subjectData?.[selectedSem.registration_id]
   const currentChoices = selectedSem && subjectChoices?.[selectedSem.registration_id]
   const currentSubjectsError = currentSubjects?.error
+  const fallbackSemesterList = semestersData?.semesters || []
+  const moocHasFallback = moocSemesters.length === 0 && fallbackSemesterList.length > 0
+  const addDropHasFallback = addDropSemesters.length === 0 && fallbackSemesterList.length > 0
 
   const getNextSemester = () => {
     if (!semestersData?.semesters || !selectedSem) return null
@@ -366,20 +491,27 @@ export default function Subjects({
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="px-3 max-w-[1440px] mx-auto">
-          <TabsList className="grid grid-cols-2 bg-card gap-3 mt-4">
+          <TabsList className="mt-4 grid w-full grid-cols-3 gap-2 bg-card p-1.5 sm:gap-3">
             <TabsTrigger
               value="registered"
-              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] sm:text-sm sm:gap-2"
             >
-              <BookOpen className="w-4 h-4" />
-              Registered
+              <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="truncate">Registered</span>
             </TabsTrigger>
             <TabsTrigger
               value="choices"
-              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center gap-2"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] sm:text-sm sm:gap-2"
             >
-              <ListChecks className="w-4 h-4" />
-              Choices
+              <ListChecks className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="truncate">Choices</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="status"
+              className="cursor-pointer text-muted-foreground bg-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-foreground transition-colors flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] sm:text-sm sm:gap-2"
+            >
+              <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="truncate">MOOC / Add</span>
             </TabsTrigger>
           </TabsList>
 
@@ -487,6 +619,62 @@ export default function Subjects({
               choicesLoading={nextSemChoices ? nextSemChoicesLoading : choicesLoading}
               semesterName={nextSemChoices ? nextSemChoices.semester.registration_code : selectedSem?.registration_code}
             />
+          </TabsContent>
+
+          <TabsContent value="status" className="mt-4 space-y-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="text-base md:text-lg font-bold">MOOC Status</h3>
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">{moocSemesters.length}</span>
+              </div>
+
+              {statusLoading.mooc ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading MOOC status...
+                </div>
+              ) : moocStatusDetail ? (
+                <MoocStatus moocStatus={moocStatusDetail} />
+              ) : moocSemesters.length === 0 ? (
+                moocHasFallback ? (
+                  <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                    unavailable
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                    unavailable
+                  </div>
+                )
+              ) : (
+                <MoocStatus moocStatus={moocSemesters[0]} />
+              )}
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="text-base md:text-lg font-bold">Add / Drop Status</h3>
+                <span className="rounded-full border border-secondary/20 bg-secondary/10 px-2 py-1 text-xs font-semibold text-secondary">{addDropSemesters.length}</span>
+              </div>
+
+              {statusLoading.adddrop ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading add / drop status...
+                </div>
+              ) : addDropStatusDetail ? (
+                <AddDropStatus addDropStatus={addDropStatusDetail} />
+              ) : addDropSemesters.length === 0 ? (
+                addDropHasFallback ? (
+                  <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                    unavailable
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                    unavailable
+                  </div>
+                )
+              ) : (
+                <AddDropStatus addDropStatus={addDropSemesters[0]} />
+              )}
+            </div>
           </TabsContent>
         </Tabs>
         <div className="h-8 md:h-12" />
