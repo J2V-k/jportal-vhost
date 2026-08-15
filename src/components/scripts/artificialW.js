@@ -124,6 +124,11 @@ export class ArtificialWebPortal {
   }
 
   async get_semesters_for_grade_card() {
+    try {
+      const username = (typeof window !== 'undefined' && getUsername()) || this.username;
+      const cached = await getFromCache(`gradeCardSemesters:${username}`);
+      if (cached) return cached;
+    } catch (e) {}
     return [];
   }
 
@@ -133,6 +138,10 @@ export class ArtificialWebPortal {
 
   async get_marks(semester) {
     return null;
+  }
+
+  async download_grades(semester) {
+    return true;
   }
 
   async get_exam_schedule(semester) {
@@ -221,5 +230,33 @@ export class ArtificialWebPortal {
     } catch (e) {
     }
     return null;
+  }
+
+  async get_fines_msc_charges() {
+    return [];
+  }
+
+  async get_fee_summary() {
+    return null;
+  }
+
+  async get_mooc_subject_status_semesters() {
+    return [];
+  }
+
+  async get_mooc_subject_status(semester) {
+    return null;
+  }
+
+  async get_add_drop_status_semesters() {
+    return [];
+  }
+
+  async get_add_drop_status(semester) {
+    return null;
+  }
+
+  async fill_feedback_form(feedback_option) {
+    return { submitted: false, feedback_option, skipped: true };
   }
 }

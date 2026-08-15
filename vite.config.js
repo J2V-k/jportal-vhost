@@ -103,7 +103,6 @@ export default defineConfig({
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js", revision: null },
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.js", revision: null },
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.wasm", revision: null },
-          { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.asm.data", revision: null },
           { url: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/repodata.json", revision: null },
           { url: "https://cdn.jsdelivr.net/gh/J2V-k/jportal-vhost@main/public/artifact/jiit_marks-0.2.0-py3-none-any.whl", revision: null },
           { url: "https://raw.githubusercontent.com/J2V-k/jportal-vhost/main/public/artifact/PyMuPDF-1.24.12-cp311-abi3-emscripten_3_1_32_wasm32.whl", revision: null },

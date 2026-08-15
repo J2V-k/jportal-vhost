@@ -1,3 +1,5 @@
+const PYODIDE_CDN_BASE = "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/";
+
 let _pyodidePromise = null;
 let _packagesLoaded = false;
 let _packagesPromise = null;
@@ -8,7 +10,7 @@ async function ensurePyodideScript() {
   if (_scriptPromise) return _scriptPromise;
   _scriptPromise = new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js";
+    s.src = `${PYODIDE_CDN_BASE}pyodide.js`;
     s.async = true;
     s.onload = () => resolve();
     s.onerror = () => reject(new Error("Failed to load Pyodide script"));
@@ -20,7 +22,7 @@ async function ensurePyodideScript() {
 export async function getPyodideInstance() {
   await ensurePyodideScript();
   if (!_pyodidePromise) {
-    _pyodidePromise = loadPyodide();
+    _pyodidePromise = loadPyodide({ indexURL: PYODIDE_CDN_BASE });
   }
   return await _pyodidePromise;
 }
